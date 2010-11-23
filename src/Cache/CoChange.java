@@ -157,8 +157,5 @@ public class CoChange {
 
 		}
 
-
-
-
 	}
 }
