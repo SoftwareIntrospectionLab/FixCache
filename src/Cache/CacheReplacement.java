@@ -13,8 +13,8 @@ public class CacheReplacement {
 	
 	public CacheReplacement(Policy p){
 		switch (p){
-		case BUGS: compareFunc = new CacheReplacementBUG();
-		case CHANGES: compareFunc = new CacheReplacementCHANGE();
+		case BUGS: compareFunc = new ComparatorBug();
+		case CHANGES: compareFunc = new ComparatorChange();
 		case AUTHORS:
 		case LRU:
 		}
