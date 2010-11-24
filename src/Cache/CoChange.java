@@ -21,9 +21,15 @@ public class CoChange {
 
 	int fileID;
 
-	public CoChange(int fileID)
+	private CoChange(int fileID)
 	{
 		this.fileID = fileID;
+	}
+	
+	public static ArrayList<Integer> getCoChangeFileList(int fileid, int commitid, int blocksize){
+		CoChange co = new CoChange(fileid);
+		return co.getCoChangeList(co.buildCoChangeMap(commitid), blocksize);
+		
 	}
 
 	// build a table of files that are changed with fileID, before time commitID

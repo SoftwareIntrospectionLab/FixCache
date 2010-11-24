@@ -6,12 +6,14 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 
+import Cache.CacheItem.CacheReason;
+
 public class Cache {
 	
 	// Invariant: cacheTable.size() <= size;
 	
 	final int size;
-	final Hashtable cacheTable = new Hashtable();
+	final Hashtable<Integer, CacheItem> cacheTable = new Hashtable();
 	// List<Integer> files;
 	final CacheReplacement policy;
 	
@@ -32,10 +34,30 @@ public class Cache {
 	// TODO: load a chunk at a time??
 	public void load(CacheItem cacheItem)
 	{
-		String entityId = cacheItem.getEntityId();
+		int entityId = cacheItem.getEntityId();
 		if (isFull())
 			bumpOutItem();
 		cacheTable.put(entityId, cacheItem);
+	}
+	
+	public void add(int eid, int cid, CacheReason reas){
+		// if reas == BugEntity
+			// if it is already in the cache, register a hit
+			// else register a fault
+		if (cacheTable.containsKey(eid))
+			cacheTable.get(eid).update(reas, cid);
+		else
+			load (new CacheItem(eid, cid, reas));
+	}
+	
+	public void add(ArrayList<Integer> eids, int cid, CacheReason reas){
+		for (int eid: eids)
+			add(eid, cid, reas);
+		
+	}
+	
+	public void remove(int fileid){
+		cacheTable.remove(fileid);
 	}
 
 	public void bumpOutItem()
@@ -53,7 +75,7 @@ public class Cache {
 			else 
 				min = policy.minimum(min, c);
 		}
-		String entityId = min.getEntityId();
+		int entityId = min.getEntityId();
 		cacheTable.remove(entityId);
 	}
 	
