@@ -1,10 +1,8 @@
 package Cache;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.List;
 
 import Cache.CacheItem.CacheReason;
 
@@ -49,6 +47,7 @@ public class Cache {
 		else
 			load (new CacheItem(eid, cid, reas));
 	}
+	
 	
 	public void add(ArrayList<Integer> eids, int cid, CacheReason reas){
 		for (int eid: eids)
