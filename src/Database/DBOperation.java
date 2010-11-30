@@ -41,14 +41,17 @@ public class DBOperation {
         try {
             s = conn.createStatement();
             r = s.executeQuery(sqlStatement);
-    }
-    catch (Exception e) {
-            System.out.println(e);
-            System.exit(0);
-            }
-    return r;
+		    }
+		    catch (Exception e) {
+		            System.out.println(e);
+		            System.exit(0);
+		    }
+
+		return r;
 	}
-public static void main(String [] args) {
+	
+	
+   public static void main(String [] args) {
 	DBOperation dbOp = new DBOperation("jdbc:mysql://localhost/mydb","root","jacjac");
 	//DBOperation dbOp = new DBOperation("jdbc:mysql://db-01:3306/ejw_xzhu1","ejw_xzhu1","opfMf477");
 	Connection conn = dbOp.getConnection();
