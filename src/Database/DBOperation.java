@@ -49,19 +49,17 @@ public class DBOperation {
     return r;
 	}
 public static void main(String [] args) {
-	
-	DBOperation dbOp = new DBOperation("jdbc:mysql://db-01:3306/ejw_xzhu1","ejw_xzhu1","opfMf477");
+	DBOperation dbOp = new DBOperation("jdbc:mysql://localhost/mydb","root","jacjac");
+	//DBOperation dbOp = new DBOperation("jdbc:mysql://db-01:3306/ejw_xzhu1","ejw_xzhu1","opfMf477");
 	Connection conn = dbOp.getConnection();
 	int id = 1;
 	int fileID = 1;
 	int commitID = 2;
-	String sql = "SELECT id, commit_id from actions where id="+fileID+" and commit_id <="+commitID;
+	String sql = "SELECT id from actions where id="+fileID+" and commit_id <="+commitID;
 	ResultSet r = dbOp.ExeQuery(conn, sql);
 	try{
 		 while(r.next()) {
-       System.out.println (
-               r.getString("id") + " " +
-               r.getString("commit_id") + " " );
+       System.out.println(r.getInt(1));
        }
 	}  
 	catch (Exception e) {
