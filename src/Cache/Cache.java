@@ -76,6 +76,7 @@ public class Cache {
 		}
 		int entityId = min.getEntityId();
 		cacheTable.remove(entityId);
+	
 	}
 	
 	public void bumpOutItem(int numItems)
