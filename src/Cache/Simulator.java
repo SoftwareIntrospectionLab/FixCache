@@ -192,6 +192,7 @@ public class Simulator {
 		int cur=0;
 		try {
 			while (r.next()) {
+				System.out.println(cur++);
 				id = r.getInt(1);
 				isBugFix = r.getBoolean(2);
 				sql = "select actions.file_id, type ,loc from actions, content_loc where actions.file_id=content_loc.file_id and actions.commit_id = "+id+" = content_loc.commit_id order by loc DESC";
@@ -264,6 +265,8 @@ public class Simulator {
 			System.out.println(e);
 			System.exit(0);
        }
+		
+		System.out.println(hit+"***"+miss);
 //		select (file_id, type) from actions where commit_id == id, ordered_by loc
 //		int file_id;
 //		FileType type;
