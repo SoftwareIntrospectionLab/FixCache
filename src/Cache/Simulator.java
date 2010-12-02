@@ -91,7 +91,7 @@ public class Simulator {
     	r = dbOp.ExeQuery(conn, sql);
     	ResultSet r1;
     	ResultSet r2;
-    	int rev;
+    	String rev;
     	try{
     		while(r.next())
     	{
@@ -100,8 +100,8 @@ public class Simulator {
     		r1 = dbOp.ExeQuery(conn, sql);
     		while(r1.next())
     		{
-    			rev = r1.getInt(1);
-    			sql = "select id from scmlog where rev = "+rev +" and repository_id = "+pId;//find the commit id according to rev and project id
+    			rev = r1.getString(1);
+    			sql = "select id from scmlog where rev = "+"'"+rev+"'" +" and repository_id = "+pId;//find the commit id according to rev and project id
     			r2 = dbOp.ExeQuery(conn, sql);
     			while(r2.next())
     			{
@@ -239,7 +239,7 @@ public class Simulator {
 																		// intro_cid?
 							ArrayList<Integer> cochanges = CoChange
 									.getCoChangeFileList(file_id, intro_cid,
-											sim.blocksize);
+											sim.blocksize,pw);
 							sim.cache.add(cochanges, id,
 									CacheItem.CacheReason.CoChange);
 						} else {
@@ -252,6 +252,7 @@ public class Simulator {
 						}
 					}
 				}
+			numprefetch = 0;
 			}
 			conn.close();
 		} catch (Exception e) {
