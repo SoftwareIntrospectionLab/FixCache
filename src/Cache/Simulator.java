@@ -163,8 +163,7 @@ public class Simulator {
 			while (r.next()) {
 				id = r.getInt(1);
 				isBugFix = r.getBoolean(2);
-				sql = "select actions.file_id, type ,loc from actions, content_loc where actions.file_id=content_loc.file_id actions.commit_id = content_loc.commit_id = "
-						+ id + " order by loc DESC";
+				sql = "select actions.file_id, type ,loc from actions, content_loc where actions.file_id=content_loc.file_id and actions.commit_id = "+id+" = content_loc.commit_id order by loc DESC";
 				r1 = dbOp.ExeQuery(conn, sql);
 				// loop through those file ids
 				while (r1.next()) {
