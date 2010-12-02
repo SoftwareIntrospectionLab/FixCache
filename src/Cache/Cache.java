@@ -70,9 +70,15 @@ public class Cache {
 		for (Object o : cacheTable.values()){
 			CacheItem c = (CacheItem) o;
 			if (min == null)
+			{
 				min = c;
+			}
+				
 			else 
+			{
 				min = policy.minimum(min, c);
+			}
+				
 		}
 		int entityId = min.getEntityId();
 		cacheTable.remove(entityId);

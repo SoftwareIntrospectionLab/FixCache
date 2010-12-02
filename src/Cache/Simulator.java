@@ -29,8 +29,6 @@ public class Simulator {
 	
 	static DBOperation dbOp;
 	static Connection conn;
-	static String sql;
-	static ResultSet r;
 
 	
 	public Simulator(int bsize, int psize, int csize, int projid, CacheReplacement.Policy rep)	
@@ -54,8 +52,8 @@ public class Simulator {
 		// database query: top prefetchsize fileIDs (in terms of LOC) in the first commitID for pid
 		// for each fileId in the list create a cacheItem
 		//sql = "select file_id, LOC from actions where commit_id ="+startCId +" order by LOC DESC";
-		sql = "select file_id from content_loc where commit_id = "+ startCId + " order by loc DESC";
-		r = dbOp.ExeQuery(conn, sql);
+		String sql = "select file_id from content_loc where commit_id = "+ startCId + " order by loc DESC";
+		ResultSet r = dbOp.ExeQuery(conn, sql);
 		int fileId = 0;
 		try {
 			for (int size = 0; size < prefetchSize; size++) {
@@ -87,8 +85,8 @@ public class Simulator {
     	// take the maximum (in terms of date?) commit id and return it
     	int bugIntroCId = 0;
     	int hunkId;
-    	sql = "select id from hunks where file_id = "+fileId+" and commit_id ="+commitId;//select the hunk id of fileId for a bug_introducing commitId
-    	r = dbOp.ExeQuery(conn, sql);
+    	String sql = "select id from hunks where file_id = "+fileId+" and commit_id ="+commitId;//select the hunk id of fileId for a bug_introducing commitId
+    	ResultSet r = dbOp.ExeQuery(conn, sql);
     	ResultSet r1;
     	ResultSet r2;
     	String rev;
@@ -125,6 +123,8 @@ public class Simulator {
 		// TODO: write unit tests
 
 		int startCId, endCId;
+		int hit = 0;
+		int miss = 0;
         CmdLineParser parser = new CmdLineParser();
 
         CmdLineParser.Option blksz_opt = parser.addIntegerOption('b', "blksize");
@@ -175,8 +175,8 @@ public class Simulator {
 		
 		sim.preLoad(STARTIDDEFAULT, sim.prefetchsize);
 		// XXX if you order scmlog by commitid or by date, do you get the same order?
-		sql = "select id, is_bug_fix from scmlog where repository_id = "+pid+" order by date ASC";
-		r = dbOp.ExeQuery(conn, sql);
+		String sql = "select id, is_bug_fix from scmlog where repository_id = "+pid+" order by date ASC";
+		ResultSet r = dbOp.ExeQuery(conn, sql);
 		
 		//select (id, bugfix) from scmlog orderedby date  --- need join
 		// main loop
@@ -189,6 +189,7 @@ public class Simulator {
 		int file_id;
 		FileType type;
 		int loc;
+		int cur=0;
 		try {
 			while (r.next()) {
 				id = r.getInt(1);
@@ -230,6 +231,14 @@ public class Simulator {
 					case M: // modified
 						if (isBugFix) {
 							int intro_cid = getBugIntroCid(file_id, id, pid);
+							if(sim.cache.cacheTable.containsKey(intro_cid))
+							{
+								hit++;
+							}
+							else
+							{
+								miss++;
+							}
 							sim.cache.add(file_id, intro_cid,
 									CacheItem.CacheReason.BugEntity); // XXX
 																		// should
@@ -237,16 +246,12 @@ public class Simulator {
 																		// be id
 																		// or
 																		// intro_cid?
-							ArrayList<Integer> cochanges = CoChange
-									.getCoChangeFileList(file_id, intro_cid,
-											sim.blocksize,pw);
-							sim.cache.add(cochanges, id,
-									CacheItem.CacheReason.CoChange);
+							ArrayList<Integer> cochanges = CoChange.getCoChangeFileList(file_id, intro_cid, sim.blocksize,pw);
+							sim.cache.add(cochanges, id, CacheItem.CacheReason.CoChange);
 						} else {
 							if (numprefetch < sim.prefetchsize) {
 								numprefetch++;
-								sim.cache.add(file_id, id,
-										CacheItem.CacheReason.ModifiedEntity);
+								sim.cache.add(file_id, id, CacheItem.CacheReason.ModifiedEntity);
 							}
 
 						}

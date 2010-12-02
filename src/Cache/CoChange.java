@@ -110,7 +110,6 @@ public class CoChange {
 		CoChange coChange = new CoChange(3679);
 		CoChangeFileMap countTable = coChange.buildCoChangeMap(10000,"dd");
 		List coChangeList = countTable.getTopFiles(100);
-		System.out.print(coChangeList.size());
 		for(int i=0;i<coChangeList.size();i++)
 		{
 			System.out.println((Integer)coChangeList.get(i));
