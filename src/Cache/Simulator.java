@@ -80,13 +80,43 @@ public class Simulator {
     
     
     //TODO: find the bug introducing file id for a given bug fixding commitId
-    public static int getBugIntroCid(int fileid, int commitId)
+    public static int getBugIntroCid(int fileId, int commitId, int pId)
     {
     	// use the fileId and commitId to get a list of changed hunks from the hunk table.
     	// for each changed hunk, get the blamedHunk from the hunk_blame table; get the commit id associated with this blamed hunk
     	// take the maximum (in terms of date?) commit id and return it
-    	int bugIntroId = 10;
-    	return bugIntroId;
+    	int bugIntroCId = 0;
+    	int hunkId;
+    	sql = "select id from hunks where file_id = "+fileId+" and commit_id ="+commitId;//select the hunk id of fileId for a bug_introducing commitId
+    	r = dbOp.ExeQuery(conn, sql);
+    	ResultSet r1;
+    	ResultSet r2;
+    	int rev;
+    	try{
+    		while(r.next())
+    	{
+    		hunkId = r.getInt(1);
+    		sql = "select bug_rev from hunk_blames where hunk_id = "+ hunkId;//for each hunk find the bug introducing rev
+    		r1 = dbOp.ExeQuery(conn, sql);
+    		while(r1.next())
+    		{
+    			rev = r1.getInt(1);
+    			sql = "select id from scmlog where rev = "+rev +" and repository_id = "+pId;//find the commit id according to rev and project id
+    			r2 = dbOp.ExeQuery(conn, sql);
+    			while(r2.next())
+    			{
+    				if(r2.getInt(1) > bugIntroCId)//bugIntroCId is always the maximum bug introducing commit id
+    				{
+    					bugIntroCId = r2.getInt(1);
+    				}
+    			}
+    		}
+    	}
+    	}catch (Exception e) {
+			System.out.println(e);
+			System.exit(0);}
+    
+    	return bugIntroCId;
     }
 
 
@@ -150,7 +180,7 @@ public class Simulator {
 		
 		//select (id, bugfix) from scmlog orderedby date  --- need join
 		// main loop
-		int id;
+		int id;//means commit_id in actions
 		boolean isBugFix;
 		
 		int numprefetch = 0;
@@ -199,7 +229,7 @@ public class Simulator {
 						break;
 					case M: // modified
 						if (isBugFix) {
-							int intro_cid = getBugIntroCid(file_id, id);
+							int intro_cid = getBugIntroCid(file_id, id, pid);
 							sim.cache.add(file_id, intro_cid,
 									CacheItem.CacheReason.BugEntity); // XXX
 																		// should
