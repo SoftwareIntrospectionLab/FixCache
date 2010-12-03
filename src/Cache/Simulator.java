@@ -264,8 +264,7 @@ public class Simulator {
 		} catch (Exception e) {
 			System.out.println(e);
 			System.exit(0);
-       }
-		
+       }		
 		System.out.println(hit+"***"+miss);
 //		select (file_id, type) from actions where commit_id == id, ordered_by loc
 //		int file_id;
