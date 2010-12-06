@@ -106,8 +106,9 @@ public class CacheItem {
 	private int findNumberOfAuthors(int eid, int cid) {
 	         // TODO Auto-generated method stub
 		int numAuthor = 0;
-		sql = "select count(distinct(author_id)) from scmlog where id in(" +
-				"select commit_id from actions where file_id="+eid+" and commit_id between "+Simulator.STARTIDDEFAULT +" and "+cid +")";//???start_Id
+//		sql = "select count(distinct(author_id)) from scmlog where id in(" + //two slow to find the number of authors from the database
+//				"select commit_id from actions where file_id="+eid+" and commit_id between "+Simulator.STARTIDDEFAULT +" and "+cid +")";//???start_Id
+		sql = "select count(id) from people where id in( select author_id from scmlog, actions where scmlog.id between "+Simulator.STARTIDDEFAULT + " and "+ cid +" and file_id = "+eid+")";
 		r = Simulator.dbOp.ExeQuery(Simulator.conn, sql);
 		try
 		{
@@ -147,7 +148,7 @@ public class CacheItem {
 	 private int findNumberOfChanges(int eid, int cid) {
 	         // XXX >= startCId?
 		    int numChanges = 0;
-			sql = "select count(id) from actions where file_id="+eid+" and commit_id between "+Simulator.STARTIDDEFAULT +" and "+cid;//???
+			sql = "select count(id) from actions where commit_id between "+Simulator.STARTIDDEFAULT +" and "+cid+" and file_id="+eid;//???
 			r = Simulator.dbOp.ExeQuery(Simulator.conn, sql);
 			try
 			{

@@ -15,7 +15,7 @@ public class Simulator {
 	static final int BLKDEFAULT = 10;
 	static final int PFDEFAULT = 10;
 	static final int CSIZEDEFAULT = 100;
-	static final int STARTIDDEFAULT = 1;
+	static final int STARTIDDEFAULT = 0;
 	static final int PRODEFAULT = 1;
 	
 	public enum FileType{A, M, D, V, C, R}
@@ -175,7 +175,7 @@ public class Simulator {
 		
 		sim.preLoad(STARTIDDEFAULT, sim.prefetchsize);
 		// XXX if you order scmlog by commitid or by date, do you get the same order?
-		String sql = "select id, is_bug_fix from scmlog where repository_id = "+pid+" order by date ASC";
+		String sql = "select id, is_bug_fix from scmlog where repository_id = "+pid+" and id >="+STARTIDDEFAULT+" order by date ASC";
 		ResultSet r = dbOp.ExeQuery(conn, sql);
 		
 		//select (id, bugfix) from scmlog orderedby date  --- need join
@@ -192,10 +192,11 @@ public class Simulator {
 		int cur=0;
 		try {
 			while (r.next()) {
-				System.out.println(cur++);
 				id = r.getInt(1);
 				isBugFix = r.getBoolean(2);
-				sql = "select actions.file_id, type ,loc from actions, content_loc where actions.file_id=content_loc.file_id and actions.commit_id = "+id+" = content_loc.commit_id order by loc DESC";
+				cur++;
+				System.out.println(cur+"******"+id +"*******"+isBugFix);
+				sql = "select actions.file_id, type ,loc from actions, content_loc where actions.file_id=content_loc.file_id and actions.commit_id = "+id+" and content_loc.commit_id ="+id+" order by loc DESC";
 				r1 = dbOp.ExeQuery(conn, sql);
 				// loop through those file ids
 				while (r1.next()) {
