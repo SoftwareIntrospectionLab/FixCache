@@ -203,14 +203,14 @@ public class Simulator {
 					type = FileType.valueOf(r1.getString(2));
 					loc = r1.getInt(3);
 					switch (type) {
-					case V:
+					case V:	
+						break;
+					case R:
 						if (numprefetch < sim.prefetchsize) {
 							numprefetch++;
 							sim.cache.add(file_id, id,
-									CacheItem.CacheReason.NewEntity);						
+									CacheItem.CacheReason.NewEntity);
 						}
-						break;
-					case R:
 						break;
 					case C:
 						if (numprefetch < sim.prefetchsize) {
