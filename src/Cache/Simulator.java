@@ -198,6 +198,7 @@ public class Simulator {
 			while (r.next()) {
 				id = r.getInt(1);
 				isBugFix = r.getBoolean(2);
+				//only deal with .java files
 				sql = "select actions.file_id, type ,loc from actions, content_loc, files where actions.file_id = files.id and files.file_name like '%.java' and actions.file_id=content_loc.file_id and actions.commit_id = "+id+" and content_loc.commit_id ="+id+" order by loc DESC";
 //				sql = "select actions.file_id, type ,loc from actions, content_loc where actions.file_id=content_loc.file_id and actions.commit_id = "+id+" and content_loc.commit_id ="+id+" order by loc DESC";
 				r1 = dbOp.ExeQuery(conn, sql);

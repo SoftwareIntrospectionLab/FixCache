@@ -41,7 +41,7 @@ public class CoChange {
 		//TODO
 		DBOperation dbOp = new DBOperation(db,un,pw);
 		Connection conn = dbOp.getConnection();
-		String sql = "SELECT commit_id from actions where file_id="+fileID+" and commit_id <= "+commitID;//cochange commit_id may be less than STARTIDDEFAULT
+		String sql = "SELECT commit_id from actions where file_id="+fileID+" and commit_id <= "+commitID;//cochange commit_id may be smaller than STARTIDDEFAULT
 		ResultSet r1 = dbOp.ExeQuery(conn, sql);
 		List commitList = new ArrayList();
 
@@ -57,8 +57,9 @@ public class CoChange {
 		// for each commit in the list, get a list of all fileIDs involved in that commit
 		// TODO fix bug
 		int coChangeCommitID;
-		List coChangeList = new ArrayList();
+//		List coChangeList = new ArrayList();
 		ResultSet r2;
+		int coChangeFile;
 		for(int i = 0; i < commitList.size();i++)
 		{
 			coChangeCommitID = (Integer)commitList.get(i);
@@ -66,10 +67,11 @@ public class CoChange {
 			r2 = dbOp.ExeQuery(conn, sql);
 			try{
 				while(r2.next()) {
-
-					if(r2.getInt(1)!=fileID)
+					coChangeFile = r2.getInt(1);
+					if(coChangeFile!=fileID)
 					{
-						coChangeList.add(r2.getInt(1));
+//						coChangeList.add(r2.getInt(1));
+						coChangeCounts.add(coChangeFile);
 					}
 
 				}
@@ -80,13 +82,12 @@ public class CoChange {
 			}
 		}
 		// for each such file f:
-		int f;
-		int count;
-		for(int j = 0; j < commitList.size(); j++)
-		{
-			f =  (Integer)commitList.get(j);
-			coChangeCounts.add(f);		
-		}
+//		int f;
+//		for(int j = 0; j < commitList.size(); j++)//I think here commitList should be coChangeList
+//		{
+//			f =  (Integer)commitList.get(j);
+//			coChangeCounts.add(f);		
+//		}
 
 		return coChangeCounts;
 
@@ -151,7 +152,7 @@ public class CoChange {
 					return((Comparable) ((Map.Entry) (o1)).getValue()).compareTo(((Map.Entry) (o2)).getValue());
 				}
 			});
-			for(int i=0;i<blocksize-1;i++)
+			for(int i=0;i<blocksize-1;i++)//a block size b indicate s that we load b-1 closest entities.
 			{
 				if (list.size() > i){
 					Map.Entry curr = (Entry) list.get(i);
