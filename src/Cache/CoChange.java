@@ -41,7 +41,7 @@ public class CoChange {
 		//TODO
 		DBOperation dbOp = new DBOperation(db,un,pw);
 		Connection conn = dbOp.getConnection();
-		String sql = "SELECT commit_id from actions where file_id="+fileID+" and commit_id < "+commitID;//cochange commit_id may be less than STARTIDDEFAULT
+		String sql = "SELECT commit_id from actions where file_id="+fileID+" and commit_id <= "+commitID;//cochange commit_id may be less than STARTIDDEFAULT
 		ResultSet r1 = dbOp.ExeQuery(conn, sql);
 		List commitList = new ArrayList();
 

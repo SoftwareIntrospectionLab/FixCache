@@ -83,7 +83,7 @@ public class Simulator {
     	// use the fileId and commitId to get a list of changed hunks from the hunk table.
     	// for each changed hunk, get the blamedHunk from the hunk_blame table; get the commit id associated with this blamed hunk
     	// take the maximum (in terms of date?) commit id and return it
-    	int bugIntroCId = 0;
+    	int bugIntroCId = -1;
     	int hunkId;
     	String sql = "select id from hunks where file_id = "+fileId+" and commit_id ="+commitId;//select the hunk id of fileId for a bug_introducing commitId
     	ResultSet r = dbOp.ExeQuery(conn, sql);
@@ -198,7 +198,8 @@ public class Simulator {
 			while (r.next()) {
 				id = r.getInt(1);
 				isBugFix = r.getBoolean(2);
-				sql = "select actions.file_id, type ,loc from actions, content_loc where actions.file_id=content_loc.file_id and actions.commit_id = "+id+" and content_loc.commit_id ="+id+" order by loc DESC";
+				sql = "select actions.file_id, type ,loc from actions, content_loc, files where actions.file_id = files.id and files.file_name like '%.java' and actions.file_id=content_loc.file_id and actions.commit_id = "+id+" and content_loc.commit_id ="+id+" order by loc DESC";
+//				sql = "select actions.file_id, type ,loc from actions, content_loc where actions.file_id=content_loc.file_id and actions.commit_id = "+id+" and content_loc.commit_id ="+id+" order by loc DESC";
 				r1 = dbOp.ExeQuery(conn, sql);
 				// loop through those file ids
 				while (r1.next()) {
