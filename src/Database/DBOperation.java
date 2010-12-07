@@ -52,7 +52,7 @@ public class DBOperation {
 	
 	
    public static void main(String [] args) {
-	DBOperation dbOp = new DBOperation("jdbc:mysql://localhost/mydb","root","jacjac");
+	DBOperation dbOp = new DBOperation("jdbc:mysql://localhost/mydb","root",null);
 	Connection conn = dbOp.getConnection();
 	int id = 1;
 	int fileID = 1;

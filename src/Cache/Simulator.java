@@ -127,12 +127,15 @@ public class Simulator {
 		int miss = 0;
         CmdLineParser parser = new CmdLineParser();
 
+        CmdLineParser.Option db_opt = parser.addStringOption('d', "database");
+        CmdLineParser.Option un_opt = parser.addStringOption('u', "username");
+        CmdLineParser.Option pw_opt = parser.addStringOption('w', "pw");
         CmdLineParser.Option blksz_opt = parser.addIntegerOption('b', "blksize");
         CmdLineParser.Option csz_opt = parser.addIntegerOption('c', "csize");
         CmdLineParser.Option pfsz_opt = parser.addIntegerOption('f', "pfsize");
         CmdLineParser.Option crp_opt = parser.addStringOption('r', "cacherep");        
         CmdLineParser.Option pid_opt = parser.addIntegerOption('p', "pid");
-        CmdLineParser.Option pw_opt = parser.addStringOption('w', "pw");
+        
         //CmdLineParser.Option sCId_opt = parser.addIntegerOption('s',"start");
         //CmdLineParser.Option eCId_opt = parser.addIntegerOption('e',"end");
         
@@ -146,13 +149,15 @@ public class Simulator {
             System.exit(2);
         }
 
+        String db = (String)parser.getOptionValue(db_opt,"jdbc:mysql://db-01:3306/ejw_xzhu1");
+        String un = (String)parser.getOptionValue(un_opt, "ejw_xzhu1");
+        String pw = (String)parser.getOptionValue(pw_opt, null);
         Integer blksz = (Integer)parser.getOptionValue(blksz_opt, BLKDEFAULT);
         Integer csz = (Integer)parser.getOptionValue(csz_opt, CSIZEDEFAULT);
         Integer pfsz = (Integer)parser.getOptionValue(pfsz_opt, PFDEFAULT);
         String crp_string = (String)parser.getOptionValue(crp_opt, CacheReplacement.REPDEFAULT);
         Integer pid = (Integer)parser.getOptionValue(pid_opt, PRODEFAULT);
-        String pw = (String)parser.getOptionValue(pw_opt, "fixcache");
-    	dbOp = new DBOperation("jdbc:mysql://db-01:3306/ejw_xzhu1","ejw_xzhu1",pw);;
+    	dbOp = new DBOperation(db,un,pw);;
     	conn = dbOp.getConnection();
         CacheReplacement.Policy crp;
         try{
@@ -245,7 +250,7 @@ public class Simulator {
 																		// be id
 																		// or
 																		// intro_cid?
-							ArrayList<Integer> cochanges = CoChange.getCoChangeFileList(file_id, intro_cid, sim.blocksize,pw);
+							ArrayList<Integer> cochanges = CoChange.getCoChangeFileList(file_id, intro_cid, sim.blocksize,db, un, pw);
 							sim.cache.add(cochanges, id, CacheItem.CacheReason.CoChange);
 						} else {
 							if (numprefetch < sim.prefetchsize) {

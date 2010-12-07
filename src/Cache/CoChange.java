@@ -26,20 +26,20 @@ public class CoChange {
 		this.fileID = fileID;
 	}
 	
-	public static ArrayList<Integer> getCoChangeFileList(int fileid, int commitid, int blocksize, String pw){
+	public static ArrayList<Integer> getCoChangeFileList(int fileid, int commitid, int blocksize, String db, String un, String pw){
 		CoChange co = new CoChange(fileid);
-		return co.getCoChangeList(co.buildCoChangeMap(commitid,pw), blocksize);
+		return co.getCoChangeList(co.buildCoChangeMap(commitid, db, un, pw), blocksize);
 		
 	}
 
 	// build a table of files that are changed with fileID, before time commitID
-	private CoChangeFileMap buildCoChangeMap(int commitID,String pw)
+	private CoChangeFileMap buildCoChangeMap(int commitID,String db, String un, String pw)
 	{
 		CoChangeFileMap coChangeCounts = new CoChangeFileMap();
 
 		// get a list of all prior commits for fileID before commitID:
 		//TODO
-		DBOperation dbOp = new DBOperation("jdbc:mysql://db-01:3306/ejw_xzhu1","ejw_xzhu1",pw);
+		DBOperation dbOp = new DBOperation(db,un,pw);
 		Connection conn = dbOp.getConnection();
 		String sql = "SELECT commit_id from actions where file_id="+fileID+" and commit_id < "+commitID;//cochange commit_id may be less than STARTIDDEFAULT
 		ResultSet r1 = dbOp.ExeQuery(conn, sql);
@@ -108,7 +108,7 @@ public class CoChange {
 	public static void main(String args[])
 	{
 		CoChange coChange = new CoChange(3679);
-		CoChangeFileMap countTable = coChange.buildCoChangeMap(10000,"dd");
+		CoChangeFileMap countTable = coChange.buildCoChangeMap(10000,null,null,null);
 		List coChangeList = countTable.getTopFiles(100);
 		for(int i=0;i<coChangeList.size();i++)
 		{
