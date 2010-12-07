@@ -149,7 +149,7 @@ public class CoChange {
 			Collections.sort(list, new Comparator(){
 				public int compare(Object o1, Object o2)
 				{
-					return((Comparable) ((Map.Entry) (o1)).getValue()).compareTo(((Map.Entry) (o2)).getValue());
+					return((Comparable) ((Map.Entry) (o2)).getValue()).compareTo(((Map.Entry) (o1)).getValue());//the list should be sorted in descending order
 				}
 			});
 			for(int i=0;i<blocksize-1;i++)//a block size b indicate s that we load b-1 closest entities.
