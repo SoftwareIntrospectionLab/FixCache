@@ -41,7 +41,7 @@ public class CoChange {
 		//TODO
 		DBOperation dbOp = new DBOperation("jdbc:mysql://db-01:3306/ejw_xzhu1","ejw_xzhu1",pw);
 		Connection conn = dbOp.getConnection();
-		String sql = "SELECT commit_id from actions where file_id="+fileID+" and commit_id <="+commitID;
+		String sql = "SELECT commit_id from actions where file_id="+fileID+" and commit_id between "+Simulator.STARTIDDEFAULT+" and "+commitID;
 		ResultSet r1 = dbOp.ExeQuery(conn, sql);
 		List commitList = new ArrayList();
 
@@ -156,6 +156,7 @@ public class CoChange {
 				if (list.size() > i){
 					Map.Entry curr = (Entry) list.get(i);
 					topFiles.add(curr.getKey());
+					System.out.println(curr.getKey().toString());
 				}
 			}
 			return topFiles;

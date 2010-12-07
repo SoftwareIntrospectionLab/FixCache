@@ -12,10 +12,10 @@ import Database.DBOperation;
 
 public class Simulator {
 	
-	static final int BLKDEFAULT = 10;
-	static final int PFDEFAULT = 10;
-	static final int CSIZEDEFAULT = 100;
-	static final int STARTIDDEFAULT = 0;
+	static final int BLKDEFAULT = 3;
+	static final int PFDEFAULT = 3;
+	static final int CSIZEDEFAULT = 10;
+	static final int STARTIDDEFAULT = 30;
 	static final int PRODEFAULT = 1;
 	
 	public enum FileType{A, M, D, V, C, R}
@@ -189,17 +189,19 @@ public class Simulator {
 		int file_id;
 		FileType type;
 		int loc;
-		int cur=0;
+		int cur1=0;
+		int cur2=0;
 		try {
 			while (r.next()) {
 				id = r.getInt(1);
 				isBugFix = r.getBoolean(2);
-				cur++;
-				System.out.println(cur+"******"+id +"*******"+isBugFix);
+				cur1++;
+				System.out.println(cur1+"******"+id +"*******"+isBugFix);
 				sql = "select actions.file_id, type ,loc from actions, content_loc where actions.file_id=content_loc.file_id and actions.commit_id = "+id+" and content_loc.commit_id ="+id+" order by loc DESC";
 				r1 = dbOp.ExeQuery(conn, sql);
+				cur2 = 0;
 				// loop through those file ids
-				while (r1.next()) {
+				while (r1.next()) {cur2++;
 					file_id = r1.getInt(1);
 					type = FileType.valueOf(r1.getString(2));
 					loc = r1.getInt(3);

@@ -81,6 +81,11 @@ public class Cache {
 				
 		}
 		int entityId = min.getEntityId();
+		Iterator it = cacheTable.values().iterator();
+		while(it.hasNext())
+		{
+			CacheItem ci = (CacheItem)it.next();
+		}
 		cacheTable.remove(entityId);
 	
 	}
