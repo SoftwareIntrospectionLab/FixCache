@@ -129,7 +129,7 @@ public class CacheItem {
 		// TODO Auto-generated method stub
 		int numBugs = 0;
 		sql = "select count(commit_id) from actions where file_id="+eid+" and commit_id in" +
-		"(select id from scmlog where is_bug_fix=1 and id <= "+cid+" and date >="+start+")";
+		"(select id from scmlog where is_bug_fix=1 and id <= "+cid+" and date >='"+start+"')";
 		r = Simulator.dbOp.ExeQuery(Simulator.conn, sql);
 		try
 		{
@@ -147,7 +147,7 @@ public class CacheItem {
 	private int findNumberOfChanges(int eid, int cid, String start) {
 		// XXX >= startCId?
 		int numChanges = 0;
-		sql = "select count(id) from actions where commit_id <="+cid+" and date >='"+ start+"' and file_id="+eid;//???
+		sql = "select count(actions.id) from actions, scmlog where actions.commit_id = scmlog.id and actions.commit_id <="+cid+" and date >='"+ start+"' and file_id="+eid;//???
 		r = Simulator.dbOp.ExeQuery(Simulator.conn, sql);
 		try
 		{

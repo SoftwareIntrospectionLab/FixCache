@@ -200,7 +200,7 @@ public class Simulator {
 		
 		sim.preLoad(sim.prefetchsize);
 		//  if you order scmlog by commitid or by date, the order is different: so order by date
-		String sql = "select id, is_bug_fix from scmlog where repository_id = "+pid+" and date>="+sim.cache.startDate+" order by date ASC";
+		String sql = "select id, is_bug_fix from scmlog where repository_id = "+pid+" and date>='"+sim.cache.startDate+"' order by date ASC";
 		ResultSet r = dbOp.ExeQuery(conn, sql);
 		
 		//select (id, bugfix) from scmlog orderedby date  --- need join
