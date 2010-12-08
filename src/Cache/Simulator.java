@@ -14,7 +14,6 @@ public class Simulator {
 	static final int PFDEFAULT = 3;
 	static final int CSIZEDEFAULT = 10;
 	static final int PRODEFAULT = 1;
-	static final String STARTDATEDEFAULT = "2000-01-01 00:00:00";
 	
 	public enum FileType{A, M, D, V, C, R}
 	
@@ -175,7 +174,7 @@ public class Simulator {
         String crp_string = (String)parser.getOptionValue(crp_opt, CacheReplacement.REPDEFAULT);
         Integer pid = (Integer)parser.getOptionValue(pid_opt, PRODEFAULT);
         String dt = (String)parser.getOptionValue(dt_opt, "2000-01-01 00:00:00");
-    	dbOp = new DBOperation(db,un,pw);;
+    	dbOp = new DBOperation(db,un,pw);
     	conn = dbOp.getConnection();
         CacheReplacement.Policy crp;
         try{
@@ -188,7 +187,7 @@ public class Simulator {
         //startCId = (Integer)parser.getOptionValue(sCId_opt, STARTIDDEFAULT);
         //endCId = (Integer)parser.getOptionValue(eCId_opt, Integer.MAX_VALUE);
         // TODO: make command line input for start and end date
-        start = STARTDATEDEFAULT;
+        start = dt;
         
         if (pid == null){
             System.err.println("Error: must specify a Project Id");
