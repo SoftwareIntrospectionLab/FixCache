@@ -3,9 +3,7 @@ package Cache;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.Date;
 import Util.CmdLineParser;
 
 import Database.DBOperation;	
@@ -15,8 +13,8 @@ public class Simulator {
 	static final int BLKDEFAULT = 3;
 	static final int PFDEFAULT = 3;
 	static final int CSIZEDEFAULT = 10;
-	static final int STARTIDDEFAULT = 30;
 	static final int PRODEFAULT = 1;
+	static final String STARTDATEDEFAULT = "2000-01-01 00:00:00";
 	
 	public enum FileType{A, M, D, V, C, R}
 	
@@ -31,14 +29,14 @@ public class Simulator {
 	static Connection conn;
 
 	
-	public Simulator(int bsize, int psize, int csize, int projid, CacheReplacement.Policy rep)	
+	public Simulator(int bsize, int psize, int csize, int projid, CacheReplacement.Policy rep, String start)	
 	{
 		blocksize = bsize;
 		prefetchsize = psize;
 		cachesize = csize;
 		this.pid = projid;
 		cacheRep = rep;	
-		cache =  new Cache(cachesize, new CacheReplacement(rep));
+		cache =  new Cache(cachesize, new CacheReplacement(rep), start);
 		
 		System.out.println("start to simulate");
 	}
@@ -47,19 +45,36 @@ public class Simulator {
 	// input: LOC for every file in initial commit ID
 	// input: pre-fetch size
 	// output: fills cache with pre-fetch size number of top-LOC files from initial commit
-	public void preLoad(int startCId, int prefetchSize)
+	public void preLoad(int prefetchSize)
 	{
 		// database query: top prefetchsize fileIDs (in terms of LOC) in the first commitID for pid
 		// for each fileId in the list create a cacheItem
 		//sql = "select file_id, LOC from actions where commit_id ="+startCId +" order by LOC DESC";
-		String sql = "select file_id from content_loc where commit_id = "+ startCId + " order by loc DESC";
-		ResultSet r = dbOp.ExeQuery(conn, sql);
+		String sql;
+		if (cache.startDate == null)
+			sql = "select min(date) from scmlog";
+		else
+			sql = "select min(date) from scmlog where date >= '" +cache.startDate+"'";
+		ResultSet r =dbOp.ExeQuery(conn, sql);
+		String firstDate = "";
+		try{
+			while(r.next())
+			{
+				firstDate = r.getDate(1).toString()+" "+r.getTime(1).toString();
+			}
+		}catch (Exception e) {
+			System.out.println(e);
+			System.exit(0);}
+		sql = "select file_id,content_loc.commit_id from content_loc, scmlog where content_loc.commit_id = scmlog.id and date ='"+ firstDate + "' order by loc DESC";
+		r = dbOp.ExeQuery(conn, sql);
 		int fileId = 0;
+		int startCommitId = 0;
 		try {
 			for (int size = 0; size < prefetchSize; size++) {
 				if (r.next()) {
 					fileId = r.getInt(1);
-					cache.add(fileId, startCId, CacheItem.CacheReason.Prefetch);
+					startCommitId = r.getInt(2);
+					cache.add(fileId, startCommitId, CacheItem.CacheReason.Prefetch);
 				}
 			}
 		} catch (Exception e) {
@@ -122,7 +137,8 @@ public class Simulator {
 	{
 		// TODO: write unit tests
 
-		int startCId, endCId;
+		//String startDate, endDate;
+		String start;
 		int hit = 0;
 		int miss = 0;
         CmdLineParser parser = new CmdLineParser();
@@ -135,6 +151,7 @@ public class Simulator {
         CmdLineParser.Option pfsz_opt = parser.addIntegerOption('f', "pfsize");
         CmdLineParser.Option crp_opt = parser.addStringOption('r', "cacherep");        
         CmdLineParser.Option pid_opt = parser.addIntegerOption('p', "pid");
+        CmdLineParser.Option dt_opt =  parser.addStringOption('t',"datetime");
         
         //CmdLineParser.Option sCId_opt = parser.addIntegerOption('s',"start");
         //CmdLineParser.Option eCId_opt = parser.addIntegerOption('e',"end");
@@ -157,6 +174,7 @@ public class Simulator {
         Integer pfsz = (Integer)parser.getOptionValue(pfsz_opt, PFDEFAULT);
         String crp_string = (String)parser.getOptionValue(crp_opt, CacheReplacement.REPDEFAULT);
         Integer pid = (Integer)parser.getOptionValue(pid_opt, PRODEFAULT);
+        String dt = (String)parser.getOptionValue(dt_opt, "2000-01-01 00:00:00");
     	dbOp = new DBOperation(db,un,pw);;
     	conn = dbOp.getConnection();
         CacheReplacement.Policy crp;
@@ -169,6 +187,8 @@ public class Simulator {
         }
         //startCId = (Integer)parser.getOptionValue(sCId_opt, STARTIDDEFAULT);
         //endCId = (Integer)parser.getOptionValue(eCId_opt, Integer.MAX_VALUE);
+        // TODO: make command line input for start and end date
+        start = STARTDATEDEFAULT;
         
         if (pid == null){
             System.err.println("Error: must specify a Project Id");
@@ -176,11 +196,11 @@ public class Simulator {
         }
 
         // create a new simulator
-		Simulator sim = new Simulator(blksz, pfsz, csz, pid, crp);
+		Simulator sim = new Simulator(blksz, pfsz, csz, pid, crp, start);
 		
-		sim.preLoad(STARTIDDEFAULT, sim.prefetchsize);
-		// XXX if you order scmlog by commitid or by date, do you get the same order?
-		String sql = "select id, is_bug_fix from scmlog where repository_id = "+pid+" and id >="+STARTIDDEFAULT+" order by date ASC";
+		sim.preLoad(sim.prefetchsize);
+		//  if you order scmlog by commitid or by date, the order is different: so order by date
+		String sql = "select id, is_bug_fix from scmlog where repository_id = "+pid+" and date>="+sim.cache.startDate+" order by date ASC";
 		ResultSet r = dbOp.ExeQuery(conn, sql);
 		
 		//select (id, bugfix) from scmlog orderedby date  --- need join

@@ -14,11 +14,13 @@ public class Cache {
 	final Hashtable<Integer, CacheItem> cacheTable = new Hashtable();
 	// List<Integer> files;
 	final CacheReplacement policy;
+	String startDate;
 	
-	public Cache(int cacheSize, CacheReplacement pol)
+	public Cache(int cacheSize, CacheReplacement pol, String start)
 	{
 		this.size = cacheSize;
 		policy = pol;
+		startDate = start;
 	}
 	
 	
@@ -43,9 +45,9 @@ public class Cache {
 			// if it is already in the cache, register a hit
 			// else register a fault
 		if (cacheTable.containsKey(eid))
-			cacheTable.get(eid).update(reas, cid);
+			cacheTable.get(eid).update(reas, cid, this);
 		else
-			load (new CacheItem(eid, cid, reas));
+			load (new CacheItem(eid, cid, reas, this));
 	}
 	
 	
@@ -112,5 +114,9 @@ public class Cache {
 			;
 
 		return cacheList;
+	}
+	
+	public static void main( String[] args) {
+
 	}
 }
