@@ -24,18 +24,22 @@ public class CacheItem {
 
 	private int commitId; // for debugging?
 
+	DBOperation dbOp;
+	Connection conn;
 	String sql;
 	ResultSet r;
 
 	//public CacheItem(String eid, CacheReason reas, Date time, int loc, int noc, int nob, int noa, int cid)
-	public CacheItem(int eid, int cid, CacheReason reas, Cache c)
+	public CacheItem(int eid, int cid, CacheReason reas, String startDate, DBOperation dbO, Connection con)
 	{
 		Date time = Calendar.getInstance().getTime(); // XXX fix this
 		entityId = eid;
+		dbOp = dbO;
+		conn = con;
 		int loc = findLoc(eid, cid);
-		int noc = findNumberOfChanges(eid, cid, c.startDate);
-		int nob = findNumberOfBugs(eid, cid, c.startDate);
-		int noa = findNumberOfAuthors(eid, cid, c.startDate);
+		int noc = findNumberOfChanges(eid, cid, startDate);
+		int nob = findNumberOfBugs(eid, cid, startDate);
+		int noa = findNumberOfAuthors(eid, cid, startDate);
 		update(reas, time, loc, noc, nob, noa, cid);
 	}
 
@@ -109,7 +113,7 @@ public class CacheItem {
 		//		sql = "select count(distinct(author_id)) from scmlog where id in(" + //two slow to find the number of authors from the database
 		//				"select commit_id from actions where file_id="+eid+" and commit_id between "+Simulator.STARTIDDEFAULT +" and "+cid +")";//???start_Id
 		sql = "select count(id) from people where id in( select author_id from scmlog, actions where scmlog.id <="+cid+" and date >= '"+start +"' and file_id = "+eid+")";
-		r = Simulator.dbOp.ExeQuery(Simulator.conn, sql);
+		r = dbOp.ExeQuery(conn, sql);
 		try
 		{
 			while(r.next())
@@ -130,7 +134,7 @@ public class CacheItem {
 		int numBugs = 0;
 		sql = "select count(commit_id) from actions where file_id="+eid+" and commit_id in" +
 		"(select id from scmlog where is_bug_fix=1 and id <= "+cid+" and date >='"+start+"')";
-		r = Simulator.dbOp.ExeQuery(Simulator.conn, sql);
+		r = dbOp.ExeQuery(conn, sql);
 		try
 		{
 			while(r.next()){
@@ -148,7 +152,7 @@ public class CacheItem {
 		// XXX >= startCId?
 		int numChanges = 0;
 		sql = "select count(actions.id) from actions, scmlog where actions.commit_id = scmlog.id and actions.commit_id <="+cid+" and date >='"+ start+"' and file_id="+eid;//???
-		r = Simulator.dbOp.ExeQuery(Simulator.conn, sql);
+		r = dbOp.ExeQuery(conn, sql);
 		try
 		{
 			while(r.next())
@@ -168,7 +172,7 @@ public class CacheItem {
 		// TODO Auto-generated method stub
 		int loc =0;
 		sql = "select loc from content_loc where file_id="+eid+" and commit_id = "+cid;
-		r = Simulator.dbOp.ExeQuery(Simulator.conn, sql);
+		r = dbOp.ExeQuery(conn, sql);
 		try
 		{
 			while(r.next())

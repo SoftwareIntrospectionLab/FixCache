@@ -24,18 +24,20 @@ public class Simulator {
 	CacheReplacement.Policy cacheRep;		
 	Cache cache; 
 	
-	static DBOperation dbOp;
-	static Connection conn;
+	DBOperation dbOp;
+	Connection conn;
 
 	
-	public Simulator(int bsize, int psize, int csize, int projid, CacheReplacement.Policy rep, String start)	
+	public Simulator(int bsize, int psize, int csize, int projid, CacheReplacement.Policy rep, String start, DBOperation dbO, Connection con)	
 	{
 		blocksize = bsize;
 		prefetchsize = psize;
 		cachesize = csize;
 		this.pid = projid;
 		cacheRep = rep;	
-		cache =  new Cache(cachesize, new CacheReplacement(rep), start);
+		dbOp = dbO;
+		conn = con;
+		cache =  new Cache(cachesize, new CacheReplacement(rep), start, dbOp, conn);
 		
 		System.out.println("start to simulate");
 	}
@@ -92,7 +94,7 @@ public class Simulator {
     
     
     //TODO: find the bug introducing file id for a given bug fixding commitId
-    public static int getBugIntroCid(int fileId, int commitId, int pId)
+    public int getBugIntroCid(int fileId, int commitId, int pId)
     {
     	// use the fileId and commitId to get a list of changed hunks from the hunk table.
     	// for each changed hunk, get the blamedHunk from the hunk_blame table; get the commit id associated with this blamed hunk
@@ -174,8 +176,8 @@ public class Simulator {
         String crp_string = (String)parser.getOptionValue(crp_opt, CacheReplacement.REPDEFAULT);
         Integer pid = (Integer)parser.getOptionValue(pid_opt, PRODEFAULT);
         String dt = (String)parser.getOptionValue(dt_opt, "2000-01-01 00:00:00");
-    	dbOp = new DBOperation(db,un,pw);
-    	conn = dbOp.getConnection();
+    	DBOperation dbOp = new DBOperation(db,un,pw);
+    	Connection conn = dbOp.getConnection();
         CacheReplacement.Policy crp;
         try{
         	crp = CacheReplacement.Policy.valueOf(crp_string);
@@ -195,12 +197,12 @@ public class Simulator {
         }
 
         // create a new simulator
-		Simulator sim = new Simulator(blksz, pfsz, csz, pid, crp, start);
+		Simulator sim = new Simulator(blksz, pfsz, csz, pid, crp, start, dbOp, conn);
 		
 		sim.preLoad(sim.prefetchsize);
 		//  if you order scmlog by commitid or by date, the order is different: so order by date
 		String sql = "select id, is_bug_fix from scmlog where repository_id = "+pid+" and date>='"+sim.cache.startDate+"' order by date ASC";
-		ResultSet r = dbOp.ExeQuery(conn, sql);
+		ResultSet r = sim.dbOp.ExeQuery(sim.conn, sql);
 		
 		//select (id, bugfix) from scmlog orderedby date  --- need join
 		// main loop
@@ -220,7 +222,7 @@ public class Simulator {
 				//only deal with .java files
 				sql = "select actions.file_id, type ,loc from actions, content_loc, files where actions.file_id = files.id and files.file_name like '%.java' and actions.file_id=content_loc.file_id and actions.commit_id = "+id+" and content_loc.commit_id ="+id+" order by loc DESC";
 //				sql = "select actions.file_id, type ,loc from actions, content_loc where actions.file_id=content_loc.file_id and actions.commit_id = "+id+" and content_loc.commit_id ="+id+" order by loc DESC";
-				r1 = dbOp.ExeQuery(conn, sql);
+				r1 = sim.dbOp.ExeQuery(sim.conn, sql);
 				// loop through those file ids
 				while (r1.next()) {
 					file_id = r1.getInt(1);
@@ -255,7 +257,7 @@ public class Simulator {
 						break;
 					case M: // modified
 						if (isBugFix) {
-							int intro_cid = getBugIntroCid(file_id, id, pid);
+							int intro_cid = sim.getBugIntroCid(file_id, id, pid);
 							if(sim.cache.cacheTable.containsKey(intro_cid))
 							{
 								hit++;

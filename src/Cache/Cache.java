@@ -1,10 +1,12 @@
 package Cache;
 
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
 
 import Cache.CacheItem.CacheReason;
+import Database.DBOperation;
 
 public class Cache {
 	
@@ -15,12 +17,16 @@ public class Cache {
 	// List<Integer> files;
 	final CacheReplacement policy;
 	String startDate;
+	DBOperation dbOp;
+	Connection conn;
 	
-	public Cache(int cacheSize, CacheReplacement pol, String start)
+	public Cache(int cacheSize, CacheReplacement pol, String start, DBOperation dbO, Connection con)
 	{
 		this.size = cacheSize;
 		policy = pol;
 		startDate = start;
+		dbOp = dbO;
+		conn = con;
 	}
 	
 	
@@ -47,7 +53,7 @@ public class Cache {
 		if (cacheTable.containsKey(eid))
 			cacheTable.get(eid).update(reas, cid, this);
 		else
-			load (new CacheItem(eid, cid, reas, this));
+			load (new CacheItem(eid, cid, reas, startDate, dbOp, conn));
 	}
 	
 	
@@ -103,18 +109,7 @@ public class Cache {
 		return (CacheItem)cacheTable.get(entityId);
 	}
 	
-	/**
-	 * Make cached item to List
-	 * 
-	 * @return
-	 */
-	public ArrayList toList() {
-		ArrayList cacheList = new ArrayList();
-		for (Iterator it = cacheTable.values().iterator(); it.hasNext(); cacheList.add(it.next()))
-			;
 
-		return cacheList;
-	}
 	
 	public static void main( String[] args) {
 
