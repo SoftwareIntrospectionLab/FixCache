@@ -17,16 +17,12 @@ public class Cache {
 	// List<Integer> files;
 	final CacheReplacement policy;
 	String startDate;
-	DBOperation dbOp;
-	Connection conn;
 	
-	public Cache(int cacheSize, CacheReplacement pol, String start, DBOperation dbO, Connection con)
+	public Cache(int cacheSize, CacheReplacement pol, String start)
 	{
 		this.size = cacheSize;
 		policy = pol;
 		startDate = start;
-		dbOp = dbO;
-		conn = con;
 	}
 	
 	
@@ -53,7 +49,7 @@ public class Cache {
 		if (cacheTable.containsKey(eid))
 			cacheTable.get(eid).update(reas, cid, this);
 		else
-			load (new CacheItem(eid, cid, reas, startDate, dbOp, conn));
+			load (new CacheItem(eid, cid, reas, startDate));
 	}
 	
 	

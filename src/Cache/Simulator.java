@@ -2,11 +2,13 @@ package Cache;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
 import Util.CmdLineParser;
 
 import Database.DBOperation;	
+import Database.DatabaseManager;
 
 public class Simulator {
 	
@@ -23,21 +25,17 @@ public class Simulator {
 	int pid;
 	CacheReplacement.Policy cacheRep;		
 	Cache cache; 
+	DatabaseManager dbManager = DatabaseManager.getInstance();
+	Connection conn = dbManager.getConnection();
 	
-	DBOperation dbOp;
-	Connection conn;
-
-	
-	public Simulator(int bsize, int psize, int csize, int projid, CacheReplacement.Policy rep, String start, DBOperation dbO, Connection con)	
+	public Simulator(int bsize, int psize, int csize, int projid, CacheReplacement.Policy rep, String start)	
 	{
 		blocksize = bsize;
 		prefetchsize = psize;
 		cachesize = csize;
 		this.pid = projid;
 		cacheRep = rep;	
-		dbOp = dbO;
-		conn = con;
-		cache =  new Cache(cachesize, new CacheReplacement(rep), start, dbOp, conn);
+		cache =  new Cache(cachesize, new CacheReplacement(rep), start);
 		
 		System.out.println("start to simulate");
 	}
@@ -52,13 +50,16 @@ public class Simulator {
 		// for each fileId in the list create a cacheItem
 		//sql = "select file_id, LOC from actions where commit_id ="+startCId +" order by LOC DESC";
 		String sql;
+		Statement stmt;
+		ResultSet r;
 		if (cache.startDate == null)
 			sql = "select min(date) from scmlog";
 		else
 			sql = "select min(date) from scmlog where date >= '" +cache.startDate+"'";
-		ResultSet r =dbOp.ExeQuery(conn, sql);
 		String firstDate = "";
 		try{
+			stmt = conn.createStatement();
+			r = stmt.executeQuery(sql);
 			while(r.next())
 			{
 				firstDate = r.getDate(1).toString()+" "+r.getTime(1).toString();
@@ -67,10 +68,12 @@ public class Simulator {
 			System.out.println(e);
 			System.exit(0);}
 		sql = "select file_id,content_loc.commit_id from content_loc, scmlog where content_loc.commit_id = scmlog.id and date ='"+ firstDate + "' order by loc DESC";
-		r = dbOp.ExeQuery(conn, sql);
+		
 		int fileId = 0;
 		int startCommitId = 0;
 		try {
+			stmt = conn.createStatement();
+			r = stmt.executeQuery(sql);
 			for (int size = 0; size < prefetchSize; size++) {
 				if (r.next()) {
 					fileId = r.getInt(1);
@@ -101,22 +104,31 @@ public class Simulator {
     	// take the maximum (in terms of date?) commit id and return it
     	int bugIntroCId = -1;
     	int hunkId;
+    	DatabaseManager dbManager = DatabaseManager.getInstance();
+    	Connection conn = dbManager.getConnection();
+    	Statement stmt;
+    	Statement stmt1;
+    	Statement stmt2;
     	String sql = "select id from hunks where file_id = "+fileId+" and commit_id ="+commitId;//select the hunk id of fileId for a bug_introducing commitId
-    	ResultSet r = dbOp.ExeQuery(conn, sql);
+    	ResultSet r;
     	ResultSet r1;
     	ResultSet r2;
     	String rev;
     	try{
+    		stmt = conn.createStatement();
+    		r = stmt.executeQuery(sql);
     		while(r.next())
     	{
     		hunkId = r.getInt(1);
+    		stmt1 = conn.createStatement();
     		sql = "select bug_rev from hunk_blames where hunk_id = "+ hunkId;//for each hunk find the bug introducing rev
-    		r1 = dbOp.ExeQuery(conn, sql);
+    		r1 = stmt1.executeQuery(sql);
     		while(r1.next())
     		{
     			rev = r1.getString(1);
+    			stmt2 = conn.createStatement();
     			sql = "select id from scmlog where rev = "+"'"+rev+"'" +" and repository_id = "+pId;//find the commit id according to rev and project id
-    			r2 = dbOp.ExeQuery(conn, sql);
+    			r2 = stmt2.executeQuery(sql);
     			while(r2.next())
     			{
     				if(r2.getInt(1) > bugIntroCId)//bugIntroCId is always the maximum bug introducing commit id
@@ -143,10 +155,6 @@ public class Simulator {
 		int hit = 0;
 		int miss = 0;
         CmdLineParser parser = new CmdLineParser();
-
-        CmdLineParser.Option db_opt = parser.addStringOption('d', "database");
-        CmdLineParser.Option un_opt = parser.addStringOption('u', "username");
-        CmdLineParser.Option pw_opt = parser.addStringOption('w', "pw");
         CmdLineParser.Option blksz_opt = parser.addIntegerOption('b', "blksize");
         CmdLineParser.Option csz_opt = parser.addIntegerOption('c', "csize");
         CmdLineParser.Option pfsz_opt = parser.addIntegerOption('f', "pfsize");
@@ -167,17 +175,12 @@ public class Simulator {
             System.exit(2);
         }
 
-        String db = (String)parser.getOptionValue(db_opt,"jdbc:mysql://db-01:3306/ejw_xzhu1");
-        String un = (String)parser.getOptionValue(un_opt, "ejw_xzhu1");
-        String pw = (String)parser.getOptionValue(pw_opt, null);
         Integer blksz = (Integer)parser.getOptionValue(blksz_opt, BLKDEFAULT);
         Integer csz = (Integer)parser.getOptionValue(csz_opt, CSIZEDEFAULT);
         Integer pfsz = (Integer)parser.getOptionValue(pfsz_opt, PFDEFAULT);
         String crp_string = (String)parser.getOptionValue(crp_opt, CacheReplacement.REPDEFAULT);
         Integer pid = (Integer)parser.getOptionValue(pid_opt, PRODEFAULT);
         String dt = (String)parser.getOptionValue(dt_opt, "2000-01-01 00:00:00");
-    	DBOperation dbOp = new DBOperation(db,un,pw);
-    	Connection conn = dbOp.getConnection();
         CacheReplacement.Policy crp;
         try{
         	crp = CacheReplacement.Policy.valueOf(crp_string);
@@ -196,13 +199,19 @@ public class Simulator {
             System.exit(2);
         }
 
+        
         // create a new simulator
-		Simulator sim = new Simulator(blksz, pfsz, csz, pid, crp, start, dbOp, conn);
-		
+		Simulator sim = new Simulator(blksz, pfsz, csz, pid, crp, start);		
 		sim.preLoad(sim.prefetchsize);
 		//  if you order scmlog by commitid or by date, the order is different: so order by date
 		String sql = "select id, is_bug_fix from scmlog where repository_id = "+pid+" and date>='"+sim.cache.startDate+"' order by date ASC";
-		ResultSet r = sim.dbOp.ExeQuery(sim.conn, sql);
+		
+		DatabaseManager dbManager = DatabaseManager.getInstance();
+		Connection conn = dbManager.getConnection();
+		Statement stmt;
+		Statement stmt1;
+		ResultSet r;
+		ResultSet r1;
 		
 		//select (id, bugfix) from scmlog orderedby date  --- need join
 		// main loop
@@ -211,18 +220,20 @@ public class Simulator {
 		
 		int numprefetch = 0;
 		//iterate over the selection 
-		ResultSet r1;
 		int file_id;
 		FileType type;
 		int loc;
 		try {
+			stmt = conn.createStatement();
+			r = stmt.executeQuery(sql);
 			while (r.next()) {
 				id = r.getInt(1);
 				isBugFix = r.getBoolean(2);
 				//only deal with .java files
 				sql = "select actions.file_id, type ,loc from actions, content_loc, files where actions.file_id = files.id and files.file_name like '%.java' and actions.file_id=content_loc.file_id and actions.commit_id = "+id+" and content_loc.commit_id ="+id+" order by loc DESC";
 //				sql = "select actions.file_id, type ,loc from actions, content_loc where actions.file_id=content_loc.file_id and actions.commit_id = "+id+" and content_loc.commit_id ="+id+" order by loc DESC";
-				r1 = sim.dbOp.ExeQuery(sim.conn, sql);
+				stmt1 = conn.createStatement();
+				r1 = stmt1.executeQuery(sql);
 				// loop through those file ids
 				while (r1.next()) {
 					file_id = r1.getInt(1);
@@ -273,7 +284,7 @@ public class Simulator {
 																		// be id
 																		// or
 																		// intro_cid?
-							ArrayList<Integer> cochanges = CoChange.getCoChangeFileList(file_id, intro_cid, sim.blocksize,db, un, pw);
+							ArrayList<Integer> cochanges = CoChange.getCoChangeFileList(file_id, intro_cid, sim.blocksize);
 							sim.cache.add(cochanges, id, CacheItem.CacheReason.CoChange);
 						} else {
 							if (numprefetch < sim.prefetchsize) {
@@ -286,11 +297,10 @@ public class Simulator {
 				}
 			numprefetch = 0;
 			}
-			conn.close();
 		} catch (Exception e) {
 			System.out.println(e);
-			System.exit(0);
-       }		
+			System.exit(0);}
+		dbManager.close();
 		System.out.println(hit+"***"+miss);
 //		select (file_id, type) from actions where commit_id == id, ordered_by loc
 //		int file_id;
