@@ -44,7 +44,7 @@ public class Simulator {
 	// input: LOC for every file in initial commit ID
 	// input: pre-fetch size
 	// output: fills cache with pre-fetch size number of top-LOC files from initial commit
-	public void preLoad(int prefetchSize)
+	public void preLoad(int prefetchSize, int pid)
 	{
 		// database query: top prefetchsize fileIDs (in terms of LOC) in the first commitID for pid
 		// for each fileId in the list create a cacheItem
@@ -55,7 +55,7 @@ public class Simulator {
 		if (cache.startDate == null)
 			sql = "select min(date) from scmlog";
 		else
-			sql = "select min(date) from scmlog where date >= '" +cache.startDate+"'";
+			sql = "select min(date) from scmlog where repository_id="+pid+"and date >= '" +cache.startDate+"'";
 		String firstDate = "";
 		try{
 			stmt = conn.createStatement();
@@ -202,7 +202,7 @@ public class Simulator {
         
         // create a new simulator
 		Simulator sim = new Simulator(blksz, pfsz, csz, pid, crp, start);		
-		sim.preLoad(sim.prefetchsize);
+		sim.preLoad(sim.prefetchsize, pid);
 		//  if you order scmlog by commitid or by date, the order is different: so order by date
 		String sql = "select id, is_bug_fix from scmlog where repository_id = "+pid+" and date>='"+sim.cache.startDate+"' order by date ASC";
 		
@@ -230,7 +230,7 @@ public class Simulator {
 				id = r.getInt(1);
 				isBugFix = r.getBoolean(2);
 				//only deal with .java files
-				sql = "select actions.file_id, type ,loc from actions, content_loc, files where actions.file_id = files.id and files.file_name like '%.java' and actions.file_id=content_loc.file_id and actions.commit_id = "+id+" and content_loc.commit_id ="+id+" order by loc DESC";
+				sql = "select actions.file_id, type ,loc from actions, content_loc, files where actions.file_id = files.id and files.file_name like '%.java' and actions.file_id=content_loc.file_id and actions.commit_id = "+id+" and content_loc.commit_id ="+id+" and files.repository_id="+pid+" order by loc DESC";
 //				sql = "select actions.file_id, type ,loc from actions, content_loc where actions.file_id=content_loc.file_id and actions.commit_id = "+id+" and content_loc.commit_id ="+id+" order by loc DESC";
 				stmt1 = conn.createStatement();
 				r1 = stmt1.executeQuery(sql);
