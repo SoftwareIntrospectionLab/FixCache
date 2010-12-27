@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -60,20 +61,27 @@ public class FixCacheTest {
 	
 	
 	@Test
-	public void test() {
-
-//		CacheItem ci = new CacheItem(4, 5, CacheReason.ModifiedEntity, "2009-10-20 01:32:19.0");
-//		System.out.println(ci.getLOC());
-//		assertEquals(ci.getLOC(),1);
-		try {
-			ResultSet rs = stmt
-					.executeQuery("select loc from content_loc where id = 2");
-			rs.next();
-			assertEquals(rs.getInt(1), 1);
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	public void testPreLoad() {
+		
+		Simulator sim = new Simulator(2, 2, 5, 1, CacheReplacement.Policy.BUGS, "2009-10-20 01:32:19.0");
+		sim.preLoad();
+		assertEquals(sim.getCache().getCacheSize(), 2);
+		ArrayList CIList = sim.getCache().getCacheItemList();
+		assertEquals(((CacheItem)CIList.get(0)).getEntityId(),2);
+		assertEquals(((CacheItem)CIList.get(1)).getEntityId(),1);
+	}
+	
+	public void testCacheItem()
+	{
+		CacheItem ci = new CacheItem(8, 8, CacheReason.NewEntity, "2009-10-20 01:32:19.0");
+		assertEquals(ci.getNumberOfAuthors(),2);
+		assertEquals(ci.getNumberOfBugs(),1);
+		assertEquals(ci.getNumberOfChanges(),2);
+	}
+	
+	public void testCacheReplacement()
+	{
+		
 	}
 	
 /*

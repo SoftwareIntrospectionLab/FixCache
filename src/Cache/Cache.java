@@ -106,6 +106,22 @@ public class Cache {
 	}
 	
 
+	public int getCacheSize()
+	{
+		return cacheTable.size();
+	}
+	
+	public ArrayList<CacheItem> getCacheItemList()
+	{
+		ArrayList<CacheItem> CIList = new ArrayList();
+		Iterator it = cacheTable.values().iterator();
+		while(it.hasNext())
+		{
+			CacheItem ci = (CacheItem)it.next();
+			CIList.add(ci);
+		}
+		return CIList;
+	}
 	
 	public static void main( String[] args) {
 

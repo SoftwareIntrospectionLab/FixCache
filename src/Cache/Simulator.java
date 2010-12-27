@@ -44,7 +44,7 @@ public class Simulator {
 	// input: LOC for every file in initial commit ID
 	// input: pre-fetch size
 	// output: fills cache with pre-fetch size number of top-LOC files from initial commit
-	public void preLoad(int prefetchSize, int pid)
+	public void preLoad()
 	{
 		// database query: top prefetchsize fileIDs (in terms of LOC) in the first commitID for pid
 		// for each fileId in the list create a cacheItem
@@ -55,7 +55,7 @@ public class Simulator {
 		if (cache.startDate == null)
 			sql = "select min(date) from scmlog";
 		else
-			sql = "select min(date) from scmlog where repository_id="+pid+"and date >= '" +cache.startDate+"'";
+			sql = "select min(date) from scmlog where repository_id="+pid+" and date >= '" +cache.startDate+"'";
 		String firstDate = "";
 		try{
 			stmt = conn.createStatement();
@@ -74,7 +74,7 @@ public class Simulator {
 		try {
 			stmt = conn.createStatement();
 			r = stmt.executeQuery(sql);
-			for (int size = 0; size < prefetchSize; size++) {
+			for (int size = 0; size < prefetchsize; size++) {
 				if (r.next()) {
 					fileId = r.getInt(1);
 					startCommitId = r.getInt(2);
@@ -144,6 +144,11 @@ public class Simulator {
     
     	return bugIntroCId;
     }
+    
+    public Cache getCache()
+    {
+    	return cache;
+    }
 
 
 	public static void main(String args[])
@@ -202,7 +207,7 @@ public class Simulator {
         
         // create a new simulator
 		Simulator sim = new Simulator(blksz, pfsz, csz, pid, crp, start);		
-		sim.preLoad(sim.prefetchsize, pid);
+		sim.preLoad();
 		//  if you order scmlog by commitid or by date, the order is different: so order by date
 		String sql = "select id, is_bug_fix from scmlog where repository_id = "+pid+" and date>='"+sim.cache.startDate+"' order by date ASC";
 		
