@@ -1,17 +1,12 @@
 package Test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -19,11 +14,12 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import Cache.Cache;
 import Cache.CacheItem;
 import Cache.CacheReplacement;
+import Cache.CoChange;
 import Cache.Simulator;
 import Cache.CacheItem.CacheReason;
-import Database.DBOperation;
 import Database.DatabaseManager;
 
 public class FixCacheTest {
@@ -66,24 +62,189 @@ public class FixCacheTest {
 		Simulator sim = new Simulator(2, 2, 5, 1, CacheReplacement.Policy.BUGS, "2009-10-20 01:32:19.0");
 		sim.preLoad();
 		assertEquals(sim.getCache().getCacheSize(), 2);
-		ArrayList CIList = sim.getCache().getCacheItemList();
-		assertEquals(((CacheItem)CIList.get(0)).getEntityId(),2);
-		assertEquals(((CacheItem)CIList.get(1)).getEntityId(),1);
+		ArrayList<CacheItem> CIList = sim.getCache().getCacheItemList();
+		assertEquals(((CacheItem)CIList.get(0)).getEntityId(),4);
+		assertEquals(((CacheItem)CIList.get(1)).getEntityId(),2);
 	}
 	
-	public void testCacheItem()
+	@Test
+	public void testCacheItemGet()
 	{
-		CacheItem ci = new CacheItem(8, 8, CacheReason.NewEntity, "2009-10-20 01:32:19.0");
-		assertEquals(ci.getNumberOfAuthors(),2);
-		assertEquals(ci.getNumberOfBugs(),1);
-		assertEquals(ci.getNumberOfChanges(),2);
-	}
-	
-	public void testCacheReplacement()
-	{
+		CacheItem ci1 = new CacheItem(5, 10, CacheReason.NewEntity, "2009-10-20 01:32:19.0");
+		assertEquals(ci1.getNumberOfAuthors(),2);
+		assertEquals(ci1.getNumberOfBugs(),3);
+		assertEquals(ci1.getNumberOfChanges(),3);
+		assertEquals(ci1.getLOC(),9);
+		CacheItem ci2 = new CacheItem(6, 8, CacheReason.ModifiedEntity, "2009-10-20 01:32:19.0");
+		assertEquals(ci2.getNumberOfAuthors(),2);
+		assertEquals(ci2.getNumberOfBugs(),1);
+		assertEquals(ci2.getNumberOfChanges(),2);
 		
 	}
 	
+	@Test
+	public void testCacheAdd()
+	{
+		Cache cache = new Cache(5, new CacheReplacement(CacheReplacement.Policy.AUTHORS), "2009-10-20 01:32:19.0");
+		cache.add(1, 1, CacheReason.NewEntity);
+		assertEquals(cache.getCacheSize(),1);
+		cache.add(2, 1, CacheReason.NewEntity);
+		assertEquals(cache.getCacheSize(),2);
+		cache.add(3, 1, CacheReason.NewEntity);
+		assertEquals(cache.getCacheSize(),3);
+		cache.add(4, 1, CacheReason.NewEntity);
+		assertEquals(cache.getCacheSize(),4);
+		cache.add(1, 2, CacheReason.ModifiedEntity);
+		assertEquals(cache.getCacheSize(),4);
+		cache.add(4,2,CacheReason.ModifiedEntity);
+		assertEquals(cache.getCacheSize(),4);
+		cache.add(2, 3, CacheReason.BugEntity);
+		assertEquals(cache.getCacheSize(),4);
+		cache.add(5, 3, CacheReason.BugEntity);
+		assertTrue(cache.isFull());
+	}
+	
+	@Test
+	public void testCacheReplacementAuthors()
+	{
+		Cache cache = new Cache(5, new CacheReplacement(CacheReplacement.Policy.AUTHORS), "2009-10-20 01:32:19.0");
+		cache.add(1, 1, CacheReason.NewEntity);
+		cache.add(2, 1, CacheReason.NewEntity);
+		cache.add(3, 1, CacheReason.NewEntity);
+		cache.add(4, 1, CacheReason.NewEntity);
+		cache.add(1, 2, CacheReason.BugEntity);
+		cache.add(4, 2, CacheReason.BugEntity);
+		cache.add(2, 3, CacheReason.BugEntity);
+		cache.add(5, 3, CacheReason.NewEntity);
+		cache.add(1, 3, CacheReason.BugEntity);
+		cache.remove(4);
+		cache.add(1, 5, CacheReason.BugEntity);
+		cache.add(2, 6, CacheReason.BugEntity);
+		cache.add(6, 6, CacheReason.NewEntity);	
+		cache.add(7, 6, CacheReason.NewEntity);
+		assertNull(cache.getCacheItem(3));
+		cache.add(3, 7, CacheReason.BugEntity);
+		assertNull(cache.getCacheItem(5));
+		cache.add(8, 8, CacheReason.NewEntity);
+		assertNull(cache.getCacheItem(6));
+		cache.add(6, 8, CacheReason.ModifiedEntity);
+		assertNull(cache.getCacheItem(7));
+	}
+	
+	
+	@Test
+	public void testCacheReplacementLRU()
+	{
+		Cache cache = new Cache(5, new CacheReplacement(CacheReplacement.Policy.LRU), "2009-10-20 01:32:19.0");
+		cache.add(1, 1, CacheReason.NewEntity);
+		cache.add(2, 1, CacheReason.NewEntity);
+		cache.add(3, 1, CacheReason.NewEntity);
+		cache.add(4, 1, CacheReason.NewEntity);
+		cache.add(1, 2, CacheReason.BugEntity);
+		cache.add(4, 2, CacheReason.BugEntity);
+		cache.add(2, 3, CacheReason.BugEntity);
+		cache.add(5, 3, CacheReason.NewEntity);
+		cache.add(1, 3, CacheReason.BugEntity);
+		cache.remove(4);
+		cache.add(1, 5, CacheReason.BugEntity);
+		cache.add(2, 6, CacheReason.BugEntity);
+		cache.add(6, 6, CacheReason.NewEntity);	
+		cache.add(7, 6, CacheReason.NewEntity);
+		assertNull(cache.getCacheItem(3));
+		cache.add(3, 7, CacheReason.BugEntity);
+		assertNull(cache.getCacheItem(5));
+		cache.add(8, 8, CacheReason.NewEntity);
+		assertNull(cache.getCacheItem(1));
+		cache.add(6, 8, CacheReason.ModifiedEntity);
+		cache.add(5, 9, CacheReason.BugEntity);
+		assertNull(cache.getCacheItem(2));
+	}
+	
+	
+	@Test
+	public void testCacheReplacementChanges()
+	{
+		Cache cache = new Cache(5, new CacheReplacement(CacheReplacement.Policy.CHANGES), "2009-10-20 01:32:19.0");
+		cache.add(1, 1, CacheReason.NewEntity);
+		cache.add(2, 1, CacheReason.NewEntity);
+		cache.add(3, 1, CacheReason.NewEntity);
+		cache.add(4, 1, CacheReason.NewEntity);
+		cache.add(1, 2, CacheReason.BugEntity);
+		cache.add(4, 2, CacheReason.BugEntity);
+		cache.add(2, 3, CacheReason.BugEntity);
+		cache.add(5, 3, CacheReason.NewEntity);
+		cache.add(1, 3, CacheReason.BugEntity);
+		cache.remove(4);
+		cache.add(1, 5, CacheReason.BugEntity);
+		cache.add(2, 6, CacheReason.BugEntity);
+		cache.add(6, 6, CacheReason.NewEntity);	
+		cache.add(7, 6, CacheReason.NewEntity);
+		assertNull(cache.getCacheItem(3));
+		cache.add(3, 7, CacheReason.BugEntity);
+		assertNull(cache.getCacheItem(5));
+		cache.add(8, 8, CacheReason.NewEntity);
+		assertNull(cache.getCacheItem(6));
+		cache.add(6, 8, CacheReason.ModifiedEntity);
+		assertNull(cache.getCacheItem(7));
+		cache.add(5, 9, CacheReason.BugEntity);
+		assertNull(cache.getCacheItem(8));
+	}
+	
+	@Test
+	public void testCacheReplacementBugs()
+	{
+		Cache cache = new Cache(5, new CacheReplacement(CacheReplacement.Policy.BUGS), "2009-10-20 01:32:19.0");
+		cache.add(1, 1, CacheReason.NewEntity);
+		cache.add(2, 1, CacheReason.NewEntity);
+		cache.add(3, 1, CacheReason.NewEntity);
+		cache.add(4, 1, CacheReason.NewEntity);
+		cache.add(1, 2, CacheReason.BugEntity);
+		cache.add(4, 2, CacheReason.BugEntity);
+		cache.add(2, 3, CacheReason.BugEntity);
+		cache.add(5, 3, CacheReason.NewEntity);
+		cache.add(1, 3, CacheReason.BugEntity);
+		cache.remove(4);
+		cache.add(1, 5, CacheReason.BugEntity);
+		cache.add(2, 6, CacheReason.BugEntity);
+		cache.add(6, 6, CacheReason.NewEntity);	
+		cache.add(7, 6, CacheReason.NewEntity);
+		assertNull(cache.getCacheItem(3));
+		cache.add(3, 7, CacheReason.BugEntity);
+		assertNull(cache.getCacheItem(5));
+		cache.add(8, 8, CacheReason.NewEntity);
+		assertNull(cache.getCacheItem(3));
+		cache.add(6, 8, CacheReason.ModifiedEntity);
+		cache.add(5, 9, CacheReason.BugEntity);
+		assertNull(cache.getCacheItem(8));
+	}
+	
+	@Test
+	
+	public void testCoChange()
+	{
+		ArrayList<Integer> cochanges1 = CoChange.getCoChangeFileList(5, 9, 3);
+		assertEquals(cochanges1.size(),2);
+		assertEquals(cochanges1.get(0).intValue(),1);
+		assertEquals(cochanges1.get(1).intValue(),2);
+		ArrayList<Integer> cochanges2 = CoChange.getCoChangeFileList(1, 10, 4);
+		assertEquals(cochanges2.size(),3);
+		assertEquals(cochanges2.get(0).intValue(),2);
+		assertEquals(cochanges2.get(1).intValue(),4);
+		assertEquals(cochanges2.get(2).intValue(),3);
+		ArrayList<Integer> cochanges3 = CoChange.getCoChangeFileList(7, 6, 5);
+		assertEquals(cochanges3.size(), 2);
+		assertEquals(cochanges3.get(0).intValue(), 2);
+		assertEquals(cochanges3.get(1).intValue(), 6);
+	}
+	
+	
+	@Test
+	public void testGetBugIntroCid() {
+		
+		Simulator sim = new Simulator(2, 2, 5, 1, CacheReplacement.Policy.BUGS, "2009-10-20 01:32:19.0");
+		assertEquals(sim.getBugIntroCid(8, 10),6);
+		assertEquals(sim.getBugIntroCid(5, 9),7);
+	}
 /*
 	@Test
 	public void testGetModules() {

@@ -57,7 +57,7 @@ public class TestHelper {
 		try {
 			DatabaseOperation.DELETE_ALL.execute(conn, data);
 		} finally {
-			conn.close();
+			//conn.close();
 		}
 		
 	}

@@ -100,7 +100,7 @@ public class Cache {
 			bumpOutItem();
 	}
 	
-	public CacheItem getCacheItem(String entityId)
+	public CacheItem getCacheItem(int entityId)
 	{
 		return (CacheItem)cacheTable.get(entityId);
 	}

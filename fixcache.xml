@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <dataset>
   <scmlog id="1" rev="ab01" committer_id="1" author_id="2" date="2009-10-20 01:32:19.0" repository_id="1" is_bug_fix="false"/>
-  <scmlog id="2" rev="ab02" committer_id="1" author_id="1" date="2009-10-20 14:37:38.0" repository_id="1" is_bug_fix="true"/>
+  <scmlog id="2" rev="ab02" committer_id="1" author_id="1" date="2009-10-20 14:37:38.0" repository_id="1" is_bug_fix="false"/>
   <scmlog id="3" rev="ab03" committer_id="2" author_id="1" date="2009-10-20 14:37:47.0" repository_id="1" is_bug_fix="true"/>
   <scmlog id="4" rev="ab04" committer_id="2" author_id="2" date="2009-10-21 11:02:49.0" repository_id="1" is_bug_fix="false"/>
   <scmlog id="5" rev="ab05" committer_id="5" author_id="3" date="2009-10-23 14:10:37.0" repository_id="1" is_bug_fix="true"/>
@@ -24,16 +24,16 @@
   <actions id="7" type="M" file_id="2" commit_id="3" branch_id="1"/>
   <actions id="8" type="A" file_id="5" commit_id="3" branch_id="1"/>
   <actions id="9" type="M" file_id="1" commit_id="3" branch_id="1"/>
-  <actions id="10" type="D" file_id="3" commit_id="4" branch_id="1"/>
+  <actions id="10" type="D" file_id="4" commit_id="4" branch_id="1"/>
   <actions id="11" type="M" file_id="1" commit_id="5" branch_id="1"/>
-  <actions id="12" type="V" file_id="2" commit_id="6" branch_id="1"/>
+  <actions id="12" type="M" file_id="2" commit_id="6" branch_id="1"/>
   <actions id="13" type="A" file_id="6" commit_id="6" branch_id="1"/>
   <actions id="14" type="A" file_id="7" commit_id="6" branch_id="1"/>
-  <actions id="15" type="M" file_id="2" commit_id="7" branch_id="1"/>
+  <actions id="15" type="M" file_id="3" commit_id="7" branch_id="1"/>
   <actions id="16" type="C" file_id="8" commit_id="8" branch_id="1"/>
-  <actions id="17" type="M" file_id="1" commit_id="8" branch_id="1"/>
+  <actions id="17" type="M" file_id="6" commit_id="8" branch_id="1"/>
   <actions id="18" type="M" file_id="5" commit_id="9" branch_id="1"/>
-  <actions id="19" type="M" file_id="8" commit_id="10" branch_id="1"/>
+  <actions id="19" type="V" file_id="8" commit_id="10" branch_id="1"/>
   <actions id="20" type="M" file_id="5" commit_id="10" branch_id="1"/>
   <files id="1" file_name="f1.java" repository_id="1"/>
   <files id="2" file_name="f2" repository_id="1"/>
@@ -97,8 +97,6 @@
   <hunks id="32"  file_id="8" commit_id="10" old_start_line="5" old_end_line="6" new_start_line="6" new_end_line="7" bug_introducing="1"/>
   <hunks id="33"  file_id="8" commit_id="10" old_start_line="7" old_end_line="8" new_start_line="8" new_end_line="9" bug_introducing="1"/>
   <hunks id="34"  file_id="5" commit_id="10" old_start_line="9" old_end_line="10" new_start_line="10" new_end_line="11" bug_introducing="1"/>
-  <hunk_blames id="1" hunk_id="10" bug_commit_id="1"/>
-  <hunk_blames id="2" hunk_id="11" bug_commit_id="5"/>
   <hunk_blames id="3" hunk_id="12" bug_commit_id="2"/>
   <hunk_blames id="4" hunk_id="13" bug_commit_id="3"/>
   <hunk_blames id="5" hunk_id="14" bug_commit_id="4"/>
@@ -114,9 +112,9 @@
   <hunk_blames id="15" hunk_id="28" bug_commit_id="5"/>
   <hunk_blames id="16" hunk_id="29" bug_commit_id="7"/>
   <hunk_blames id="17" hunk_id="30" bug_commit_id="6"/>
-  <hunk_blames id="18" hunk_id="31" bug_commit_id="10"/>
-  <hunk_blames id="19" hunk_id="32" bug_commit_id="9"/>
-  <hunk_blames id="20" hunk_id="33" bug_commit_id="8"/>
+  <hunk_blames id="18" hunk_id="31" bug_commit_id="5"/>
+  <hunk_blames id="19" hunk_id="32" bug_commit_id="3"/>
+  <hunk_blames id="20" hunk_id="33" bug_commit_id="5"/>
   <hunk_blames id="21" hunk_id="34" bug_commit_id="6"/>
   </dataset>
 

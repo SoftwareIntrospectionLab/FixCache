@@ -113,7 +113,7 @@ public class CacheItem {
 		int numAuthor = 0;
 		//		sql = "select count(distinct(author_id)) from scmlog where id in(" + //two slow to find the number of authors from the database
 		//				"select commit_id from actions where file_id="+eid+" and commit_id between "+Simulator.STARTIDDEFAULT +" and "+cid +")";//???start_Id
-		sql = "select count(id) from people where id in( select author_id from scmlog, actions where scmlog.id <="+cid+" and date >= '"+start +"' and file_id = "+eid+")";
+		sql = "select count(id) from people where id in( select author_id from scmlog, actions where scmlog.id = actions.commit_id and scmlog.id <="+cid+" and date >= '"+start +"' and file_id = "+eid+")";
 		try
 		{
 			stmt = conn.createStatement();

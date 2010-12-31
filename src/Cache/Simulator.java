@@ -97,7 +97,7 @@ public class Simulator {
     
     
     //TODO: find the bug introducing file id for a given bug fixding commitId
-    public int getBugIntroCid(int fileId, int commitId, int pId)
+    public int getBugIntroCid(int fileId, int commitId)
     {
     	// use the fileId and commitId to get a list of changed hunks from the hunk table.
     	// for each changed hunk, get the blamedHunk from the hunk_blame table; get the commit id associated with this blamed hunk
@@ -121,20 +121,13 @@ public class Simulator {
     	{
     		hunkId = r.getInt(1);
     		stmt1 = conn.createStatement();
-    		sql = "select bug_rev from hunk_blames where hunk_id = "+ hunkId;//for each hunk find the bug introducing rev
+    		sql = "select bug_commit_id from hunk_blames where hunk_id = "+ hunkId;//for each hunk find the bug introducing rev
     		r1 = stmt1.executeQuery(sql);
     		while(r1.next())
     		{
-    			rev = r1.getString(1);
-    			stmt2 = conn.createStatement();
-    			sql = "select id from scmlog where rev = "+"'"+rev+"'" +" and repository_id = "+pId;//find the commit id according to rev and project id
-    			r2 = stmt2.executeQuery(sql);
-    			while(r2.next())
+    			if(r1.getInt(1) > bugIntroCId)
     			{
-    				if(r2.getInt(1) > bugIntroCId)//bugIntroCId is always the maximum bug introducing commit id
-    				{
-    					bugIntroCId = r2.getInt(1);
-    				}
+    				bugIntroCId = r1.getInt(1);
     			}
     		}
     	}
@@ -273,7 +266,7 @@ public class Simulator {
 						break;
 					case M: // modified
 						if (isBugFix) {
-							int intro_cid = sim.getBugIntroCid(file_id, id, pid);
+							int intro_cid = sim.getBugIntroCid(file_id, id);
 							if(sim.cache.cacheTable.containsKey(intro_cid))
 							{
 								hit++;
