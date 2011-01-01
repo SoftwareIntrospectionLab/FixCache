@@ -27,6 +27,7 @@ public class Simulator {
 	Cache cache; 
 	DatabaseManager dbManager = DatabaseManager.getInstance();
 	Connection conn = dbManager.getConnection();
+	double hitratio = 0;
 	
 	public Simulator(int bsize, int psize, int csize, int projid, CacheReplacement.Policy rep, String start)	
 	{
@@ -36,8 +37,6 @@ public class Simulator {
 		this.pid = projid;
 		cacheRep = rep;	
 		cache =  new Cache(cachesize, new CacheReplacement(rep), start);
-		
-		System.out.println("start to simulate");
 	}
 
 	// input: initial commit ID
@@ -299,7 +298,7 @@ public class Simulator {
 			System.out.println(e);
 			System.exit(0);}
 		dbManager.close();
-		System.out.println(hit+"***"+miss);
+		System.out.println(sim.getHitRatio(hit, miss));
 //		select (file_id, type) from actions where commit_id == id, ordered_by loc
 //		int file_id;
 //		FileType type;
@@ -331,5 +330,11 @@ public class Simulator {
 //	}
 
 	
+	}
+
+	public double getHitRatio(int hit, int miss) {
+		// TODO Auto-generated method stub
+		double hitratio = (double)hit/(hit+miss);
+		return hitratio;
 	}
 }
