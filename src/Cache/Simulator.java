@@ -28,6 +28,8 @@ public class Simulator {
 	DatabaseManager dbManager = DatabaseManager.getInstance();
 	Connection conn = dbManager.getConnection();
 	double hitratio = 0;
+	int hit;
+	int miss;
 	
 	public Simulator(int bsize, int psize, int csize, int projid, CacheReplacement.Policy rep, String start)	
 	{
@@ -37,13 +39,16 @@ public class Simulator {
 		this.pid = projid;
 		cacheRep = rep;	
 		cache =  new Cache(cachesize, new CacheReplacement(rep), start);
+		hit = 0;
+		miss = 0;
+		
 	}
 
 	// input: initial commit ID
 	// input: LOC for every file in initial commit ID
 	// input: pre-fetch size
 	// output: fills cache with pre-fetch size number of top-LOC files from initial commit
-	public void preLoad()
+	public void initialPreLoad()
 	{
 		// database query: top prefetchsize fileIDs (in terms of LOC) in the first commitID for pid
 		// for each fileId in the list create a cacheItem
@@ -61,7 +66,7 @@ public class Simulator {
 			r = stmt.executeQuery(sql);
 			while(r.next())
 			{
-				firstDate = r.getDate(1).toString()+" "+r.getTime(1).toString();
+				firstDate = r.getString(1);
 			}
 		}catch (Exception e) {
 			System.out.println(e);
@@ -94,6 +99,13 @@ public class Simulator {
         System.err.println("-p/--pid option is required");
     }
     
+    public void versionPreLoad(int numprefetch, int fileId, int commitId, CacheItem.CacheReason cacheReason)
+    {
+    	if (numprefetch < prefetchsize) {
+			numprefetch++;
+			cache.add(fileId, commitId, cacheReason);
+    	}
+    }
     
     //TODO: find the bug introducing file id for a given bug fixding commitId
     public int getBugIntroCid(int fileId, int commitId)
@@ -142,6 +154,37 @@ public class Simulator {
     	return cache;
     }
 
+    
+    public void loadBuggyEntity(int fileId, int commitId,  int intro_cid)
+    {
+    	if(cache.cacheTable.containsKey(intro_cid))
+		{
+			hit++;
+		}
+		else
+		{
+			miss++;
+		}
+		cache.add(fileId, intro_cid,
+				CacheItem.CacheReason.BugEntity); // XXX
+													// should
+													// this
+													// be id
+													// or
+													// intro_cid?
+		ArrayList<Integer> cochanges = CoChange.getCoChangeFileList(fileId, intro_cid, blocksize);
+		cache.add(cochanges, commitId, CacheItem.CacheReason.CoChange);
+    }
+    
+    public int getHit()
+    {
+    	return hit;    	
+    }
+    
+    public int getMiss()
+    {
+    	return miss;
+    }
 
 	public static void main(String args[])
 	{
@@ -149,8 +192,6 @@ public class Simulator {
 
 		//String startDate, endDate;
 		String start;
-		int hit = 0;
-		int miss = 0;
         CmdLineParser parser = new CmdLineParser();
         CmdLineParser.Option blksz_opt = parser.addIntegerOption('b', "blksize");
         CmdLineParser.Option csz_opt = parser.addIntegerOption('c', "csize");
@@ -199,7 +240,7 @@ public class Simulator {
         
         // create a new simulator
 		Simulator sim = new Simulator(blksz, pfsz, csz, pid, crp, start);		
-		sim.preLoad();
+		sim.initialPreLoad();
 		//  if you order scmlog by commitid or by date, the order is different: so order by date
 		String sql = "select id, is_bug_fix from scmlog where repository_id = "+pid+" and date>='"+sim.cache.startDate+"' order by date ASC";
 		
@@ -240,54 +281,23 @@ public class Simulator {
 					case V:	
 						break;
 					case R:
-						if (numprefetch < sim.prefetchsize) {
-							numprefetch++;
-							sim.cache.add(file_id, id,
-									CacheItem.CacheReason.NewEntity);
-						}
+						sim.versionPreLoad(numprefetch, file_id, id, CacheItem.CacheReason.NewEntity);
 						break;
 					case C:
-						if (numprefetch < sim.prefetchsize) {
-							numprefetch++;
-							sim.cache.add(file_id, id,
-									CacheItem.CacheReason.NewEntity);
-						}
+						sim.versionPreLoad(numprefetch, file_id, id, CacheItem.CacheReason.NewEntity);
 						break;
 					case A:
-						if (numprefetch < sim.prefetchsize) {
-							numprefetch++;
-							sim.cache.add(file_id, id,
-									CacheItem.CacheReason.NewEntity);
-						};
+						sim.versionPreLoad(numprefetch, file_id, id, CacheItem.CacheReason.NewEntity);
 						break;
 					case D:
 						sim.cache.remove(file_id);// remove from the cache
 						break;
 					case M: // modified
-						if (isBugFix) {
+						if (isBugFix) {					
 							int intro_cid = sim.getBugIntroCid(file_id, id);
-							if(sim.cache.cacheTable.containsKey(intro_cid))
-							{
-								hit++;
-							}
-							else
-							{
-								miss++;
-							}
-							sim.cache.add(file_id, intro_cid,
-									CacheItem.CacheReason.BugEntity); // XXX
-																		// should
-																		// this
-																		// be id
-																		// or
-																		// intro_cid?
-							ArrayList<Integer> cochanges = CoChange.getCoChangeFileList(file_id, intro_cid, sim.blocksize);
-							sim.cache.add(cochanges, id, CacheItem.CacheReason.CoChange);
+							sim.loadBuggyEntity(file_id, id, intro_cid);
 						} else {
-							if (numprefetch < sim.prefetchsize) {
-								numprefetch++;
-								sim.cache.add(file_id, id, CacheItem.CacheReason.ModifiedEntity);
-							}
+							sim.versionPreLoad(numprefetch, file_id, id, CacheItem.CacheReason.ModifiedEntity);
 
 						}
 					}
@@ -298,7 +308,7 @@ public class Simulator {
 			System.out.println(e);
 			System.exit(0);}
 		dbManager.close();
-		System.out.println(sim.getHitRatio(hit, miss));
+		System.out.println(sim.getHitRatio(sim.hit, sim.miss));
 //		select (file_id, type) from actions where commit_id == id, ordered_by loc
 //		int file_id;
 //		FileType type;

@@ -31,7 +31,7 @@ public class DatabaseManager {
 			prop.load(fis);
 			Enumeration enums = prop.propertyNames();
 			drivername = (String) prop.get("Driver");  
-            databasename = 	(String) prop.get("URl");
+            databasename = 	(String) prop.get("URL");
             username = (String) prop.get("UserName");
             password = (String) prop.get("UserPass");
 			
