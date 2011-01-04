@@ -38,7 +38,6 @@ public class DatabaseManager {
 			while (enums.hasMoreElements()) {
 				String key = (String) enums.nextElement();
 				String value = prop.getProperty(key);
-				System.out.println(key + "---" + value);
 
 			}
 		} catch (FileNotFoundException e) {
