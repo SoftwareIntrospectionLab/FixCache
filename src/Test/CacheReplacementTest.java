@@ -66,7 +66,8 @@ public class CacheReplacementTest {
 		assertNull(cache.getCacheItem(5));
 		cache.add(8, 8, CacheReason.NewEntity);
 		assertNull(cache.getCacheItem(6));
-		cache.add(6, 8, CacheReason.ModifiedEntity);
+		cache.add(1, 8, CacheReason.ModifiedEntity);
+		cache.add(5, 9, CacheReason.ModifiedEntity);
 		assertNull(cache.getCacheItem(7));
 	}
 	
@@ -94,9 +95,10 @@ public class CacheReplacementTest {
 		assertNull(cache.getCacheItem(5));
 		cache.add(8, 8, CacheReason.NewEntity);
 		assertNull(cache.getCacheItem(1));
-		cache.add(6, 8, CacheReason.ModifiedEntity);
-		cache.add(5, 9, CacheReason.BugEntity);
+		cache.add(1, 8, CacheReason.ModifiedEntity);
 		assertNull(cache.getCacheItem(2));
+		cache.add(5, 9, CacheReason.BugEntity);
+		assertNull(cache.getCacheItem(6));
 	}
 	
 	
@@ -123,10 +125,9 @@ public class CacheReplacementTest {
 		assertNull(cache.getCacheItem(5));
 		cache.add(8, 8, CacheReason.NewEntity);
 		assertNull(cache.getCacheItem(6));
-		cache.add(6, 8, CacheReason.ModifiedEntity);
-		assertNull(cache.getCacheItem(7));
+		cache.add(1, 8, CacheReason.ModifiedEntity);
 		cache.add(5, 9, CacheReason.BugEntity);
-		assertNull(cache.getCacheItem(8));
+		assertNull(cache.getCacheItem(7));
 	}
 	
 	@Test

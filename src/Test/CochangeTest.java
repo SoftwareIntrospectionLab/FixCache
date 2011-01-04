@@ -52,7 +52,7 @@ public class CochangeTest {
 		assertEquals(cochanges1.size(),2);
 		assertEquals(cochanges1.get(0).intValue(),1);
 		assertEquals(cochanges1.get(1).intValue(),2);
-		ArrayList<Integer> cochanges2 = CoChange.getCoChangeFileList(1, 10, 4);
+		ArrayList<Integer> cochanges2 = CoChange.getCoChangeFileList(1, 8, 4);
 		assertEquals(cochanges2.size(),3);
 		assertEquals(cochanges2.get(0).intValue(),2);
 		assertEquals(cochanges2.get(1).intValue(),4);

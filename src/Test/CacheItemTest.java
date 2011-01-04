@@ -51,10 +51,10 @@ public class CacheItemTest {
 		assertEquals(ci1.getNumberOfBugs(),3);
 		assertEquals(ci1.getNumberOfChanges(),3);
 		assertEquals(ci1.getLOC(),9);
-		CacheItem ci2 = new CacheItem(6, 8, CacheReason.ModifiedEntity, "2009-10-20 01:32:19.0");
-		assertEquals(ci2.getNumberOfAuthors(),2);
-		assertEquals(ci2.getNumberOfBugs(),1);
-		assertEquals(ci2.getNumberOfChanges(),2);
+		CacheItem ci2 = new CacheItem(1, 8, CacheReason.ModifiedEntity, "2009-10-20 01:32:19.0");
+		assertEquals(ci2.getNumberOfAuthors(),4);
+		assertEquals(ci2.getNumberOfBugs(),2);
+		assertEquals(ci2.getNumberOfChanges(),5);
 		
 	}
 	
