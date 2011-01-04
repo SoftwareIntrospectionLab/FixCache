@@ -2,7 +2,6 @@ package Test;
 
 import java.io.FileInputStream;
 import java.sql.Connection;
-import java.sql.DriverManager;
 
 import org.dbunit.database.DatabaseConnection;
 import org.dbunit.database.IDatabaseConnection;
