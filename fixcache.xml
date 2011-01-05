@@ -6,10 +6,10 @@
   <scmlog id="4" rev="ab04" committer_id="2" author_id="2" date="2009-10-21 11:02:49.0" repository_id="1" is_bug_fix="false"/>
   <scmlog id="5" rev="ab05" committer_id="5" author_id="3" date="2009-10-23 14:10:37.0" repository_id="1" is_bug_fix="true"/>
   <scmlog id="6" rev="ab06" committer_id="2" author_id="2" date="2009-10-23 14:29:05.0" repository_id="1" is_bug_fix="true"/>
-  <scmlog id="7" rev="ab07" committer_id="3" author_id="5" date="2009-10-20 20:01:52.0" repository_id="1" is_bug_fix="true"/>
-  <scmlog id="8" rev="ab08" committer_id="3" author_id="5" date="2009-10-21 07:51:22.0" repository_id="1" is_bug_fix="false"/>
-  <scmlog id="9" rev="ab09" committer_id="3" author_id="4" date="2009-10-21 09:50:26.0" repository_id="1" is_bug_fix="true"/>
-  <scmlog id="10" rev="ab10" committer_id="3" author_id="4" date="2009-10-21 14:30:54.0" repository_id="1" is_bug_fix="true"/>
+  <scmlog id="7" rev="ab07" committer_id="3" author_id="5" date="2009-10-23 20:01:52.0" repository_id="1" is_bug_fix="true"/>
+  <scmlog id="8" rev="ab08" committer_id="3" author_id="5" date="2009-10-24 07:51:22.0" repository_id="1" is_bug_fix="false"/>
+  <scmlog id="9" rev="ab09" committer_id="3" author_id="4" date="2009-10-24 09:50:26.0" repository_id="1" is_bug_fix="true"/>
+  <scmlog id="10" rev="ab10" committer_id="3" author_id="4" date="2009-10-24 14:30:54.0" repository_id="1" is_bug_fix="true"/>
   <people id="1" name="Jack" email="jack@gmail.com"/>
   <people id="2" name="Lily" email="lily@gmail.com"/>
   <people id="3" name="Peter" email="peter@hotmail.com"/>
