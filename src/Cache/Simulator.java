@@ -155,7 +155,7 @@ public class Simulator {
     
     public void loadBuggyEntity(int fileId, int commitId,  int intro_cid)
     {
-    	if(cache.cacheTable.containsKey(intro_cid))
+    	if(cache.cacheTable.containsKey(fileId))
 		{
 			hit++;
 		}
@@ -163,7 +163,7 @@ public class Simulator {
 		{
 			miss++;
 		}
-		cache.add(fileId, intro_cid,
+		cache.add(fileId, commitId,
 				CacheItem.CacheReason.BugEntity); // XXX
 													// should
 													// this
