@@ -120,7 +120,7 @@ public class SimulatorTest {
 		sim.loadBuggyEntity(2, 6, 5);
 		assertEquals(sim.getHit(),1);
 		assertEquals(sim.getMiss(),1);
-	    assertEquals(cache.getCacheItem(2).getNumberOfChanges(),2);
+	    assertEquals(cache.getCacheItem(2).getNumberOfChanges(),3);
 	}
 	
 	@Test
