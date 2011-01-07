@@ -185,7 +185,6 @@ public class Simulator {
 
 	public static void main(String args[])
 	{
-		// TODO: write unit tests
 
 		//String startDate, endDate;
 		String start;
@@ -269,7 +268,6 @@ public class Simulator {
 		int file_id;
 		FileType type;
 // TODO: remove loc? check sql.
-		int loc;
 		try {
 			stmt = conn.createStatement();
 			r = stmt.executeQuery(sql);
@@ -277,7 +275,7 @@ public class Simulator {
 				id = r.getInt(1);
 				isBugFix = r.getBoolean(2);
 				//only deal with .java files
-				sql = "select actions.file_id, type ,loc from actions, content_loc, files where actions.file_id = files.id and files.file_name like '%.java' and actions.file_id=content_loc.file_id and actions.commit_id = "+id+" and content_loc.commit_id ="+id+" and files.repository_id="+pid+" order by loc DESC";
+				sql = "select actions.file_id, type from actions, content_loc, files where actions.file_id = files.id and files.file_name like '%.java' and actions.file_id=content_loc.file_id and actions.commit_id = "+id+" and content_loc.commit_id ="+id+" and files.repository_id="+pid+" order by loc DESC";
 //				sql = "select actions.file_id, type ,loc from actions, content_loc where actions.file_id=content_loc.file_id and actions.commit_id = "+id+" and content_loc.commit_id ="+id+" order by loc DESC";
 				stmt1 = conn.createStatement();
 				r1 = stmt1.executeQuery(sql);
@@ -285,7 +283,6 @@ public class Simulator {
 				while (r1.next()) {
 					file_id = r1.getInt(1);
 					type = FileType.valueOf(r1.getString(2));
-					loc = r1.getInt(3);
 					switch (type) {
 					case V:	
 						break;
