@@ -5,25 +5,20 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
-
-import Database.DBOperation;
 import Database.DatabaseManager;
 
 public class CacheItem {
 
 	public enum CacheReason{Prefetch, CoChange, NewEntity, ModifiedEntity, BugEntity}
-
 	private final int entityId;
-	private CacheReason loadType;
 	private Date loadDate; // changed on cache hit
-
 	private int LOC;
-
 	private int numberOfChanges;
 	private int numberOfBugs;
 	private int numberOfAuthors;
-
+	
+	//XXX do we need these fields?
+	private CacheReason loadType;
 	private String commitDate; // for debugging?
 
 	DatabaseManager dbManager = DatabaseManager.getInstance();
@@ -32,39 +27,23 @@ public class CacheItem {
 	String sql;
 	ResultSet r;
 
-	//public CacheItem(String eid, CacheReason reas, Date time, int loc, int noc, int nob, int noa, int cid)
-	public CacheItem(int eid, String cdate, CacheReason reas, String startDate)
+	public CacheItem(int eid, String cdate, CacheReason reas, String sdate)
 	{
-		Date time = Calendar.getInstance().getTime(); // XXX fix this
 		entityId = eid;
 		commitDate = cdate;
-		int loc = findLoc(eid, cdate);
-		int noc = findNumberOfChanges(eid, cdate, startDate);
-		int nob = findNumberOfBugs(eid, cdate, startDate);
-		int noa = findNumberOfAuthors(eid, cdate, startDate);
-		update(reas, cdate, time, loc, noc, nob, noa);
+		update(reas, cdate, sdate);
 	}
 
 
 	public void update(CacheReason reas, String cdate, String sdate){
-		Date time = Calendar.getInstance().getTime(); // XXX fix this
-		int loc = findLoc(entityId, cdate);
-		int noc = findNumberOfChanges(entityId, cdate, sdate);
-		int nob = findNumberOfBugs(entityId, cdate, sdate);
-		int noa = findNumberOfAuthors(entityId, cdate, sdate);
-		update(reas, cdate, time, loc, noc, nob, noa);
-
-	}
-
-	private void update(CacheReason reas,String cdate, Date time, int loc, int noc, int nob, int noa)
-	{
+		loadDate = Calendar.getInstance().getTime(); // XXX fix this, deprecated method
+		LOC = findLoc(entityId, cdate);
+		numberOfChanges = findNumberOfChanges(entityId, cdate, sdate);
+		numberOfBugs = findNumberOfBugs(entityId, cdate, sdate);
+		numberOfAuthors = findNumberOfAuthors(entityId, cdate, sdate);
 		loadType = reas;
-		loadDate = time;
-		LOC = loc;
-		numberOfChanges = noc;
-		numberOfBugs = nob;
-		numberOfAuthors = noa;
 	}
+
 
 	/**
 	 * @return Returns the entityId.
@@ -109,7 +88,6 @@ public class CacheItem {
 	}
 
 	private int findNumberOfAuthors(int eid, String cdate, String start) {
-		// TODO Auto-generated method stub
 		int numAuthor = 0;
 		//		sql = "select count(distinct(author_id)) from scmlog where id in(" + //two slow to find the number of authors from the database
 		//				"select commit_id from actions where file_id="+eid+" and commit_id between "+Simulator.STARTIDDEFAULT +" and "+cid +")";//???start_Id
@@ -132,7 +110,6 @@ public class CacheItem {
 	}
 
 	private int findNumberOfBugs(int eid, String cdate, String start) {
-		// TODO Auto-generated method stub
 		int numBugs = 0;
 		sql = "select count(commit_id) from actions where file_id="+eid+" and commit_id in" +
 		"(select id from scmlog where is_bug_fix=1 and date <= '"+cdate+"' and date >='"+start+"')";
@@ -152,9 +129,8 @@ public class CacheItem {
 	}
 
 	private int findNumberOfChanges(int eid, String cdate, String start) {
-		// XXX >= startCId?
 		int numChanges = 0;
-		sql = "select count(actions.id) from actions, scmlog where actions.commit_id = scmlog.id and date <='"+cdate+"' and date >='"+ start+"' and file_id="+eid;//???
+		sql = "select count(actions.id) from actions, scmlog where actions.commit_id = scmlog.id and date <='"+cdate+"' and date >='"+ start+"' and file_id="+eid;
 		try
 		{
 			stmt = conn.createStatement();
@@ -173,7 +149,6 @@ public class CacheItem {
 	}
 
 	private int findLoc(int eid, String cdate) {
-		// TODO Auto-generated method stub
 		int loc =0;
 		sql = "select loc from content_loc, scmlog where file_id="+eid+" and date = '"+cdate + "' and content_loc.commit_id = scmlog.id";
 		try
@@ -193,7 +168,4 @@ public class CacheItem {
 	}
 
 	
-	public static void main(String[] args){
-
-	}
 }

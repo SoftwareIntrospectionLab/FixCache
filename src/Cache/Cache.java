@@ -1,20 +1,16 @@
 package Cache;
 
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
-
 import Cache.CacheItem.CacheReason;
-import Database.DBOperation;
 
 public class Cache {
 	
 	// Invariant: cacheTable.size() <= size;
 	
 	final int size;
-	final Hashtable<Integer, CacheItem> cacheTable = new Hashtable();
-	// List<Integer> files;
+	final Hashtable<Integer, CacheItem> cacheTable = new Hashtable<Integer, CacheItem>();
 	final CacheReplacement policy;
 	String startDate;
 	
@@ -43,9 +39,7 @@ public class Cache {
 	}
 	
 	public void add(int eid, String cdate, CacheReason reas){
-		// if reas == BugEntity
-			// if it is already in the cache, register a hit
-			// else register a fault
+		// XXX move hit/miss logic here? 
 		if (cacheTable.containsKey(eid))
 			cacheTable.get(eid).update(reas, cdate, startDate);
 		else
@@ -68,28 +62,18 @@ public class Cache {
 		// figure out what to remove with cache replacement policy
 		// iterate through the map and find the minimum element, given the cache replacement policy
 		// then remove that element
+		// TODO: keep cache always sorted using cache replacement policy
 		
 		CacheItem min = null;
 		
-		for (Object o : cacheTable.values()){
-			CacheItem c = (CacheItem) o;
+		for (CacheItem c : cacheTable.values()){
 			if (min == null)
-			{
 				min = c;
-			}
-				
 			else 
-			{
-				min = policy.minimum(min, c);
-			}
-				
+				min = policy.minimum(min, c);				
 		}
 		int entityId = min.getEntityId();
-		Iterator it = cacheTable.values().iterator();
-		while(it.hasNext())
-		{
-			CacheItem ci = (CacheItem)it.next();
-		}
+
 		cacheTable.remove(entityId);
 	
 	}
@@ -102,7 +86,7 @@ public class Cache {
 	
 	public CacheItem getCacheItem(int entityId)
 	{
-		return (CacheItem)cacheTable.get(entityId);
+		return cacheTable.get(entityId);
 	}
 	
 
@@ -113,17 +97,13 @@ public class Cache {
 	
 	public ArrayList<CacheItem> getCacheItemList()
 	{
-		ArrayList<CacheItem> CIList = new ArrayList();
-		Iterator it = cacheTable.values().iterator();
+		ArrayList<CacheItem> CIList = new ArrayList<CacheItem>();
+		Iterator<CacheItem> it = cacheTable.values().iterator();
 		while(it.hasNext())
 		{
-			CacheItem ci = (CacheItem)it.next();
-			CIList.add(ci);
+			CIList.add(it.next());
 		}
 		return CIList;
 	}
 	
-	public static void main( String[] args) {
-
-	}
 }

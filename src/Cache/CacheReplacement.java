@@ -1,7 +1,6 @@
 package Cache;
 
 import java.util.Comparator;
-import java.util.List;
 
 public class CacheReplacement {
 
@@ -9,7 +8,7 @@ public class CacheReplacement {
 	static final CacheReplacement.Policy REPDEFAULT = CacheReplacement.Policy.LRU;
 
 
-	protected Comparator compareFunc;
+	protected Comparator<CacheItem> compareFunc;
 	
 	public CacheReplacement(Policy p){
 		switch (p){
