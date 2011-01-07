@@ -111,18 +111,17 @@ public class Simulator {
     	// use the fileId and commitId to get a list of changed hunks from the hunk table.
     	// for each changed hunk, get the blamedHunk from the hunk_blame table; get the commit id associated with this blamed hunk
     	// take the maximum (in terms of date?) commit id and return it
+    	
+    	//XXX optimize this code?
     	int bugIntroCId = -1;
     	int hunkId;
     	DatabaseManager dbManager = DatabaseManager.getInstance();
     	Connection conn = dbManager.getConnection();
     	Statement stmt;
     	Statement stmt1;
-    	Statement stmt2;
     	String sql = "select id from hunks where file_id = "+fileId+" and commit_id ="+commitId;//select the hunk id of fileId for a bug_introducing commitId
     	ResultSet r;
     	ResultSet r1;
-    	ResultSet r2;
-    	String rev;
     	try{
     		stmt = conn.createStatement();
     		r = stmt.executeQuery(sql);
@@ -237,13 +236,24 @@ public class Simulator {
 
         
         // create a new simulator
+
 		Simulator sim = new Simulator(blksz, pfsz, csz, pid, crp, start);		
 		sim.initialPreLoad();
-		//  if you order scmlog by commitid or by date, the order is different: so order by date
-		String sql = "select id, is_bug_fix from scmlog where repository_id = "+pid+" and date>='"+sim.cache.startDate+"' order by date ASC";
+		sim.simulate();
+		sim.close();
 		
-		DatabaseManager dbManager = DatabaseManager.getInstance();
-		Connection conn = dbManager.getConnection();
+		System.out.println(sim.getHitRatio());
+	}
+
+	private void close() {
+		dbManager.close();
+	}
+
+	public void simulate() {
+		//  if you order scmlog by commitid or by date, the order is different: so order by date
+		String sql = "select id, is_bug_fix from scmlog where repository_id = "+pid+" and date>='"+cache.startDate+"' order by date ASC";
+		
+
 		Statement stmt;
 		Statement stmt1;
 		ResultSet r;
@@ -258,6 +268,7 @@ public class Simulator {
 		//iterate over the selection 
 		int file_id;
 		FileType type;
+// TODO: remove loc? check sql.
 		int loc;
 		try {
 			stmt = conn.createStatement();
@@ -279,23 +290,23 @@ public class Simulator {
 					case V:	
 						break;
 					case R:
-						sim.versionPreLoad(numprefetch, file_id, id, CacheItem.CacheReason.NewEntity);
+						this.versionPreLoad(numprefetch, file_id, id, CacheItem.CacheReason.NewEntity);
 						break;
 					case C:
-						sim.versionPreLoad(numprefetch, file_id, id, CacheItem.CacheReason.NewEntity);
+						this.versionPreLoad(numprefetch, file_id, id, CacheItem.CacheReason.NewEntity);
 						break;
 					case A:
-						sim.versionPreLoad(numprefetch, file_id, id, CacheItem.CacheReason.NewEntity);
+						this.versionPreLoad(numprefetch, file_id, id, CacheItem.CacheReason.NewEntity);
 						break;
 					case D:
-						sim.cache.remove(file_id);// remove from the cache
+						this.cache.remove(file_id);// remove from the cache
 						break;
 					case M: // modified
 						if (isBugFix) {					
-							int intro_cid = sim.getBugIntroCid(file_id, id);
-							sim.loadBuggyEntity(file_id, id, intro_cid);
+							int intro_cid = this.getBugIntroCid(file_id, id);
+							this.loadBuggyEntity(file_id, id, intro_cid);
 						} else {
-							sim.versionPreLoad(numprefetch, file_id, id, CacheItem.CacheReason.ModifiedEntity);
+							this.versionPreLoad(numprefetch, file_id, id, CacheItem.CacheReason.ModifiedEntity);
 
 						}
 					}
@@ -305,44 +316,9 @@ public class Simulator {
 		} catch (Exception e) {
 			System.out.println(e);
 			System.exit(0);}
-		dbManager.close();
-		System.out.println(sim.getHitRatio(sim.hit, sim.miss));
-//		select (file_id, type) from actions where commit_id == id, ordered_by loc
-//		int file_id;
-//		FileType type;
-//		
-//		// loop through those file ids
-//			switch (type){
-//			case V:
-//			case R:
-//			case C:
-//			case A: if (numprefetch < sim.prefetchsize) {
-//				numprefetch++;
-//				sim.cache.add(file_id, id, CacheItem.CacheReason.NewEntity);
-//			};
-//			case D: sim.cache.remove(file_id);// remove from the cache
-//			case M: 
-//				if (bugfix){
-//					int intro_cid = getBugIntroCid(file_id, id);
-//					sim.cache.add(file_id, intro_cid, CacheItem.CacheReason.BugEntity); // XXX should this be id or intro_cid?
-//					ArrayList<Integer> cochanges = CoChange.getCoChangeFileList(file_id, intro_cid, sim.blocksize);
-//					sim.cache.add(cochanges, id, CacheItem.CacheReason.CoChange);
-//				} else {
-//					if (numprefetch < sim.prefetchsize) {
-//						numprefetch++;
-//						sim.cache.add(file_id, id, CacheItem.CacheReason.ModifiedEntity);
-//					}
-//					
-//				}
-//			}
-//	}
-
-	
 	}
 
-	public double getHitRatio(int hit, int miss) {
-		// TODO Auto-generated method stub
-		double hitratio = (double)hit/(hit+miss);
-		return hitratio;
+	public double getHitRatio() {
+		return (double)hit/(hit+miss);
 	}
 }

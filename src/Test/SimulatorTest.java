@@ -122,5 +122,16 @@ public class SimulatorTest {
 		assertEquals(sim.getMiss(),1);
 	    assertEquals(cache.getCacheItem(2).getNumberOfChanges(),2);
 	}
+	
+	@Test
+	public void testSimulate()
+	{
+		Simulator sim = new Simulator(3, 2, 5, 1, CacheReplacement.Policy.BUGS, "2009-10-20 01:32:19.0");
+		sim.initialPreLoad();
+		sim.simulate();
+		//System.out.print(sim.getHitRatio());
+		int rat = (int) (sim.getHitRatio()*10);
+		assertEquals(rat, 6);
+	}
 
 }
