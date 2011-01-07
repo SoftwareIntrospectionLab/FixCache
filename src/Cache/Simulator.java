@@ -267,7 +267,6 @@ public class Simulator {
 		//iterate over the selection 
 		int file_id;
 		FileType type;
-// TODO: remove loc? check sql.
 		try {
 			stmt = conn.createStatement();
 			r = stmt.executeQuery(sql);

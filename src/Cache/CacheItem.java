@@ -24,7 +24,7 @@ public class CacheItem {
 	private int numberOfBugs;
 	private int numberOfAuthors;
 
-	private int commitId; // for debugging?
+	private String commitDate; // for debugging?
 
 	DatabaseManager dbManager = DatabaseManager.getInstance();
 	Connection conn = dbManager.getConnection();
@@ -33,37 +33,37 @@ public class CacheItem {
 	ResultSet r;
 
 	//public CacheItem(String eid, CacheReason reas, Date time, int loc, int noc, int nob, int noa, int cid)
-	public CacheItem(int eid, int cid, CacheReason reas, String startDate)
+	public CacheItem(int eid, String cdate, CacheReason reas, String startDate)
 	{
 		Date time = Calendar.getInstance().getTime(); // XXX fix this
 		entityId = eid;
-		int loc = findLoc(eid, cid);
-		int noc = findNumberOfChanges(eid, cid, startDate);
-		int nob = findNumberOfBugs(eid, cid, startDate);
-		int noa = findNumberOfAuthors(eid, cid, startDate);
-		update(reas, time, loc, noc, nob, noa, cid);
-	}
-
-
-	public void update(CacheReason reas, int cid, Cache c){
-		Date time = Calendar.getInstance().getTime(); // XXX fix this
-		int loc = findLoc(entityId, cid);
-		int noc = findNumberOfChanges(entityId, cid, c.startDate);
-		int nob = findNumberOfBugs(entityId, cid, c.startDate);
-		int noa = findNumberOfAuthors(entityId, cid, c.startDate);
-		update(reas, time, loc, noc, nob, noa, cid);
-
-	}
-
-	private void update(CacheReason reas, Date time, int loc, int noc, int nob, int noa, int cid)
-	{
 		loadType = reas;
+		commitDate = cdate;
+		int loc = findLoc(eid);
+		int noc = findNumberOfChanges(eid,startDate);
+		int nob = findNumberOfBugs(eid, startDate);
+		int noa = findNumberOfAuthors(eid, startDate);
+		update(time, loc, noc, nob, noa);
+	}
+
+
+//	public void update(int cid, Cache c){
+//		Date time = Calendar.getInstance().getTime(); // XXX fix this
+//		int loc = findLoc(entityId, cid);
+//		int noc = findNumberOfChanges(entityId, cid, c.startDate);
+//		int nob = findNumberOfBugs(entityId, cid, c.startDate);
+//		int noa = findNumberOfAuthors(entityId, cid, c.startDate);
+//		update(time, loc, noc, nob, noa);
+//
+//	}
+
+	private void update(Date time, int loc, int noc, int nob, int noa)
+	{
 		loadDate = time;
 		LOC = loc;
 		numberOfChanges = noc;
 		numberOfBugs = nob;
 		numberOfAuthors = noa;
-		commitId = cid;
 	}
 
 	/**
@@ -108,12 +108,12 @@ public class CacheItem {
 		return numberOfAuthors;
 	}
 
-	private int findNumberOfAuthors(int eid, int cid, String start) {
+	private int findNumberOfAuthors(int eid, String start) {
 		// TODO Auto-generated method stub
 		int numAuthor = 0;
 		//		sql = "select count(distinct(author_id)) from scmlog where id in(" + //two slow to find the number of authors from the database
 		//				"select commit_id from actions where file_id="+eid+" and commit_id between "+Simulator.STARTIDDEFAULT +" and "+cid +")";//???start_Id
-		sql = "select count(id) from people where id in( select author_id from scmlog, actions where scmlog.id = actions.commit_id and scmlog.id <="+cid+" and date >= '"+start +"' and file_id = "+eid+")";
+		sql = "select count(id) from people where id in( select author_id from scmlog, actions where scmlog.id = actions.commit_id and date <='"+commitDate+"' and date >= '"+start +"' and file_id = "+eid+")";
 		try
 		{
 			stmt = conn.createStatement();
@@ -131,11 +131,11 @@ public class CacheItem {
 		return numAuthor;
 	}
 
-	private int findNumberOfBugs(int eid, int cid, String start) {
+	private int findNumberOfBugs(int eid, String start) {
 		// TODO Auto-generated method stub
 		int numBugs = 0;
 		sql = "select count(commit_id) from actions where file_id="+eid+" and commit_id in" +
-		"(select id from scmlog where is_bug_fix=1 and id <= "+cid+" and date >='"+start+"')";
+		"(select id from scmlog where is_bug_fix=1 and date <= '"+commitDate+"' and date >='"+start+"')";
 		try
 		{
 			stmt = conn.createStatement();
@@ -151,10 +151,10 @@ public class CacheItem {
 		return numBugs;
 	}
 
-	private int findNumberOfChanges(int eid, int cid, String start) {
+	private int findNumberOfChanges(int eid, String start) {
 		// XXX >= startCId?
 		int numChanges = 0;
-		sql = "select count(actions.id) from actions, scmlog where actions.commit_id = scmlog.id and actions.commit_id <="+cid+" and date >='"+ start+"' and file_id="+eid;//???
+		sql = "select count(actions.id) from actions, scmlog where actions.commit_id = scmlog.id and date <='"+commitDate+"' and date >='"+ start+"' and file_id="+eid;//???
 		try
 		{
 			stmt = conn.createStatement();
@@ -172,10 +172,10 @@ public class CacheItem {
 		return numChanges;
 	}
 
-	private int findLoc(int eid, int cid) {
+	private int findLoc(int eid) {
 		// TODO Auto-generated method stub
 		int loc =0;
-		sql = "select loc from content_loc where file_id="+eid+" and commit_id = "+cid;
+		sql = "select loc from content_loc, scmlog where file_id="+eid+" and date = '"+commitDate + "' and content_loc.commit_id = scmlog.id";
 		try
 		{
 			stmt = conn.createStatement();
