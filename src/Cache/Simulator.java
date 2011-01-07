@@ -69,18 +69,16 @@ public class Simulator {
 		}catch (Exception e) {
 			System.out.println(e);
 			System.exit(0);}
-		sql = "select content_loc.file_id,content_loc.commit_id from content_loc, scmlog, actions where content_loc.commit_id = scmlog.id and date ='"+ firstDate +
+		sql = "select content_loc.file_idfrom content_loc, scmlog, actions where content_loc.commit_id = scmlog.id and date ='"+ firstDate +
 		      "' and content_loc.file_id=actions.file_id and content_loc.commit_id=actions.commit_id and actions.type!='D' order by loc DESC";
 		int fileId = 0;
-		int startCommitId = 0;
 		try {
 			stmt = conn.createStatement();
 			r = stmt.executeQuery(sql);
 			for (int size = 0; size < prefetchsize; size++) {
 				if (r.next()) {
 					fileId = r.getInt(1);
-					startCommitId = r.getInt(2);
-					cache.add(fileId, startCommitId, CacheItem.CacheReason.Prefetch);
+					cache.add(fileId, firstDate, CacheItem.CacheReason.Prefetch);
 				}
 			}
 		} catch (Exception e) {
@@ -97,23 +95,23 @@ public class Simulator {
         System.err.println("-p/--pid option is required");
     }
     
-    public void versionPreLoad(int numprefetch, int fileId, int commitId, CacheItem.CacheReason cacheReason)
+    public void versionPreLoad(int numprefetch, int fileId, String commitDate, CacheItem.CacheReason cacheReason)
     {
     	if (numprefetch < prefetchsize) {
 			numprefetch++;
-			cache.add(fileId, commitId, cacheReason);
+			cache.add(fileId, commitDate, cacheReason);
     	}
     }
     
     //TODO: find the bug introducing file id for a given bug fixding commitId
-    public int getBugIntroCid(int fileId, int commitId)
+    public String getBugIntroCid(int fileId, int commitId)
     {
     	// use the fileId and commitId to get a list of changed hunks from the hunk table.
     	// for each changed hunk, get the blamedHunk from the hunk_blame table; get the commit id associated with this blamed hunk
     	// take the maximum (in terms of date?) commit id and return it
     	
     	//XXX optimize this code?
-    	int bugIntroCId = -1;
+    	String bugIntroCdate = "";
     	int hunkId;
     	DatabaseManager dbManager = DatabaseManager.getInstance();
     	Connection conn = dbManager.getConnection();
@@ -129,13 +127,13 @@ public class Simulator {
     	{
     		hunkId = r.getInt(1);
     		stmt1 = conn.createStatement();
-    		sql = "select bug_commit_id from hunk_blames where hunk_id = "+ hunkId;//for each hunk find the bug introducing rev
+    		sql = "select date from hunk_blames, scmlog where hunk_id = "+ hunkId + "hunk_blames.bug_commit_id";//for each hunk find the bug introducing rev
     		r1 = stmt1.executeQuery(sql);
     		while(r1.next())
     		{
-    			if(r1.getInt(1) > bugIntroCId)
+    			if(r1.getString(1).compareTo(bugIntroCdate)>0)
     			{
-    				bugIntroCId = r1.getInt(1);
+    				bugIntroCdate = r1.getString(1);
     			}
     		}
     	}
@@ -143,7 +141,7 @@ public class Simulator {
 			System.out.println(e);
 			System.exit(0);}
     
-    	return bugIntroCId;
+    	return bugIntroCdate;
     }
     
     public Cache getCache()
@@ -152,7 +150,7 @@ public class Simulator {
     }
 
     
-    public void loadBuggyEntity(int fileId, int commitId,  int intro_cid)
+    public void loadBuggyEntity(int fileId, String commitDate,  String intro_cdate)
     {
     	if(cache.cacheTable.containsKey(fileId))
 		{
@@ -162,15 +160,15 @@ public class Simulator {
 		{
 			miss++;
 		}
-		cache.add(fileId, commitId,
+		cache.add(fileId, commitDate,
 				CacheItem.CacheReason.BugEntity); // XXX
 													// should
 													// this
 													// be id
 													// or
 													// intro_cid?
-		ArrayList<Integer> cochanges = CoChange.getCoChangeFileList(fileId, intro_cid, blocksize);
-		cache.add(cochanges, commitId, CacheItem.CacheReason.CoChange);
+		ArrayList<Integer> cochanges = CoChange.getCoChangeFileList(fileId, intro_cdate, blocksize);
+		cache.add(cochanges, commitDate, CacheItem.CacheReason.CoChange);
     }
     
     public int getHit()
@@ -250,7 +248,7 @@ public class Simulator {
 
 	public void simulate() {
 		//  if you order scmlog by commitid or by date, the order is different: so order by date
-		String sql = "select id, is_bug_fix from scmlog where repository_id = "+pid+" and date>='"+cache.startDate+"' order by date ASC";
+		String sql = "select id, date, is_bug_fix from scmlog where repository_id = "+pid+" and date>='"+cache.startDate+"' order by date ASC";
 		
 
 		Statement stmt;
@@ -260,7 +258,8 @@ public class Simulator {
 		
 		//select (id, bugfix) from scmlog orderedby date  --- need join
 		// main loop
-		int id;//means commit_id in actions
+		int cid;//means commit_id in actions
+		String cdate;
 		boolean isBugFix;
 		
 		int numprefetch = 0;
@@ -271,10 +270,11 @@ public class Simulator {
 			stmt = conn.createStatement();
 			r = stmt.executeQuery(sql);
 			while (r.next()) {
-				id = r.getInt(1);
-				isBugFix = r.getBoolean(2);
+				cid = r.getInt(1);
+				cdate = r.getString(2);
+				isBugFix = r.getBoolean(3);
 				//only deal with .java files
-				sql = "select actions.file_id, type from actions, content_loc, files where actions.file_id = files.id and files.file_name like '%.java' and actions.file_id=content_loc.file_id and actions.commit_id = "+id+" and content_loc.commit_id ="+id+" and files.repository_id="+pid+" order by loc DESC";
+				sql = "select actions.file_id, type from actions, content_loc, files where actions.file_id = files.id and files.file_name like '%.java' and actions.file_id=content_loc.file_id and actions.commit_id = "+cid+" and content_loc.commit_id ="+cid+" and files.repository_id="+pid+" order by loc DESC";
 //				sql = "select actions.file_id, type ,loc from actions, content_loc where actions.file_id=content_loc.file_id and actions.commit_id = "+id+" and content_loc.commit_id ="+id+" order by loc DESC";
 				stmt1 = conn.createStatement();
 				r1 = stmt1.executeQuery(sql);
@@ -286,23 +286,23 @@ public class Simulator {
 					case V:	
 						break;
 					case R:
-						this.versionPreLoad(numprefetch, file_id, id, CacheItem.CacheReason.NewEntity);
+						this.versionPreLoad(numprefetch, file_id, cdate, CacheItem.CacheReason.NewEntity);
 						break;
 					case C:
-						this.versionPreLoad(numprefetch, file_id, id, CacheItem.CacheReason.NewEntity);
+						this.versionPreLoad(numprefetch, file_id, cdate, CacheItem.CacheReason.NewEntity);
 						break;
 					case A:
-						this.versionPreLoad(numprefetch, file_id, id, CacheItem.CacheReason.NewEntity);
+						this.versionPreLoad(numprefetch, file_id, cdate, CacheItem.CacheReason.NewEntity);
 						break;
 					case D:
 						this.cache.remove(file_id);// remove from the cache
 						break;
 					case M: // modified
 						if (isBugFix) {					
-							int intro_cid = this.getBugIntroCid(file_id, id);
-							this.loadBuggyEntity(file_id, id, intro_cid);
+							String intro_cdate = this.getBugIntroCid(file_id, cid);
+							this.loadBuggyEntity(file_id, cdate, intro_cdate);
 						} else {
-							this.versionPreLoad(numprefetch, file_id, id, CacheItem.CacheReason.ModifiedEntity);
+							this.versionPreLoad(numprefetch, file_id, cdate, CacheItem.CacheReason.ModifiedEntity);
 
 						}
 					}

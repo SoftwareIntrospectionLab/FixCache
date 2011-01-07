@@ -28,14 +28,14 @@ public class CoChange {
 	}
 
 	public static ArrayList<Integer> getCoChangeFileList(int fileid,
-			int commitid, int blocksize) {
+			String commitDate, int blocksize) {
 		CoChange co = new CoChange(fileid);
-		return co.getCoChangeList(co.buildCoChangeMap(commitid), blocksize);
+		return co.getCoChangeList(co.buildCoChangeMap(commitDate), blocksize);
 
 	}
 
 	// build a table of files that are changed with fileID, before time commitID
-	private CoChangeFileMap buildCoChangeMap(int commitID) {
+	private CoChangeFileMap buildCoChangeMap(String commitDate) {
 		CoChangeFileMap coChangeCounts = new CoChangeFileMap();
 
 		// get a list of all prior commits for fileID before commitID:
@@ -43,8 +43,8 @@ public class CoChange {
 
 		Statement stmt1;
 		ResultSet r1;
-		String sql = "SELECT commit_id from actions where file_id=" + fileID
-				+ " and commit_id <= " + commitID;// cochange commit_id may be
+		String sql = "SELECT commit_id from actions, scmlog where file_id=" + fileID
+				+ " and actions.commit_id=scmlog.id and date <= " + commitDate;// cochange commit_id may be
 													// smaller than
 													// STARTIDDEFAULT
 		List commitList = new ArrayList();
@@ -117,7 +117,7 @@ public class CoChange {
 
 	public static void main(String args[]) {
 		CoChange coChange = new CoChange(3679);
-		CoChangeFileMap countTable = coChange.buildCoChangeMap(10000);
+		CoChangeFileMap countTable = coChange.buildCoChangeMap("");
 		List coChangeList = countTable.getTopFiles(100);
 		for (int i = 0; i < coChangeList.size(); i++) {
 			System.out.println((Integer) coChangeList.get(i));

@@ -42,20 +42,20 @@ public class Cache {
 		cacheTable.put(entityId, cacheItem);
 	}
 	
-	public void add(int eid, int cid, CacheReason reas){
+	public void add(int eid, String cdate, CacheReason reas){
 		// if reas == BugEntity
 			// if it is already in the cache, register a hit
 			// else register a fault
 		if (cacheTable.containsKey(eid))
-			cacheTable.get(eid).update(reas, cid, this);
+			cacheTable.get(eid).update(reas, cdate, startDate);
 		else
-			load (new CacheItem(eid, cid, reas, startDate));
+			load (new CacheItem(eid, cdate, reas, startDate));
 	}
 	
 	
-	public void add(ArrayList<Integer> eids, int cid, CacheReason reas){
+	public void add(ArrayList<Integer> eids, String cdate, CacheReason reas){
 		for (int eid: eids)
-			add(eid, cid, reas);
+			add(eid, cdate, reas);
 		
 	}
 	
