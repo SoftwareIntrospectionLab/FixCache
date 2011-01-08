@@ -141,7 +141,7 @@ public class SimulatorTest {
 		sim3.simulate();
 		rat = (int) (sim3.getHitRatio()*10);
 		assertEquals(rat, 5);
-		Simulator sim4 = new Simulator(3, 2, 5, 1, CacheReplacement.Policy.BUGS, "2009-10-23 20:01:52.0");
+		Simulator sim4 = new Simulator(3, 2, 5, 1, CacheReplacement.Policy.BUGS, "2009-10-20 01:32:19.0");
 		sim4.initialPreLoad();
 		sim4.simulate();
 		rat = (int) (sim4.getHitRatio()*10);

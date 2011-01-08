@@ -67,4 +67,9 @@ public class CacheTest {
 		cache.add(5, 3, "2009-10-20 14:37:47.0", CacheReason.BugEntity);
 		assertTrue(cache.isFull());
 	}
+	
+	public void testBumpOutItem()
+	{
+		
+	}
 }

@@ -8,7 +8,7 @@ public class CacheReplacement {
 	static final CacheReplacement.Policy REPDEFAULT = CacheReplacement.Policy.LRU;
 
 	protected Comparator<CacheItem> compareFunc;
-	protected ComparatorLRU tiebreaker;
+	protected ComparatorLRU tiebreaker = new ComparatorLRU();
 	
 	public CacheReplacement(Policy p){
 		switch (p){

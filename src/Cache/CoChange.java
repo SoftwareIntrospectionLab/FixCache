@@ -143,7 +143,7 @@ public class CoChange {
 				map.put(f, 1);
 		}
 
-		// TODO: make this return top files, not bottom files
+		// TODO: when two files have the same cochange count, use loc to break them
 		ArrayList<Integer> getTopFiles(int blocksize) {
 			List list = new ArrayList(map.entrySet());
 			ArrayList topFiles = new ArrayList();
