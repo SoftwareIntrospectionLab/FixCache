@@ -38,18 +38,18 @@ public class Cache {
 		cacheTable.put(entityId, cacheItem);
 	}
 	
-	public void add(int eid, String cdate, CacheReason reas){
+	public void add(int eid, int cid, String cdate, CacheReason reas){
 		// XXX move hit/miss logic here? 
 		if (cacheTable.containsKey(eid))
-			cacheTable.get(eid).update(reas, cdate, startDate);
+			cacheTable.get(eid).update(reas, cid, cdate, startDate);
 		else
-			load (new CacheItem(eid, cdate, reas, startDate));
+			load (new CacheItem(eid, cid, cdate, reas, startDate));
 	}
 	
 	
-	public void add(ArrayList<Integer> eids, String cdate, CacheReason reas){
+	public void add(ArrayList<Integer> eids, int cid, String cdate, CacheReason reas){
 		for (int eid: eids)
-			add(eid, cdate, reas);
+			add(eid, cid, cdate, reas);
 		
 	}
 	

@@ -46,14 +46,14 @@ public class CacheItemTest {
 	@Test
 	public void testCacheItemGet()
 	{
-		CacheItem ci1 = new CacheItem(5, "2009-10-24 14:30:54.0", CacheReason.NewEntity, "2009-10-20 01:32:19.0");
+		CacheItem ci1 = new CacheItem(5, 10, "2009-10-24 14:30:54.0", CacheReason.NewEntity, "2009-10-20 01:32:19.0");
 		assertEquals(ci1.getNumberOfAuthors(),2);
 		assertEquals(ci1.getNumberOfBugs(),3);
 		assertEquals(ci1.getNumberOfChanges(),3);
 		// XXX fails due to bug in content_loc
 		// TODO change back later 8 +> 9
 		assertEquals(ci1.getLOC(),8);
-		CacheItem ci2 = new CacheItem(1, "2009-10-24 07:51:22.0", CacheReason.ModifiedEntity, "2009-10-20 01:32:19.0");
+		CacheItem ci2 = new CacheItem(1, 8, "2009-10-24 07:51:22.0", CacheReason.ModifiedEntity, "2009-10-20 01:32:19.0");
 		assertEquals(ci2.getNumberOfAuthors(),4);
 		assertEquals(ci2.getNumberOfBugs(),2);
 		assertEquals(ci2.getNumberOfChanges(),5);

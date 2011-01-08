@@ -69,16 +69,18 @@ public class Simulator {
 		}catch (Exception e) {
 			System.out.println(e);
 			System.exit(0);}
-		sql = "select content_loc.file_idfrom content_loc, scmlog, actions where content_loc.commit_id = scmlog.id and date ='"+ firstDate +
+		sql = "select content_loc.file_id, content_loc.commit_id from content_loc, scmlog, actions where content_loc.commit_id = scmlog.id and date ='"+ firstDate +
 		      "' and content_loc.file_id=actions.file_id and content_loc.commit_id=actions.commit_id and actions.type!='D' order by loc DESC";
 		int fileId = 0;
+		int commitId = 0;
 		try {
 			stmt = conn.createStatement();
 			r = stmt.executeQuery(sql);
 			for (int size = 0; size < prefetchsize; size++) {
 				if (r.next()) {
 					fileId = r.getInt(1);
-					cache.add(fileId, firstDate, CacheItem.CacheReason.Prefetch);
+					commitId = r.getInt(2);
+					cache.add(fileId, commitId, firstDate, CacheItem.CacheReason.Prefetch);
 				}
 			}
 		} catch (Exception e) {
@@ -95,16 +97,16 @@ public class Simulator {
         System.err.println("-p/--pid option is required");
     }
     
-    public void versionPreLoad(int numprefetch, int fileId, String commitDate, CacheItem.CacheReason cacheReason)
+    public void versionPreLoad(int numprefetch, int fileId, int cid, String commitDate, CacheItem.CacheReason cacheReason)
     {
     	if (numprefetch < prefetchsize) {
 			numprefetch++;
-			cache.add(fileId, commitDate, cacheReason);
+			cache.add(fileId, cid, commitDate, cacheReason);
     	}
     }
     
     //TODO: find the bug introducing file id for a given bug fixding commitId
-    public String getBugIntroCid(int fileId, int commitId)
+    public String getBugIntroCdate(int fileId, int commitId)
     {
     	// use the fileId and commitId to get a list of changed hunks from the hunk table.
     	// for each changed hunk, get the blamedHunk from the hunk_blame table; get the commit id associated with this blamed hunk
@@ -127,7 +129,7 @@ public class Simulator {
     	{
     		hunkId = r.getInt(1);
     		stmt1 = conn.createStatement();
-    		sql = "select date from hunk_blames, scmlog where hunk_id = "+ hunkId + "hunk_blames.bug_commit_id";//for each hunk find the bug introducing rev
+    		sql = "select date from hunk_blames, scmlog where hunk_id = "+ hunkId + " and hunk_blames.bug_commit_id=scmlog.id";//for each hunk find the bug introducing rev
     		r1 = stmt1.executeQuery(sql);
     		while(r1.next())
     		{
@@ -150,7 +152,7 @@ public class Simulator {
     }
 
     
-    public void loadBuggyEntity(int fileId, String commitDate,  String intro_cdate)
+    public void loadBuggyEntity(int fileId, int cid, String commitDate,  String intro_cdate)
     {
     	if(cache.cacheTable.containsKey(fileId))
 		{
@@ -160,7 +162,7 @@ public class Simulator {
 		{
 			miss++;
 		}
-		cache.add(fileId, commitDate,
+		cache.add(fileId, cid, commitDate,
 				CacheItem.CacheReason.BugEntity); // XXX
 													// should
 													// this
@@ -168,7 +170,7 @@ public class Simulator {
 													// or
 													// intro_cid?
 		ArrayList<Integer> cochanges = CoChange.getCoChangeFileList(fileId, intro_cdate, blocksize);
-		cache.add(cochanges, commitDate, CacheItem.CacheReason.CoChange);
+		cache.add(cochanges, cid, commitDate, CacheItem.CacheReason.CoChange);
     }
     
     public int getHit()
@@ -286,23 +288,23 @@ public class Simulator {
 					case V:	
 						break;
 					case R:
-						this.versionPreLoad(numprefetch, file_id, cdate, CacheItem.CacheReason.NewEntity);
+						this.versionPreLoad(numprefetch, file_id, cid,  cdate, CacheItem.CacheReason.NewEntity);
 						break;
 					case C:
-						this.versionPreLoad(numprefetch, file_id, cdate, CacheItem.CacheReason.NewEntity);
+						this.versionPreLoad(numprefetch, file_id, cid, cdate, CacheItem.CacheReason.NewEntity);
 						break;
 					case A:
-						this.versionPreLoad(numprefetch, file_id, cdate, CacheItem.CacheReason.NewEntity);
+						this.versionPreLoad(numprefetch, file_id, cid, cdate, CacheItem.CacheReason.NewEntity);
 						break;
 					case D:
 						this.cache.remove(file_id);// remove from the cache
 						break;
 					case M: // modified
 						if (isBugFix) {					
-							String intro_cdate = this.getBugIntroCid(file_id, cid);
-							this.loadBuggyEntity(file_id, cdate, intro_cdate);
+							String intro_cdate = this.getBugIntroCdate(file_id, cid);
+							this.loadBuggyEntity(file_id, cid, cdate, intro_cdate);
 						} else {
-							this.versionPreLoad(numprefetch, file_id, cdate, CacheItem.CacheReason.ModifiedEntity);
+							this.versionPreLoad(numprefetch, file_id, cid, cdate, CacheItem.CacheReason.ModifiedEntity);
 
 						}
 					}

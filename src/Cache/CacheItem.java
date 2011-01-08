@@ -27,17 +27,17 @@ public class CacheItem {
 	String sql;
 	ResultSet r;
 
-	public CacheItem(int eid, String cdate, CacheReason reas, String sdate)
+	public CacheItem(int eid, int cid, String cdate, CacheReason reas, String sdate)
 	{
 		entityId = eid;
 		commitDate = cdate;
-		update(reas, cdate, sdate);
+		update(reas, cid, cdate, sdate);
 	}
 
 
-	public void update(CacheReason reas, String cdate, String sdate){
+	public void update(CacheReason reas, int cid, String cdate, String sdate){
 		loadDate = Calendar.getInstance().getTime(); // XXX fix this, deprecated method
-		LOC = findLoc(entityId, cdate);
+		LOC = findLoc(entityId, cid);
 		numberOfChanges = findNumberOfChanges(entityId, cdate, sdate);
 		numberOfBugs = findNumberOfBugs(entityId, cdate, sdate);
 		numberOfAuthors = findNumberOfAuthors(entityId, cdate, sdate);
@@ -148,9 +148,10 @@ public class CacheItem {
 		return numChanges;
 	}
 
-	private int findLoc(int eid, String cdate) {
+	// TODO: fix to use commit id to ensure unique lookup
+	private int findLoc(int eid, int cid) {
 		int loc =0;
-		sql = "select loc from content_loc, scmlog where file_id="+eid+" and date = '"+cdate + "' and content_loc.commit_id = scmlog.id";
+		sql = "select loc from content_loc where file_id="+eid+" and commit_id = "+cid;
 		try
 		{
 			stmt = conn.createStatement();

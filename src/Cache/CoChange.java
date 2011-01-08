@@ -39,7 +39,7 @@ public class CoChange {
 		Statement stmt1;
 		ResultSet r1;
 		String sql = "SELECT commit_id from actions, scmlog where file_id=" + fileID
-				+ " and actions.commit_id=scmlog.id and date <= " + commitDate;// cochange commit_id may be
+				+ " and actions.commit_id=scmlog.id and date <= '" + commitDate +"'";// cochange commit_id may be
 													// smaller than
 													// STARTIDDEFAULT
 		List commitList = new ArrayList();
