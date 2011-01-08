@@ -126,12 +126,26 @@ public class SimulatorTest {
 	@Test
 	public void testSimulate()
 	{
-		Simulator sim = new Simulator(3, 2, 5, 1, CacheReplacement.Policy.BUGS, "2009-10-20 01:32:19.0");
-		sim.initialPreLoad();
-		sim.simulate();
-		//System.out.print(sim.getHitRatio());
-		int rat = (int) (sim.getHitRatio()*10);
-		assertEquals(rat, 6);
+		Simulator sim1= new Simulator(3, 2, 5, 1, CacheReplacement.Policy.BUGS, "2009-10-24 14:30:54.0");
+		sim1.initialPreLoad();
+		sim1.simulate();
+		int rat = (int) (sim1.getHitRatio()*10);
+		assertEquals(rat, 10);
+		Simulator sim2 = new Simulator(3, 2, 5, 1, CacheReplacement.Policy.BUGS, "2009-10-24 09:50:26.0");
+		sim2.initialPreLoad();
+		sim2.simulate();
+		rat = (int) (sim2.getHitRatio()*10);
+		assertEquals(rat, 10);
+		Simulator sim3 = new Simulator(3, 2, 5, 1, CacheReplacement.Policy.BUGS, "2009-10-24 07:51:22.0");
+		sim3.initialPreLoad();
+		sim3.simulate();
+		rat = (int) (sim3.getHitRatio()*10);
+		assertEquals(rat, 5);
+		Simulator sim4 = new Simulator(3, 2, 5, 1, CacheReplacement.Policy.BUGS, "2009-10-23 20:01:52.0");
+		sim4.initialPreLoad();
+		sim4.simulate();
+		rat = (int) (sim4.getHitRatio()*10);
+		assertEquals(rat, 5);
 	}
 
 }
