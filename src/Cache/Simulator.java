@@ -23,8 +23,7 @@ public class Simulator {
 	int pid;
 	CacheReplacement.Policy cacheRep;		
 	Cache cache; 
-	DatabaseManager dbManager = DatabaseManager.getInstance();
-	Connection conn = dbManager.getConnection();
+	Connection conn = DatabaseManager.getConnection();
 	double hitratio = 0;
 	int hit;
 	int miss;
@@ -120,8 +119,7 @@ public class Simulator {
     	//XXX optimize this code?
     	String bugIntroCdate = "";
     	int hunkId;
-    	DatabaseManager dbManager = DatabaseManager.getInstance();
-    	Connection conn = dbManager.getConnection();
+    	Connection conn = DatabaseManager.getConnection();
     	Statement stmt;
     	Statement stmt1;
     	StringBuilder sql = new StringBuilder();
@@ -254,7 +252,7 @@ public class Simulator {
 	}
 
 	private void close() {
-		dbManager.close();
+		DatabaseManager.close();
 	}
 
 	public void simulate() {

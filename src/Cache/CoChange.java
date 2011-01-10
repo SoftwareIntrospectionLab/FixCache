@@ -14,8 +14,7 @@ import Database.DatabaseManager;
 public class CoChange {
 
 	int fileID;
-	DatabaseManager dbManager = DatabaseManager.getInstance();
-	Connection conn = dbManager.getConnection();
+	Connection conn = DatabaseManager.getConnection();
 
 	private CoChange(int fileID) {
 		this.fileID = fileID;
@@ -45,7 +44,7 @@ public class CoChange {
 
 		try {
 			stmt1 = conn.createStatement();
-			r1 = dbManager.executeQuery(sql.toString());
+			r1 = stmt1.executeQuery(sql.toString());
 			while (r1.next()) {
 				commitList.add(r1.getInt(1));
 			}

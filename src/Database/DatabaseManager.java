@@ -64,19 +64,15 @@ public class DatabaseManager {
             System.exit(0);
             }
 	}
+
 	
-	public static DatabaseManager getInstance(){
-		
+	public static Connection getConnection()
+	{
 		if(dbManager == null)
 		{
 			dbManager = new DatabaseManager(); 
 		}
-		return dbManager;
-	}
-	
-	public Connection getConnection()
-	{
-		return conn;
+		return dbManager.conn;
 	}
 	
 	public ResultSet executeQuery(String sql)
@@ -90,18 +86,17 @@ public class DatabaseManager {
 		return rs;
 	}
 	
-	public void close()
+	public static void close()
 	{
 		try{
-			conn.close();
+			dbManager.conn.close();
 		}catch (Exception e) {
 			System.out.println(e);
 			System.exit(0);}	
 	}
 
 	public static void main(String[] args) {
-		DatabaseManager dbm1 = DatabaseManager.getInstance();
-		Connection conn = dbm1.getConnection();
+		Connection conn = getConnection();
 		int commitId;
 		try{
 			Statement stmt1 = conn.createStatement();
