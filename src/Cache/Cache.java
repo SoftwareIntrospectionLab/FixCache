@@ -72,10 +72,9 @@ public class Cache {
 			else 
 				min = policy.minimum(min, c);				
 		}
+		
 		int entityId = min.getEntityId();
-
 		cacheTable.remove(entityId);
-	
 	}
 	
 	public void bumpOutItem(int numItems)

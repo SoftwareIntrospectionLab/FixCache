@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Map;
 import Database.DatabaseManager;
 
@@ -29,20 +28,18 @@ public class CoChange {
 
 	}
 
-	// build a table of files that are changed with fileID, before time commitID
+	// build a table of files that are changed with fileID, before time commitDate
 	private CoChangeFileMap buildCoChangeMap(String commitDate) {
 		CoChangeFileMap coChangeCounts = new CoChangeFileMap();
 
 		// get a list of all prior commits for fileID before commitID:
-		// TODO
-
 		Statement stmt1;
 		ResultSet r1;
 		String sql = "SELECT commit_id from actions, scmlog where file_id=" + fileID
 				+ " and actions.commit_id=scmlog.id and date <= '" + commitDate +"'";// cochange commit_id may be
 													// smaller than
 													// STARTIDDEFAULT
-		List commitList = new ArrayList();
+		ArrayList<Integer> commitList = new ArrayList<Integer>();
 
 		try {
 			stmt1 = conn.createStatement();
@@ -63,7 +60,7 @@ public class CoChange {
 		ResultSet r2;
 		int coChangeFile;
 		for (int i = 0; i < commitList.size(); i++) {
-			coChangeCommitID = (Integer) commitList.get(i);
+			coChangeCommitID = commitList.get(i);
 			sql = "SELECT file_id from actions where commit_id = "
 					+ coChangeCommitID;
 
@@ -113,9 +110,9 @@ public class CoChange {
 	public static void main(String args[]) {
 		CoChange coChange = new CoChange(3679);
 		CoChangeFileMap countTable = coChange.buildCoChangeMap("");
-		List coChangeList = countTable.getTopFiles(100);
+		List<Integer> coChangeList = countTable.getTopFiles(100);
 		for (int i = 0; i < coChangeList.size(); i++) {
-			System.out.println((Integer) coChangeList.get(i));
+			System.out.println( coChangeList.get(i));
 		}
 	}
 
@@ -132,46 +129,33 @@ public class CoChange {
 
 		void add(int f) {
 			// if it is not there, create a new entry
-			// if it is htere ++count
+			// if it is there ++count
 			if (map.containsKey(f)) {
 				int count = map.get(f);
 				map.remove(f);
 				map.put(f, count + 1);
 			}
-
 			else
 				map.put(f, 1);
 		}
 
 		// TODO: when two files have the same cochange count, use loc to break them
 		ArrayList<Integer> getTopFiles(int blocksize) {
-			List list = new ArrayList(map.entrySet());
-			ArrayList topFiles = new ArrayList();
-			Collections.sort(list, new Comparator() {
-				public int compare(Object o1, Object o2) {
-					return ((Comparable) ((Map.Entry) (o2)).getValue())
-							.compareTo(((Map.Entry) (o1)).getValue());// the
-																		// list
-																		// should
-																		// be
-																		// sorted
-																		// in
-																		// descending
-																		// order
+			ArrayList<Map.Entry<Integer, Integer>> list = new ArrayList<Map.Entry<Integer, Integer>>(map.entrySet());
+			ArrayList<Integer> topFiles = new ArrayList<Integer>();
+			Collections.sort(list, new Comparator<Map.Entry<Integer, Integer>>() {
+				public int compare(Map.Entry<Integer, Integer> o1, Map.Entry<Integer, Integer> o2) {
+					return ( o1.getValue().compareTo(o2.getValue())); // sort the list in descending order
 				}
 			});
-			for (int i = 0; i < blocksize - 1; i++)// a block size b indicate s
-													// that we load b-1 closest
-													// entities.
+			for (int i = 0; i < blocksize - 1; i++)// a block size b indicates that we load b-1 closest entities.
 			{
 				if (list.size() > i) {
-					Map.Entry curr = (Entry) list.get(i);
+					Map.Entry<Integer, Integer> curr = list.get(i);
 					topFiles.add(curr.getKey());
 				}
 			}
 			return topFiles;
-
 		}
-
 	}
 }

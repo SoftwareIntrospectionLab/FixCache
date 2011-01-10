@@ -23,6 +23,7 @@ public class CacheItem {
 
 	DatabaseManager dbManager = DatabaseManager.getInstance();
 	Connection conn = dbManager.getConnection();
+	
 	Statement stmt;
 	String sql;
 	ResultSet r;
