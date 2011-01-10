@@ -51,17 +51,19 @@ public class Simulator {
 		// database query: top prefetchsize fileIDs (in terms of LOC) in the first commitID for pid
 		// for each fileId in the list create a cacheItem
 		//sql = "select file_id, LOC from actions where commit_id ="+startCId +" order by LOC DESC";
-		String sql;
+		StringBuilder sql = new StringBuilder();;
 		Statement stmt;
 		ResultSet r;
 		if (cache.startDate == null)
-			sql = "select min(date) from scmlog";
+			sql.append("select min(date) from scmlog");
+//			sql = "select min(date) from scmlog";
 		else
-			sql = "select min(date) from scmlog where repository_id="+pid+" and date >= '" +cache.startDate+"'";
+			sql.append("select min(date) from scmlog where repository_id="+pid+" and date >= '" +cache.startDate+"'");
+//			sql = "select min(date) from scmlog where repository_id="+pid+" and date >= '" +cache.startDate+"'";
 		String firstDate = "";
 		try{
 			stmt = conn.createStatement();
-			r = stmt.executeQuery(sql);
+			r = stmt.executeQuery(sql.toString());
 			while(r.next())
 			{
 				firstDate = r.getString(1);
@@ -69,13 +71,16 @@ public class Simulator {
 		}catch (Exception e) {
 			System.out.println(e);
 			System.exit(0);}
-		sql = "select content_loc.file_id, content_loc.commit_id from content_loc, scmlog, actions where content_loc.commit_id = scmlog.id and date ='"+ firstDate +
-		      "' and content_loc.file_id=actions.file_id and content_loc.commit_id=actions.commit_id and actions.type!='D' order by loc DESC";
+		//TODO: only select data for the given repository id
+		sql.setLength(0);
+		sql.append("select content_loc.file_id, content_loc.commit_id from content_loc, scmlog, actions where repository_id="+pid+" and content_loc.commit_id = scmlog.id and date ='"+ firstDate +"' and content_loc.file_id=actions.file_id and content_loc.commit_id=actions.commit_id and actions.type!='D' order by loc DESC");
+//		sql = "select content_loc.file_id, content_loc.commit_id from content_loc, scmlog, actions where content_loc.commit_id = scmlog.id and date ='"+ firstDate +
+//		      "' and content_loc.file_id=actions.file_id and content_loc.commit_id=actions.commit_id and actions.type!='D' order by loc DESC";
 		int fileId = 0;
 		int commitId = 0;
 		try {
 			stmt = conn.createStatement();
-			r = stmt.executeQuery(sql);
+			r = stmt.executeQuery(sql.toString());
 			for (int size = 0; size < prefetchsize; size++) {
 				if (r.next()) {
 					fileId = r.getInt(1);
@@ -119,18 +124,22 @@ public class Simulator {
     	Connection conn = dbManager.getConnection();
     	Statement stmt;
     	Statement stmt1;
-    	String sql = "select id from hunks where file_id = "+fileId+" and commit_id ="+commitId;//select the hunk id of fileId for a bug_introducing commitId
+    	StringBuilder sql = new StringBuilder();
+    	sql.append("select id from hunks where file_id = "+fileId+" and commit_id ="+commitId);
+//    	String sql = "select id from hunks where file_id = "+fileId+" and commit_id ="+commitId;//select the hunk id of fileId for a bug_introducing commitId
     	ResultSet r;
     	ResultSet r1;
     	try{
     		stmt = conn.createStatement();
-    		r = stmt.executeQuery(sql);
+    		r = stmt.executeQuery(sql.toString());
     		while(r.next())
     	{
     		hunkId = r.getInt(1);
     		stmt1 = conn.createStatement();
-    		sql = "select date from hunk_blames, scmlog where hunk_id = "+ hunkId + " and hunk_blames.bug_commit_id=scmlog.id";//for each hunk find the bug introducing rev
-    		r1 = stmt1.executeQuery(sql);
+    		sql.setLength(0);
+    		sql.append("select date from hunk_blames, scmlog where hunk_id = "+ hunkId + " and hunk_blames.bug_commit_id=scmlog.id");
+//    		sql = "select date from hunk_blames, scmlog where hunk_id = "+ hunkId + " and hunk_blames.bug_commit_id=scmlog.id";//for each hunk find the bug introducing rev
+    		r1 = stmt1.executeQuery(sql.toString());
     		while(r1.next())
     		{
     			if(r1.getString(1).compareTo(bugIntroCdate)>0)
@@ -250,9 +259,10 @@ public class Simulator {
 
 	public void simulate() {
 		//  if you order scmlog by commitid or by date, the order is different: so order by date
-		String sql = "select id, date, is_bug_fix from scmlog where repository_id = "+pid+" and date>='"+cache.startDate+"' order by date ASC";
-		
-
+		StringBuilder sql = new StringBuilder();
+		sql.append("select id, date, is_bug_fix from scmlog where repository_id = "+pid+" and date>='"+cache.startDate+"' order by date ASC");
+//		String sql = "select id, date, is_bug_fix from scmlog where repository_id = "+pid+" and date>='"+cache.startDate+"' order by date ASC";
+	
 		Statement stmt;
 		Statement stmt1;
 		ResultSet r;
@@ -270,16 +280,18 @@ public class Simulator {
 		FileType type;
 		try {
 			stmt = conn.createStatement();
-			r = stmt.executeQuery(sql);
+			r = stmt.executeQuery(sql.toString());
 			while (r.next()) {
 				cid = r.getInt(1);
 				cdate = r.getString(2);
 				isBugFix = r.getBoolean(3);
 				//only deal with .java files
-				sql = "select actions.file_id, type from actions, content_loc, files where actions.file_id = files.id and files.file_name like '%.java' and actions.file_id=content_loc.file_id and actions.commit_id = "+cid+" and content_loc.commit_id ="+cid+" and files.repository_id="+pid+" order by loc DESC";
+				sql.setLength(0);
+				sql.append("select actions.file_id, type from actions, content_loc, files where actions.file_id = files.id and files.file_name like '%.java' and actions.file_id=content_loc.file_id and actions.commit_id = "+cid+" and content_loc.commit_id ="+cid+" and files.repository_id="+pid+" order by loc DESC");
+//				sql = "select actions.file_id, type from actions, content_loc, files where actions.file_id = files.id and files.file_name like '%.java' and actions.file_id=content_loc.file_id and actions.commit_id = "+cid+" and content_loc.commit_id ="+cid+" and files.repository_id="+pid+" order by loc DESC";
 //				sql = "select actions.file_id, type ,loc from actions, content_loc where actions.file_id=content_loc.file_id and actions.commit_id = "+id+" and content_loc.commit_id ="+id+" order by loc DESC";
 				stmt1 = conn.createStatement();
-				r1 = stmt1.executeQuery(sql);
+				r1 = stmt1.executeQuery(sql.toString());
 				// loop through those file ids
 				while (r1.next()) {
 					file_id = r1.getInt(1);

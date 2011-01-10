@@ -1,0 +1,19 @@
+What is it?
+-----------
+FixCache is used to predict faulty files. 
+
+
+System Requirement
+------------------
+Database:
+FixCache has to read software repository data in mysql database. 
+So you have to install mysql for running FixCache.
+
+
+Documentation
+-------------
+database.properties file contains database connection information. You have to 
+create your own database.properties file according to your database connection 
+information.
+
+
