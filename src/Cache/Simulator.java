@@ -69,6 +69,7 @@ public class Simulator {
 		}catch (Exception e) {
 			System.out.println(e);
 			System.exit(0);}
+		//TODO: only select data for the given repository id
 		sql = "select content_loc.file_id, content_loc.commit_id from content_loc, scmlog, actions where content_loc.commit_id = scmlog.id and date ='"+ firstDate +
 		      "' and content_loc.file_id=actions.file_id and content_loc.commit_id=actions.commit_id and actions.type!='D' order by loc DESC";
 		int fileId = 0;
