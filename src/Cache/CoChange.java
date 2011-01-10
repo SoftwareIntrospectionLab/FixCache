@@ -38,15 +38,17 @@ public class CoChange {
 
 		Statement stmt1;
 		ResultSet r1;
-		String sql = "SELECT commit_id from actions, scmlog where file_id=" + fileID
-				+ " and actions.commit_id=scmlog.id and date <= '" + commitDate +"'";// cochange commit_id may be
+		StringBuilder sql = new StringBuilder("SELECT commit_id from actions, scmlog where file_id=" + fileID
+				+ " and actions.commit_id=scmlog.id and date <= '" + commitDate +"'");
+//		String sql = "SELECT commit_id from actions, scmlog where file_id=" + fileID
+//				+ " and actions.commit_id=scmlog.id and date <= '" + commitDate +"'";// cochange commit_id may be
 													// smaller than
 													// STARTIDDEFAULT
 		List commitList = new ArrayList();
 
 		try {
 			stmt1 = conn.createStatement();
-			r1 = dbManager.executeQuery(sql);
+			r1 = dbManager.executeQuery(sql.toString());
 			while (r1.next()) {
 				commitList.add(r1.getInt(1));
 			}
@@ -64,12 +66,15 @@ public class CoChange {
 		int coChangeFile;
 		for (int i = 0; i < commitList.size(); i++) {
 			coChangeCommitID = (Integer) commitList.get(i);
-			sql = "SELECT file_id from actions where commit_id = "
-					+ coChangeCommitID;
+			sql.setLength(0);
+			sql.append("SELECT file_id from actions where commit_id = "
+					+ coChangeCommitID);
+//			sql = "SELECT file_id from actions where commit_id = "
+//					+ coChangeCommitID;
 
 			try {
 				stmt2 = conn.createStatement();
-				r2 = stmt2.executeQuery(sql);
+				r2 = stmt2.executeQuery(sql.toString());
 				while (r2.next()) {
 					coChangeFile = r2.getInt(1);
 					if (coChangeFile != fileID) {
