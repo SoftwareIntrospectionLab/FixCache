@@ -208,71 +208,6 @@ public class Simulator {
     	return miss;
     }
 
-	public static void main(String args[])
-	{
-
-		//String startDate, endDate;
-		String start;
-        CmdLineParser parser = new CmdLineParser();
-        CmdLineParser.Option blksz_opt = parser.addIntegerOption('b', "blksize");
-        CmdLineParser.Option csz_opt = parser.addIntegerOption('c', "csize");
-        CmdLineParser.Option pfsz_opt = parser.addIntegerOption('f', "pfsize");
-        CmdLineParser.Option crp_opt = parser.addStringOption('r', "cacherep");        
-        CmdLineParser.Option pid_opt = parser.addIntegerOption('p', "pid");
-        CmdLineParser.Option dt_opt =  parser.addStringOption('t',"datetime");
-        
-        //CmdLineParser.Option sCId_opt = parser.addIntegerOption('s',"start");
-        //CmdLineParser.Option eCId_opt = parser.addIntegerOption('e',"end");
-        
-        
-        try {
-            parser.parse(args);
-        }
-        catch ( CmdLineParser.OptionException e ) {
-            System.err.println(e.getMessage());
-            printUsage();
-            System.exit(2);
-        }
-
-        Integer blksz = (Integer)parser.getOptionValue(blksz_opt, BLKDEFAULT);
-        Integer csz = (Integer)parser.getOptionValue(csz_opt, CSIZEDEFAULT);
-        Integer pfsz = (Integer)parser.getOptionValue(pfsz_opt, PFDEFAULT);
-        String crp_string = (String)parser.getOptionValue(crp_opt, CacheReplacement.REPDEFAULT);
-        Integer pid = (Integer)parser.getOptionValue(pid_opt, PRODEFAULT);
-        String dt = (String)parser.getOptionValue(dt_opt, "2000-01-01 00:00:00");
-        CacheReplacement.Policy crp;
-        try{
-        	crp = CacheReplacement.Policy.valueOf(crp_string);
-        } catch (IllegalArgumentException e){
-            System.err.println(e.getMessage());
-            System.err.println("Must specify a valid cache replacement policy");
-            crp = CacheReplacement.REPDEFAULT;
-        }
-        //startCId = (Integer)parser.getOptionValue(sCId_opt, STARTIDDEFAULT);
-        //endCId = (Integer)parser.getOptionValue(eCId_opt, Integer.MAX_VALUE);
-        // TODO: make command line input for start and end date
-        start = dt;
-        
-        if (pid == null){
-            System.err.println("Error: must specify a Project Id");
-            System.exit(2);
-        }
-
-        
-        // create a new simulator
-
-		Simulator sim = new Simulator(blksz, pfsz, csz, pid, crp, start);		
-		sim.initialPreLoad();
-		sim.simulate();
-		sim.close();
-		
-		System.out.println(sim.getHitRate());
-	}
-
-	private void close() {
-		DatabaseManager.close();
-	}
-
 	public void simulate() {
 		//  if you order scmlog by commitid or by date, the order is different: so order by date
 		StringBuilder sql = new StringBuilder();
@@ -346,5 +281,71 @@ public class Simulator {
 
 	public double getHitRate() {
 		return (double)hit/(hit+miss);
+	}
+	
+	
+	public static void main(String args[])
+	{
+
+		//String startDate, endDate;
+		String start;
+        CmdLineParser parser = new CmdLineParser();
+        CmdLineParser.Option blksz_opt = parser.addIntegerOption('b', "blksize");
+        CmdLineParser.Option csz_opt = parser.addIntegerOption('c', "csize");
+        CmdLineParser.Option pfsz_opt = parser.addIntegerOption('f', "pfsize");
+        CmdLineParser.Option crp_opt = parser.addStringOption('r', "cacherep");        
+        CmdLineParser.Option pid_opt = parser.addIntegerOption('p', "pid");
+        CmdLineParser.Option dt_opt =  parser.addStringOption('t',"datetime");
+        
+        //CmdLineParser.Option sCId_opt = parser.addIntegerOption('s',"start");
+        //CmdLineParser.Option eCId_opt = parser.addIntegerOption('e',"end");
+        
+        
+        try {
+            parser.parse(args);
+        }
+        catch ( CmdLineParser.OptionException e ) {
+            System.err.println(e.getMessage());
+            printUsage();
+            System.exit(2);
+        }
+
+        Integer blksz = (Integer)parser.getOptionValue(blksz_opt, BLKDEFAULT);
+        Integer csz = (Integer)parser.getOptionValue(csz_opt, CSIZEDEFAULT);
+        Integer pfsz = (Integer)parser.getOptionValue(pfsz_opt, PFDEFAULT);
+        String crp_string = (String)parser.getOptionValue(crp_opt, CacheReplacement.REPDEFAULT);
+        Integer pid = (Integer)parser.getOptionValue(pid_opt, PRODEFAULT);
+        String dt = (String)parser.getOptionValue(dt_opt, "2000-01-01 00:00:00");
+        CacheReplacement.Policy crp;
+        try{
+        	crp = CacheReplacement.Policy.valueOf(crp_string);
+        } catch (IllegalArgumentException e){
+            System.err.println(e.getMessage());
+            System.err.println("Must specify a valid cache replacement policy");
+            crp = CacheReplacement.REPDEFAULT;
+        }
+        //startCId = (Integer)parser.getOptionValue(sCId_opt, STARTIDDEFAULT);
+        //endCId = (Integer)parser.getOptionValue(eCId_opt, Integer.MAX_VALUE);
+        // TODO: make command line input for start and end date
+        start = dt;
+        
+        if (pid == null){
+            System.err.println("Error: must specify a Project Id");
+            System.exit(2);
+        }
+
+        
+        // create a new simulator
+
+		Simulator sim = new Simulator(blksz, pfsz, csz, pid, crp, start);		
+		sim.initialPreLoad();
+		sim.simulate();
+		sim.close();
+		
+		System.out.println(sim.getHitRate());
+	}
+
+	private void close() {
+		DatabaseManager.close();
 	}
 }
