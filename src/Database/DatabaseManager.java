@@ -11,7 +11,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Enumeration;
 import java.util.Properties;
-import static org.junit.Assert.assertTrue;
 
 public class DatabaseManager {
 	
@@ -36,9 +35,8 @@ public class DatabaseManager {
             password = (String) prop.get("UserPass");
 			
 			while (enums.hasMoreElements()) {
-	//			String key = (String) enums.nextElement();
-//				String value = prop.getProperty(key);
-
+				String key = (String) enums.nextElement();
+				String value = prop.getProperty(key);
 			}
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();

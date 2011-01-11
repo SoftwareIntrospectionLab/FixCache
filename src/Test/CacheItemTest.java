@@ -48,6 +48,7 @@ public class CacheItemTest {
 	@Test
 	public void testCacheItemGet()
 	{
+		@SuppressWarnings("unused")
 		Cache cache = Cache.getTestCache(5, new CacheReplacement(CacheReplacement.Policy.AUTHORS), "2009-10-20 01:32:19.0", 1);
 		CacheItem ci1 = new CacheItem(5, 10, "2009-10-24 14:30:54.0", CacheReason.BugEntity);
 		assertEquals(ci1.getNumberOfAuthors(),2);

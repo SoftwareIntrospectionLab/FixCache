@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -16,13 +15,18 @@ import Database.DatabaseManager;
 public class CoChange {
 
 	int fileID;
-	Connection conn = DatabaseManager.getConnection();
+	
+	// database setup
+	final static Connection conn = DatabaseManager.getConnection();
 	static final String findCommitId = "SELECT commit_id from actions, scmlog where file_id=? and actions.commit_id=scmlog.id and date <=?";
 	static final String findCochangeFileId = "SELECT file_id from actions where commit_id =?";
 	private static PreparedStatement findCommitIdQuery;
 	private static PreparedStatement findCochangeFileIdQuery;
 	
-
+	private CoChange(int fileID) {
+		this.fileID = fileID;
+	}
+	
 	public PreparedStatement getCommitIdStatement()
 	{
 		if(findCommitIdQuery == null)
@@ -30,7 +34,6 @@ public class CoChange {
 			try {
 				findCommitIdQuery = conn.prepareStatement(findCommitId);
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -44,14 +47,11 @@ public class CoChange {
 			try {
 				findCochangeFileIdQuery = conn.prepareStatement(findCochangeFileId);
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		return findCochangeFileIdQuery;
 	}
-	private CoChange(int fileID) {
-		this.fileID = fileID;
-	}
+	
 
 	public static ArrayList<Integer> getCoChangeFileList(int fileid,
 			String commitDate, int blocksize) {
@@ -73,7 +73,6 @@ public class CoChange {
 			commitIdQuery.setString(2, commitDate);
 			commitList = Util.Database.getIntArrayResult(commitIdQuery);
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -97,7 +96,6 @@ public class CoChange {
 				}
 			}
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			
