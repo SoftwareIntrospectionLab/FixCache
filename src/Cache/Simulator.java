@@ -36,7 +36,7 @@ public class Simulator {
 		cachesize = csize;
 		this.pid = projid;
 		cacheRep = rep;	
-		cache =  Cache.getCache(cachesize, new CacheReplacement(rep), start, projid );
+		cache =  new Cache(cachesize, new CacheReplacement(rep), start, projid );
 		hit = 0;
 		miss = 0;
 		

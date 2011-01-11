@@ -47,7 +47,7 @@ public class CacheReplacementTest {
 	@Test
 	public void testCacheReplacementAuthors()
 	{
-		Cache cache = Cache.getTestCache(5, new CacheReplacement(CacheReplacement.Policy.AUTHORS), "2009-10-20 01:32:19.0", 1);
+		Cache cache = new Cache(5, new CacheReplacement(CacheReplacement.Policy.AUTHORS), "2009-10-20 01:32:19.0", 1);
 		cache.add(1, 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
 		cache.add(2, 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
 		cache.add(3, 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
@@ -76,7 +76,7 @@ public class CacheReplacementTest {
 	@Test
 	public void testCacheReplacementLRU()
 	{
-		Cache cache = Cache.getTestCache(5, new CacheReplacement(CacheReplacement.Policy.LRU), "2009-10-20 01:32:19.0", 1);
+		Cache cache = new Cache (5, new CacheReplacement(CacheReplacement.Policy.LRU), "2009-10-20 01:32:19.0", 1);
 		cache.add(1, 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
 		cache.add(2, 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
 		cache.add(3, 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
@@ -106,7 +106,7 @@ public class CacheReplacementTest {
 	@Test
 	public void testCacheReplacementChanges()
 	{
-		Cache cache = Cache.getTestCache(5, new CacheReplacement(CacheReplacement.Policy.CHANGES), "2009-10-20 01:32:19.0", 1);
+		Cache cache = new Cache (5, new CacheReplacement(CacheReplacement.Policy.CHANGES), "2009-10-20 01:32:19.0", 1);
 		cache.add(1, 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
 		cache.add(2, 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
 		cache.add(3, 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
@@ -134,7 +134,7 @@ public class CacheReplacementTest {
 	@Test
 	public void testCacheReplacementBugs()
 	{
-		Cache cache = Cache.getTestCache(5, new CacheReplacement(CacheReplacement.Policy.BUGS), "2009-10-20 01:32:19.0", 1);	
+		Cache cache = new Cache (5, new CacheReplacement(CacheReplacement.Policy.BUGS), "2009-10-20 01:32:19.0", 1);	
 		
 		cache.add(1, 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
 		cache.add(2, 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);

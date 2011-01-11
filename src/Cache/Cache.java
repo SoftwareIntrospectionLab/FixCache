@@ -16,36 +16,7 @@ public class Cache {
 	String startDate;
 	int repID;
 	
-	static Cache singleton;
-	
-	public static Cache getCache(int csize, CacheReplacement pol, String start, int rep)
-	{
-		if (singleton == null)
-			singleton = new Cache(csize, pol, start, rep);
-		return singleton;
-	}
-	
-	
-	public static Cache getCache()
-	{
-		assert(singleton != null);
-		return singleton;
-	}
-	
-	// for debugging only
-	public static Cache getTestCache(int csize, CacheReplacement pol, String start, int rep)
-	{
-		Cache c = getCache(csize, pol, start, rep);
-		c.cacheTable = new Hashtable<Integer, CacheItem>();
-		c.policy = pol;
-		c.startDate = start;
-		c.repID = rep;
-		assert (singleton.cacheTable.size() == 0);
-		assert (singleton.policy == pol);
-		return c;
-	}
-	
-	private Cache(int cacheSize, CacheReplacement pol, String start, int rep)
+	public Cache(int cacheSize, CacheReplacement pol, String start, int rep)
 	{
 		size = cacheSize;
 		policy = pol;
@@ -75,7 +46,7 @@ public class Cache {
 		if (cacheTable.containsKey(eid))
 			cacheTable.get(eid).update(cid, cdate, startDate);
 		else
-			load (new CacheItem(eid, cid, cdate, reason));
+			load (new CacheItem(eid, cid, cdate, reason, this));
 	}
 	
 	

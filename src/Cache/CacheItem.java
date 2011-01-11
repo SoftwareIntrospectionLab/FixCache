@@ -28,14 +28,15 @@ public class CacheItem {
 	private int number; // represents either the number of bugs, changes, or authors
 	CacheReason reason;
 
-	private final static Cache parent = Cache.getCache();
+	private final Cache parent;
 
 
-	public CacheItem(int eid, int cid, String cdate, CacheReason r)
+	public CacheItem(int eid, int cid, String cdate, CacheReason r, Cache p)
 	{
 		entityId = eid;
 		reason = r;
-		update(cid, cdate, Cache.getCache().getStartDate());
+		parent = p;
+		update(cid, cdate, p.getStartDate());
 	}
 
 	public void update(int cid, String cdate, String sdate){
