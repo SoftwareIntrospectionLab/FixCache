@@ -200,7 +200,7 @@ DROP TABLE IF EXISTS `hunk_blames`;
 CREATE TABLE `hunk_blames` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `hunk_id` int(11) DEFAULT NULL,
-  `bug_rev` mediumtext,
+  `bug_commit_id` mediumtext,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM AUTO_INCREMENT=2513 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
