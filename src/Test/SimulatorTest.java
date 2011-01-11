@@ -108,7 +108,7 @@ public class SimulatorTest {
 	@Test
 	public void testLoadBuggyEntity()
 	{
-		Simulator sim = new Simulator(3, 2, 5, 1, CacheReplacement.Policy.BUGS, "2009-10-20 01:32:19.0");
+		Simulator sim = new Simulator(3, 2, 5, 1, CacheReplacement.Policy.CHANGES, "2009-10-20 01:32:19.0");
 		Cache cache = sim.getCache();
 		sim.loadBuggyEntity(5, 9, "2009-10-24 09:50:26.0", "2009-10-23 20:01:52.0");
 		assertNotNull(cache.getCacheItem(5));
