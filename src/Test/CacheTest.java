@@ -54,7 +54,7 @@ public class CacheTest {
 		assertEquals(cache.getCacheSize(),1);
 		cache.add(2, 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
 		assertEquals(cache.getCacheSize(),2);
-		cache.add(3, 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
+		cache.add(3, 1,  "2009-10-20 01:32:19.0", CacheReason.NewEntity);
 		assertEquals(cache.getCacheSize(),3);
 		cache.add(4, 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
 		assertEquals(cache.getCacheSize(),4);
