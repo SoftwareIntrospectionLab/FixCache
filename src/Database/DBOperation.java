@@ -24,7 +24,6 @@ public class DBOperation {
 		try {
 			Class.forName("com.mysql.jdbc.Driver").newInstance();
 			conn = DriverManager.getConnection(database,username,password);
-
 		}
 		catch (Exception e) {
 			System.out.println(e);

@@ -163,5 +163,10 @@ public class CacheItem {
 		}
 		return ret;
 	}
+	
+	// for debugging 
+	protected int getNumber(){
+		return number;
+	}
 
 }

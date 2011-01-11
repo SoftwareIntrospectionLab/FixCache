@@ -26,6 +26,7 @@ public class CacheReplacement {
 	public CacheItem minimum(CacheItem o1, CacheItem o2){
 		int comparison = compareFunc.compare(o1, o2);		
 		if (comparison == 0){
+			assert (tiebreaker.compare(o1, o2) != 0);
 			if (tiebreaker.compare(o1, o2) < 0)
 				return o1;
 			else

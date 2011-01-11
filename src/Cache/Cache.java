@@ -6,16 +6,16 @@ import java.util.Iterator;
 import Cache.CacheItem.CacheReason;
 
 public class Cache {
-	
+
 	// Invariant: cacheTable.size() <= size;
-	
+
 	private int size;
 	Hashtable<Integer, CacheItem> cacheTable = new Hashtable<Integer, CacheItem>();
-	
+
 	CacheReplacement policy;
 	String startDate;
 	int repID;
-	
+
 	public Cache(int cacheSize, CacheReplacement pol, String start, int rep)
 	{
 		size = cacheSize;
@@ -23,15 +23,15 @@ public class Cache {
 		startDate = start;
 		repID = rep;
 	}
-	
-	
+
+
 	public boolean isFull()
 	{	  
 		int currentCacheSize = cacheTable.size();
 		assert(currentCacheSize<=size); // TODO: debug interaction
 		return currentCacheSize == size;
 	}
-	
+
 	// XXX: load a chunk at a time??
 	public void load(CacheItem cacheItem)
 	{
@@ -40,7 +40,7 @@ public class Cache {
 			bumpOutItem();
 		cacheTable.put(entityId, cacheItem);
 	}
-	
+
 	public void add(int eid, int cid, String cdate, CacheReason reason){
 		// XXX move hit/miss logic here? 
 		if (cacheTable.containsKey(eid))
@@ -48,14 +48,14 @@ public class Cache {
 		else
 			load (new CacheItem(eid, cid, cdate, reason, this));
 	}
-	
-	
+
+
 	public void add(ArrayList<Integer> eids, int cid, String cdate, CacheReason reas){
 		for (int eid: eids)
 			add(eid, cid, cdate, reas);
-		
+
 	}
-	
+
 	public void remove(int fileid){
 		cacheTable.remove(fileid);
 	}
@@ -66,39 +66,43 @@ public class Cache {
 		// iterate through the map and find the minimum element, given the cache replacement policy
 		// then remove that element
 		// TODO: keep cache always sorted using cache replacement policy
-		
+
+		int entityId = getMinimum();
+		cacheTable.remove(entityId);
+	}
+
+	public int getMinimum() {
 		CacheItem min = null;
-		
+
 		for (CacheItem c : cacheTable.values()){
 			if (min == null)
 				min = c;
 			else 
 				min = policy.minimum(min, c);				
 		}
-		
-		int entityId = min.getEntityId();
-		cacheTable.remove(entityId);
+		return min.getEntityId();
 	}
-	
+
+
 	public void bumpOutItem(int numItems)
 	{
 		for (int i = 0; i < numItems; ++i)
 			bumpOutItem();
 	}
-	
+
 	public CacheItem getCacheItem(int entityId)
 	{
 		return cacheTable.get(entityId);
 	}
-	
+
 	public CacheReplacement.Policy getPolicy(){
 		return policy.currentPolicy;
 	}
-	
+
 	public String getStartDate(){
 		return startDate;
 	}
-	
+
 	public int getRepID(){
 		return repID;
 	}
@@ -107,7 +111,7 @@ public class Cache {
 	{
 		return cacheTable.size();
 	}
-	
+
 	// For debugging
 	public ArrayList<CacheItem> getCacheItemList()
 	{
@@ -120,4 +124,11 @@ public class Cache {
 		return CIList;
 	}
 	
+	// for debugging
+	public int getNumber (int fileid){
+		CacheItem ci = cacheTable.get(fileid);
+		return ci.getNumber();
+	}
+
+
 }
