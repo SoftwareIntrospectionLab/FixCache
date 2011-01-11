@@ -3,25 +3,28 @@ package Test;
 import java.io.FileInputStream;
 import java.sql.Connection;
 
+import org.dbunit.database.DatabaseConfig;
 import org.dbunit.database.DatabaseConnection;
 import org.dbunit.database.IDatabaseConnection;
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
+import org.dbunit.ext.mysql.MySqlDataTypeFactory;
 import org.dbunit.operation.DatabaseOperation;
 
 import Database.DatabaseManager;
 
 public class TestHelper {
+	
+	
 	public static Connection getJDBCConnection() throws Exception {
-//		Class.forName("com.mysql.jdbc.Driver").newInstance();
-//        Connection jdbcConnection = DriverManager.getConnection(
-//                "jdbc:mysql://localhost:3306/fixcache", "root", "jacjac");     
-//		return jdbcConnection;
 		return DatabaseManager.getConnection();
 	}
 
 	public static IDatabaseConnection getDBUnitConnection() throws Exception {
-		return new DatabaseConnection(getJDBCConnection());
+		IDatabaseConnection conn =  new DatabaseConnection(getJDBCConnection());
+	    DatabaseConfig config = conn.getConfig();
+	    config.setProperty(DatabaseConfig.PROPERTY_DATATYPE_FACTORY, new MySqlDataTypeFactory());
+	    return conn;
 	}
 
 	public static IDataSet getDataSet() throws Exception {
@@ -39,6 +42,7 @@ public class TestHelper {
     }
 	
 	public static void handleSetUpOperation() throws Exception {
+			    
 		final IDatabaseConnection conn = getDBUnitConnection();
 		final IDataSet data = getDataSet();
 		try {
