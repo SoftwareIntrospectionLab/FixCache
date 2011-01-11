@@ -19,8 +19,14 @@ import Database.DatabaseManager;
 public class CacheItem {
 	
 	static Connection conn = DatabaseManager.getConnection();
-	static final String findNumberOfAuthors = ""; // with ? symbols
+	static final String findNumberOfAuthors = "select count(id) from people where id in( select author_id from scmlog, actions where scmlog.id = actions.commit_id and date <=? and date >= ? and file_id = ?)"; // with ? symbols
+	static final String findNumberOfChanges = "select count(actions.id) from actions, scmlog where actions.commit_id = scmlog.id and date <=? and date >=? and file_id=?";
+	static final String findNumberOfBugs = "select count(commit_id) from actions where file_id=? and commit_id in (select id from scmlog where is_bug_fix=1 and date <=? and date >=?)";
+	static final String findLoc = "select loc from content_loc where file_id=? and commit_id =?";
 	private static PreparedStatement findNumberOfAuthorsQuery;
+	private static PreparedStatement findNumberOfChangesQuery;
+	private static PreparedStatement findNumberOfBugsQuery;
+	private static PreparedStatement findLocQuery;
 
 	public enum CacheReason{Prefetch, CoChange, NewEntity, ModifiedEntity, BugEntity}
 	private final int entityId;
@@ -56,7 +62,39 @@ public class CacheItem {
 			}
 		return findNumberOfAuthorsQuery;	
 	}
+	
+	PreparedStatement getChangesStatement(){
+		if (findNumberOfChangesQuery == null)
+			try {
+				findNumberOfChangesQuery = conn.prepareStatement(findNumberOfChanges);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		return findNumberOfChangesQuery;	
+	}
+	
+	PreparedStatement getBugsStatement(){
+		if (findNumberOfBugsQuery == null)
+			try {
+				findNumberOfBugsQuery = conn.prepareStatement(findNumberOfBugs);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		return findNumberOfBugsQuery;	
+	}
 
+	PreparedStatement getLocStatement(){
+		if(findLocQuery == null)
+		{
+			try{
+				findLocQuery = conn.prepareStatement(findLoc);
+			}catch(SQLException e)
+			{
+				e.printStackTrace();
+			}
+		}
+		return findLocQuery;
+	}
 	public void update(CacheReason reas, int cid, String cdate, String sdate){
 		loadDate = Calendar.getInstance().getTime(); // XXX fix this, deprecated method
 		LOC = findLoc(entityId, cid);
@@ -114,8 +152,9 @@ public class CacheItem {
 		
 		final PreparedStatement authorQuery = getAuthorsStatement();
 		try {
-			authorQuery.setInt(1, eid);
-			authorQuery.setString(2, cdate);
+			authorQuery.setString(1, cdate);
+			authorQuery.setString(2, start);
+			authorQuery.setInt(3, eid);
 			ret = Util.Database.getIntResult(authorQuery);
 		} catch (SQLException e1) {
 			e1.printStackTrace();
@@ -123,6 +162,50 @@ public class CacheItem {
 		return ret;
 	}
 	
+	private int findNumberOfChanges(int eid, String cdate, String start) {
+		int ret = 0;
+		
+		final PreparedStatement changeQuery = getChangesStatement();
+		try {
+			changeQuery.setString(1, cdate);
+			changeQuery.setString(2, start);
+			changeQuery.setInt(3, eid);
+			ret = Util.Database.getIntResult(changeQuery);
+		} catch (SQLException e1) {
+			e1.printStackTrace();
+		}
+		return ret;
+	}
+
+	
+	private int findNumberOfBugs(int eid, String cdate, String start) {
+		
+		int ret = 0;
+		final PreparedStatement bugQuery = getBugsStatement();
+		try {
+			bugQuery.setInt(1, eid);
+			bugQuery.setString(2, cdate);
+			bugQuery.setString(3, start);
+			ret = Util.Database.getIntResult(bugQuery);
+		} catch (SQLException e1) {
+			e1.printStackTrace();
+		}
+		return ret;
+	}
+	
+	private int findLoc(int eid, int cid)
+	{
+		int ret = 0;
+		final PreparedStatement locQuery = getLocStatement();
+		try{
+			locQuery.setInt(1, eid);
+			locQuery.setInt(2, cid);
+			ret = Util.Database.getIntResult(locQuery);
+		}catch(SQLException e1){
+			e1.printStackTrace();
+		}
+		return ret;
+	}
 	/*
 		int numAuthor = 0;
 		//		sql = "select count(distinct(author_id)) from scmlog where id in(" + //two slow to find the number of authors from the database
@@ -153,7 +236,7 @@ public class CacheItem {
 		return numAuthor;
 		*/
 	
-
+/*
 	private int findNumberOfBugs(int eid, String cdate, String start) {
 		int numBugs = 0;
 		sql.setLength(0);
@@ -174,7 +257,7 @@ public class CacheItem {
 		}		
 		return numBugs;
 	}
-
+/*
 	private int findNumberOfChanges(int eid, String cdate, String start) {
 		
 		int numChanges = 0;
@@ -197,7 +280,6 @@ public class CacheItem {
 
 		return numChanges;
 	}
-
 	// TODO: fix to use commit id to ensure unique lookup
 	private int findLoc(int eid, int cid) {
 		int loc =0;
@@ -220,5 +302,5 @@ public class CacheItem {
 		return loc;
 	}
 
-	
+	*/
 }

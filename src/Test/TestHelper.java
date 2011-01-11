@@ -17,9 +17,7 @@ public class TestHelper {
 //        Connection jdbcConnection = DriverManager.getConnection(
 //                "jdbc:mysql://localhost:3306/fixcache", "root", "jacjac");     
 //		return jdbcConnection;
-		DatabaseManager dbManager = DatabaseManager.getInstance();
-		Connection conn = dbManager.getConnection();
-		return conn;
+		return DatabaseManager.getConnection();
 	}
 
 	public static IDatabaseConnection getDBUnitConnection() throws Exception {

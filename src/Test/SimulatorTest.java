@@ -50,7 +50,7 @@ public class SimulatorTest {
 	
 	
 	@Test
-	public void testPreLoad() {
+	public void testInitialPreLoad() {
 		
 		Simulator sim1 = new Simulator(2, 2, 5, 1, CacheReplacement.Policy.BUGS, "2009-10-20 01:32:19.0");
 		sim1.initialPreLoad();
@@ -129,22 +129,22 @@ public class SimulatorTest {
 		Simulator sim1= new Simulator(3, 2, 5, 1, CacheReplacement.Policy.BUGS, "2009-10-24 14:30:54.0");
 		sim1.initialPreLoad();
 		sim1.simulate();
-		int rat = (int) (sim1.getHitRatio()*10);
+		int rat = (int) (sim1.getHitRate()*10);
 		assertEquals(rat, 10);
 		Simulator sim2 = new Simulator(3, 2, 5, 1, CacheReplacement.Policy.BUGS, "2009-10-24 09:50:26.0");
 		sim2.initialPreLoad();
 		sim2.simulate();
-		rat = (int) (sim2.getHitRatio()*10);
+		rat = (int) (sim2.getHitRate()*10);
 		assertEquals(rat, 10);
 		Simulator sim3 = new Simulator(3, 2, 5, 1, CacheReplacement.Policy.BUGS, "2009-10-24 07:51:22.0");
 		sim3.initialPreLoad();
 		sim3.simulate();
-		rat = (int) (sim3.getHitRatio()*10);
+		rat = (int) (sim3.getHitRate()*10);
 		assertEquals(rat, 5);
 		Simulator sim4 = new Simulator(3, 2, 5, 1, CacheReplacement.Policy.BUGS, "2009-10-20 01:32:19.0");
 		sim4.initialPreLoad();
 		sim4.simulate();
-		rat = (int) (sim4.getHitRatio()*10);
+		rat = (int) (sim4.getHitRate()*10);
 		assertEquals(rat, 6);
 	}
 
