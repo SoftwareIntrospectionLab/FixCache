@@ -36,7 +36,7 @@ public class Simulator {
 		cachesize = csize;
 		this.pid = projid;
 		cacheRep = rep;	
-		cache =  new Cache(cachesize, new CacheReplacement(rep), start);
+		cache =  Cache.getCache(cachesize, new CacheReplacement(rep), start, projid );
 		hit = 0;
 		miss = 0;
 		
@@ -123,7 +123,7 @@ public class Simulator {
     {
     	if (numprefetch < prefetchsize) {
 			numprefetch++;
-			cache.add(fileId, cid, commitDate, cacheReason);
+			cache.add(fileId, cid, commitDate, CacheItem.CacheReason.Prefetch);
     	}
     }
     
@@ -177,7 +177,7 @@ public class Simulator {
     }
 
     
-    public void loadBuggyEntity(int fileId, int cid, String commitDate,  String intro_cdate)
+    public void loadBuggyEntity(int fileId, int cid, String commitDate, String intro_cdate)
     {
     	if(cache.cacheTable.containsKey(fileId))
 		{
@@ -187,13 +187,8 @@ public class Simulator {
 		{
 			miss++;
 		}
-		cache.add(fileId, cid, commitDate,
-				CacheItem.CacheReason.BugEntity); // XXX
-													// should
-													// this
-													// be id
-													// or
-													// intro_cid?
+		cache.add(fileId, cid, commitDate, CacheItem.CacheReason.BugEntity); // XXX cid or intro_cid?
+
 		ArrayList<Integer> cochanges = CoChange.getCoChangeFileList(fileId, intro_cdate, blocksize);
 		cache.add(cochanges, cid, commitDate, CacheItem.CacheReason.CoChange);
     }

@@ -36,8 +36,8 @@ public class DatabaseManager {
             password = (String) prop.get("UserPass");
 			
 			while (enums.hasMoreElements()) {
-				String key = (String) enums.nextElement();
-				String value = prop.getProperty(key);
+	//			String key = (String) enums.nextElement();
+//				String value = prop.getProperty(key);
 
 			}
 		} catch (FileNotFoundException e) {
