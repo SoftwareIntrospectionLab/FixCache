@@ -1,7 +1,9 @@
 package Cache;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import Util.CmdLineParser;
@@ -24,7 +26,6 @@ public class Simulator {
 	CacheReplacement.Policy cacheRep;		
 	Cache cache; 
 	Connection conn = DatabaseManager.getConnection();
-	double hitratio = 0;
 	int hit;
 	int miss;
 	
@@ -47,55 +48,72 @@ public class Simulator {
 	// output: fills cache with pre-fetch size number of top-LOC files from initial commit
 	public void initialPreLoad()
 	{
-		// database query: top prefetchsize fileIDs (in terms of LOC) in the first commitID for pid
-		// for each fileId in the list create a cacheItem
-		//sql = "select file_id, LOC from actions where commit_id ="+startCId +" order by LOC DESC";
-		StringBuilder sql = new StringBuilder();;
-		Statement stmt;
-		ResultSet r;
-		if (cache.startDate == null)
-			sql.append("select min(date) from scmlog");
-//			sql = "select min(date) from scmlog";
-		else
-			sql.append("select min(date) from scmlog where repository_id="+pid+" and date >= '" +cache.startDate+"'");
-//			sql = "select min(date) from scmlog where repository_id="+pid+" and date >= '" +cache.startDate+"'";
-		String firstDate = "";
-		try{
-			stmt = conn.createStatement();
-			r = stmt.executeQuery(sql.toString());
-			while(r.next())
-			{
-				firstDate = r.getString(1);
-			}
-		}catch (Exception e) {
-			System.out.println(e);
-			System.exit(0);}
-		//TODO: only select data for the given repository id
-		sql.setLength(0);
-		sql.append("select content_loc.file_id, content_loc.commit_id from content_loc, scmlog, actions where repository_id="+pid+" and content_loc.commit_id = scmlog.id and date ='"+ firstDate +"' and content_loc.file_id=actions.file_id and content_loc.commit_id=actions.commit_id and actions.type!='D' order by loc DESC");
-//		sql = "select content_loc.file_id, content_loc.commit_id from content_loc, scmlog, actions where content_loc.commit_id = scmlog.id and date ='"+ firstDate +
-//		      "' and content_loc.file_id=actions.file_id and content_loc.commit_id=actions.commit_id and actions.type!='D' order by loc DESC";
+		String firstDate = findFirstDate();
+		String findInitialPreload = "select content_loc.file_id, content_loc.commit_id from content_loc, scmlog, actions where repository_id=? and content_loc.commit_id = scmlog.id and date =? and content_loc.file_id=actions.file_id and content_loc.commit_id=actions.commit_id and actions.type!='D' order by loc DESC";
+		PreparedStatement findInitialPreloadQuery;
+		ResultSet r = null;
 		int fileId = 0;
 		int commitId = 0;
 		try {
-			stmt = conn.createStatement();
-			r = stmt.executeQuery(sql.toString());
-			for (int size = 0; size < prefetchsize; size++) {
+			findInitialPreloadQuery = conn.prepareStatement(findInitialPreload);
+			findInitialPreloadQuery.setInt(1, pid);
+			findInitialPreloadQuery.setString(2, firstDate);
+			r = findInitialPreloadQuery.executeQuery();
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
+		for (int size = 0; size < prefetchsize; size++) {
+			try {
 				if (r.next()) {
 					fileId = r.getInt(1);
 					commitId = r.getInt(2);
 					cache.add(fileId, commitId, firstDate, CacheItem.CacheReason.Prefetch);
 				}
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-		} catch (Exception e) {
-			System.out.println(e);
-			System.exit(0);
 		}	
 	}
 	
 
 
-    private static void printUsage() {
+    private String findFirstDate() {
+		// TODO Auto-generated method stub
+    	String findFirstDate = "";
+    	PreparedStatement findFirstDateQuery;
+    	String firstDate = "";
+    	if(cache.startDate == null)
+    	{
+    		findFirstDate = "select min(date) from scmlog";
+    		try {
+				findFirstDateQuery = conn.prepareStatement(findFirstDate);
+				firstDate = Util.Database.getStringResult(findFirstDateQuery);
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    	}
+    	else
+    	{
+    		findFirstDate = "select min(date) from scmlog where repository_id=? and date >=?";
+    		try {
+				findFirstDateQuery = conn.prepareStatement(findFirstDate);
+				findFirstDateQuery.setInt(1, pid);
+				findFirstDateQuery.setString(2, cache.startDate);
+				firstDate = Util.Database.getStringResult(findFirstDateQuery);
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    	}
+
+		return firstDate;
+	}
+
+	private static void printUsage() {
         System.err.println("Example Usage: FixCache -b=10000 -c=500 -f=600 -r=\"LRU\" -p=1");
         System.err.println("Example Usage: FixCache --blksize=10000 --csize=500 --pfsize=600 --cacherep=\"LRU\" --pid=1");
         System.err.println("-p/--pid option is required");
@@ -248,7 +266,7 @@ public class Simulator {
 		sim.simulate();
 		sim.close();
 		
-		System.out.println(sim.getHitRatio());
+		System.out.println(sim.getHitRate());
 	}
 
 	private void close() {
@@ -326,7 +344,7 @@ public class Simulator {
 			System.exit(0);}
 	}
 
-	public double getHitRatio() {
+	public double getHitRate() {
 		return (double)hit/(hit+miss);
 	}
 }
