@@ -52,12 +52,9 @@ public class DBOperation {
 
 
 	public static void main(String [] args) {
-		DBOperation dbOp = new DBOperation("jdbc:mysql://localhost/mydb","root",null);
+		DBOperation dbOp = new DBOperation("jdbc:mysql://localhost:3306/xyzhu","xyzhu","vt6ihkTI");
 		Connection conn = dbOp.getConnection();
-		int id = 1;
-		int fileID = 1;
-		int commitID = 2;
-		String sql = "SELECT id from actions where id="+fileID+" and commit_id <="+commitID;
+		String sql = "SELECT id from actions";
 		ResultSet r = dbOp.ExeQuery(conn, sql);
 		try{
 			while(r.next()) {

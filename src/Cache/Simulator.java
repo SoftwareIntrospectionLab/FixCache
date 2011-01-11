@@ -69,7 +69,7 @@ public class Simulator {
 				if (r.next()) {
 					fileId = r.getInt(1);
 					commitId = r.getInt(2);
-					cache.add(fileId, commitId, firstDate, CacheItem.CacheReason.Prefetch);
+					cache.add(fileId, commitId, pid, firstDate, CacheItem.CacheReason.Prefetch);
 				}
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
@@ -123,7 +123,7 @@ public class Simulator {
     {
     	if (numprefetch < prefetchsize) {
 			numprefetch++;
-			cache.add(fileId, cid, commitDate, CacheItem.CacheReason.Prefetch);
+			cache.add(fileId, cid, pid, commitDate, CacheItem.CacheReason.Prefetch);
     	}
     }
     
@@ -187,10 +187,10 @@ public class Simulator {
 		{
 			miss++;
 		}
-		cache.add(fileId, cid, commitDate, CacheItem.CacheReason.BugEntity); // XXX cid or intro_cid?
+		cache.add(fileId, cid, pid, commitDate, CacheItem.CacheReason.BugEntity); // XXX cid or intro_cid?
 
 		ArrayList<Integer> cochanges = CoChange.getCoChangeFileList(fileId, intro_cdate, blocksize);
-		cache.add(cochanges, cid, commitDate, CacheItem.CacheReason.CoChange);
+		cache.add(cochanges, cid, pid, commitDate, CacheItem.CacheReason.CoChange);
     }
     
     public int getHit()
