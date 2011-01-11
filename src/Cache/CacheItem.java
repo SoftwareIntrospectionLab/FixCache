@@ -23,7 +23,7 @@ public class CacheItem {
 
 	public enum CacheReason{Prefetch, CoChange, NewEntity, ModifiedEntity, BugEntity}
 	private final int entityId;
-	private Date loadDate; // changed on cache hit
+	private int loadDate; // changed on cache hit
 	private int LOC; // changed on cache hit
 	private int number; // represents either the number of bugs, changes, or authors
 	CacheReason reason;
@@ -40,7 +40,7 @@ public class CacheItem {
 	}
 
 	public void update(int cid, String cdate, String sdate){
-		loadDate = Calendar.getInstance().getTime(); // XXX fix this, deprecated method
+		loadDate = parent.getTime(); // XXX fix this, deprecated method
 		LOC = findLoc(entityId, cid);
 		number = findNumber(entityId, parent.repID, cdate, sdate);
 	}
@@ -67,7 +67,7 @@ public class CacheItem {
 	/**
 	 * @return Returns the cachedDate.
 	 */
-	public Date getCachedDate() {
+	public int getCachedDate() {
 		return loadDate;
 	}
 

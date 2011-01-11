@@ -15,6 +15,8 @@ public class Cache {
 	CacheReplacement policy;
 	String startDate;
 	int repID;
+	
+	private int time = 0;
 
 	public Cache(int cacheSize, CacheReplacement pol, String start, int rep)
 	{
@@ -127,6 +129,11 @@ public class Cache {
 	public int getNumber (int fileid){
 		CacheItem ci = cacheTable.get(fileid);
 		return ci.getNumber();
+	}
+
+
+	public int getTime() {
+		return time++;
 	}
 
 
