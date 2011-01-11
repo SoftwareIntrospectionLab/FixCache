@@ -40,6 +40,8 @@ public class Cache {
 		c.policy = pol;
 		c.startDate = start;
 		c.repID = rep;
+		assert (singleton.cacheTable.size() == 0);
+		assert (singleton.policy == pol);
 		return c;
 	}
 	

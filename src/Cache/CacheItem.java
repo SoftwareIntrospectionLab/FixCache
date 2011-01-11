@@ -28,7 +28,7 @@ public class CacheItem {
 	private int number; // represents either the number of bugs, changes, or authors
 	CacheReason reason;
 
-	private final static CacheReplacement.Policy pol = Cache.getCache().getPolicy();
+	private final static Cache parent = Cache.getCache();
 
 
 	public CacheItem(int eid, int cid, String cdate, CacheReason r)
@@ -46,7 +46,7 @@ public class CacheItem {
 
 	private int findNumber(int entityId, String cdate, String sdate) {
 		int ret = 0; 
-		switch (pol){
+		switch (parent.getPolicy()){
 		case BUGS: ret = findNumberOfBugs(entityId, cdate, sdate); break;
 		case CHANGES: ret = findNumberOfChanges(entityId, cdate, sdate); break;
 		case AUTHORS: ret = findNumberOfAuthors(entityId, cdate, sdate);break; 
@@ -81,7 +81,7 @@ public class CacheItem {
 	 * @return Returns the numberOfChanges.
 	 */
 	public int getNumberOfChanges() {
-		//assert(pol == CacheReplacement.Policy.CHANGES);
+		assert(parent.getPolicy() == CacheReplacement.Policy.CHANGES);
 		return number;
 	}
 
@@ -90,14 +90,14 @@ public class CacheItem {
 	 * @return Returns the numberOfBugs.
 	 */
 	public int getNumberOfBugs() {
-		//assert(pol == CacheReplacement.Policy.BUGS);
+		assert(parent.getPolicy() == CacheReplacement.Policy.BUGS);
 		return number;
 	}
 	/**
 	 * @return Returns the numberOfAuthors
 	 */
 	public int getNumberOfAuthors() {
-		assert(pol == CacheReplacement.Policy.AUTHORS);
+		assert(parent.getPolicy() == CacheReplacement.Policy.AUTHORS);
 		return number;
 	}
 
