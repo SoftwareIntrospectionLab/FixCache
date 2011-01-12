@@ -47,8 +47,7 @@ public class CoChange {
 			try {
 				findCochangeFileIdQuery = conn.prepareStatement(findCochangeFileId);
 			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+				e.printStackTrace();}
 		return findCochangeFileIdQuery;
 	}
 	
@@ -96,8 +95,7 @@ public class CoChange {
 				}
 			}
 			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+				e.printStackTrace();}
 			
 		}
 		// for each such file f:

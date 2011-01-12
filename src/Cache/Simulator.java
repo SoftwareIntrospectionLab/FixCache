@@ -61,8 +61,7 @@ public class Simulator {
 			r = findInitialPreloadQuery.executeQuery();
 		} catch (SQLException e1) {
 			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+			e1.printStackTrace();}
 
 		for (int size = 0; size < prefetchsize; size++) {
 			try {
@@ -73,8 +72,7 @@ public class Simulator {
 				}
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+				e.printStackTrace();}
 		}	
 	}
 	
@@ -93,8 +91,7 @@ public class Simulator {
 				firstDate = Util.Database.getStringResult(findFirstDateQuery);
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+				e.printStackTrace();}
     	}
     	else
     	{
@@ -106,8 +103,7 @@ public class Simulator {
 				firstDate = Util.Database.getStringResult(findFirstDateQuery);
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+				e.printStackTrace();}
     	}
 
 		return firstDate;
@@ -165,6 +161,7 @@ public class Simulator {
 		}catch (Exception e) {
 			System.out.println(e);
 			System.exit(0);}
+		
     	return bugIntroCdate;
     }
     
@@ -286,12 +283,10 @@ public class Simulator {
         
         //CmdLineParser.Option sCId_opt = parser.addIntegerOption('s',"start");
         //CmdLineParser.Option eCId_opt = parser.addIntegerOption('e',"end");
-        
-        
-        try {
+        try
+        {
             parser.parse(args);
-        }
-        catch ( CmdLineParser.OptionException e ) {
+        }catch ( CmdLineParser.OptionException e ) {
             System.err.println(e.getMessage());
             printUsage();
             System.exit(2);
@@ -314,21 +309,16 @@ public class Simulator {
         //startCId = (Integer)parser.getOptionValue(sCId_opt, STARTIDDEFAULT);
         //endCId = (Integer)parser.getOptionValue(eCId_opt, Integer.MAX_VALUE);
         // TODO: make command line input for start and end date
-        start = dt;
-        
+        start = dt;    
         if (pid == null){
             System.err.println("Error: must specify a Project Id");
             System.exit(2);
-        }
-
-        
+        } 
         // create a new simulator
-
 		Simulator sim = new Simulator(blksz, pfsz, csz, pid, crp, start);		
 		sim.initialPreLoad();
 		sim.simulate();
 		sim.close();
-		
 		System.out.println(sim.getHitRate());
 	}
 

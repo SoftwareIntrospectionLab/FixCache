@@ -113,8 +113,7 @@ public class CacheItem {
 			findNumberOfAuthorsQuery.setInt(4, eid);
 			ret = Util.Database.getIntResult(findNumberOfAuthorsQuery);
 		} catch (SQLException e1) {
-			e1.printStackTrace();
-		}
+			e1.printStackTrace();}
 		return ret;
 	}
 
@@ -129,8 +128,7 @@ public class CacheItem {
 			findNumberOfChangesQuery.setInt(4, eid);
 			ret = Util.Database.getIntResult(findNumberOfChangesQuery);
 		} catch (SQLException e1) {
-			e1.printStackTrace();
-		}
+			e1.printStackTrace();}
 		return ret;
 	}
 
@@ -147,8 +145,7 @@ public class CacheItem {
 			findNumberOfBugsQuery.setString(4, start);
 			ret = Util.Database.getIntResult(findNumberOfBugsQuery);
 		} catch (SQLException e1) {
-			e1.printStackTrace();
-		}
+			e1.printStackTrace();}
 		return ret;
 	}
 
@@ -162,8 +159,7 @@ public class CacheItem {
 			findLocQuery.setInt(2, cid);
 			ret = Util.Database.getIntResult(findLocQuery);
 		}catch(SQLException e1){
-			e1.printStackTrace();
-		}
+			e1.printStackTrace();}
 		return ret;
 	}
 	
