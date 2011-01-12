@@ -49,7 +49,7 @@ public class Simulator {
 	public void initialPreLoad()
 	{
 		String firstDate = findFirstDate();
-		String findInitialPreload = "select content_loc.file_id, content_loc.commit_id from content_loc, scmlog, actions where repository_id=? and content_loc.commit_id = scmlog.id and date =? and content_loc.file_id=actions.file_id and content_loc.commit_id=actions.commit_id and actions.type!='D' order by loc DESC";
+		final String findInitialPreload = "select content_loc.file_id, content_loc.commit_id from content_loc, scmlog, actions where repository_id=? and content_loc.commit_id = scmlog.id and date =? and content_loc.file_id=actions.file_id and content_loc.commit_id=actions.commit_id and actions.type!='D' order by loc DESC";
 		PreparedStatement findInitialPreloadQuery;
 		ResultSet r = null;
 		int fileId = 0;

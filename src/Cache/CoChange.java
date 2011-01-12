@@ -78,7 +78,6 @@ public class CoChange {
 		
 		// for each commit in the list, get a list of all fileIDs involved in
 		// that commit
-		// TODO fix bug
 		int coChangeCommitID;
 		ResultSet r2;
 		int coChangeFile;

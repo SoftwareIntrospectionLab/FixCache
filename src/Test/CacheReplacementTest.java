@@ -1,8 +1,6 @@
 package Test;
 
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertNull;
-
 import java.sql.Connection;
 
 import org.junit.After;
