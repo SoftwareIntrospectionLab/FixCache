@@ -75,7 +75,6 @@ public class Simulator {
 			findInitialPreloadQuery.setString(2, firstDate);
 			r = findInitialPreloadQuery.executeQuery();
 		} catch (SQLException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 
@@ -88,14 +87,12 @@ public class Simulator {
 							CacheItem.CacheReason.Prefetch);
 				}
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 	}
 
 	private String findFirstDate() {
-		// TODO Auto-generated method stub
 		String findFirstDate = "";
 		PreparedStatement findFirstDateQuery;
 		String firstDate = "";
@@ -106,7 +103,6 @@ public class Simulator {
 				findFirstDateQuery.setInt(1, pid);
 				firstDate = Util.Database.getStringResult(findFirstDateQuery);
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		} else {
@@ -117,7 +113,6 @@ public class Simulator {
 				findFirstDateQuery.setString(2, cache.startDate);
 				firstDate = Util.Database.getStringResult(findFirstDateQuery);
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
