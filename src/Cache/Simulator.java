@@ -29,6 +29,18 @@ public class Simulator {
 	Connection conn = DatabaseManager.getConnection();
 	int hit;
 	int miss;
+	static final String findCommit = "select id, date, is_bug_fix from scmlog " +
+			"where repository_id =? and date>=? order by date ASC";
+	static final String findFile = "select actions.file_id, type from actions, content_loc " +
+			"where actions.file_id=content_loc.file_id and actions.commit_id=? and content_loc.commit_id=? " +
+			"and actions.file_id in( select file_id from file_types where type='code') order by loc DESC";
+	static final String findHunkId = "select id from hunks where file_id =? and commit_id =?";
+	static final String findBugIntroCdate = "select date from hunk_blames, scmlog " +
+			"where hunk_id =? and hunk_blames.bug_commit_id=scmlog.id";
+	private static PreparedStatement findCommitQuery;
+	private static PreparedStatement findFileQuery;
+	private static PreparedStatement findHunkIdQuery;
+	private static PreparedStatement findBugIntroCdateQuery;
 
 	public Simulator(int bsize, int psize, int csize, int projid,
 			CacheReplacement.Policy rep, String start) {
@@ -50,7 +62,9 @@ public class Simulator {
 	// initial commit
 	public void initialPreLoad() {
 		String firstDate = findFirstDate();
-		final String findInitialPreload = "select content_loc.file_id, content_loc.commit_id from content_loc, scmlog, actions where repository_id=? and content_loc.commit_id = scmlog.id and date =? and content_loc.file_id=actions.file_id and content_loc.commit_id=actions.commit_id and actions.type!='D' order by loc DESC";
+		final String findInitialPreload = "select content_loc.file_id, content_loc.commit_id from content_loc, scmlog, actions " +
+				"where repository_id=? and content_loc.commit_id = scmlog.id and date =? and content_loc.file_id=actions.file_id " +
+				"and content_loc.commit_id=actions.commit_id and actions.type!='D' order by loc DESC";
 		PreparedStatement findInitialPreloadQuery;
 		ResultSet r = null;
 		int fileId = 0;
@@ -61,7 +75,6 @@ public class Simulator {
 			findInitialPreloadQuery.setString(2, firstDate);
 			r = findInitialPreloadQuery.executeQuery();
 		} catch (SQLException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 
@@ -74,24 +87,22 @@ public class Simulator {
 							CacheItem.CacheReason.Prefetch);
 				}
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 	}
 
 	private String findFirstDate() {
-		// TODO Auto-generated method stub
 		String findFirstDate = "";
 		PreparedStatement findFirstDateQuery;
 		String firstDate = "";
 		if (cache.startDate == null) {
-			findFirstDate = "select min(date) from scmlog";
+			findFirstDate = "select min(date) from scmlog where repository_id=?";
 			try {
 				findFirstDateQuery = conn.prepareStatement(findFirstDate);
+				findFirstDateQuery.setInt(1, pid);
 				firstDate = Util.Database.getStringResult(findFirstDateQuery);
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		} else {
@@ -102,7 +113,6 @@ public class Simulator {
 				findFirstDateQuery.setString(2, cache.startDate);
 				firstDate = Util.Database.getStringResult(findFirstDateQuery);
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -137,10 +147,6 @@ public class Simulator {
 		// XXX optimize this code?
 		String bugIntroCdate = "";
 		int hunkId;
-		String findHunkId = "select id from hunks where file_id =? and commit_id =?";
-		String findBugIntroCdate = "select date from hunk_blames, scmlog where hunk_id =? and hunk_blames.bug_commit_id=scmlog.id";
-		PreparedStatement findHunkIdQuery;
-		PreparedStatement findBugIntroCdateQuery;
 		ResultSet r = null;
 		ResultSet r1 = null;
 		try {
@@ -199,10 +205,6 @@ public class Simulator {
 
 	public void simulate() {
 
-		String findCommit = "select id, date, is_bug_fix from scmlog where repository_id =? and date>=? order by date ASC";
-		String findFile = "select actions.file_id, type from actions, content_loc where actions.file_id=content_loc.file_id and actions.commit_id=? and content_loc.commit_id=? and actions.file_id in( select file_id from file_types where type='code') order by loc DESC";
-		PreparedStatement findCommitQuery;
-		PreparedStatement findFileQuery;
 		ResultSet r1;
 		ResultSet r2;
 		int cid;// means commit_id in actions
@@ -314,7 +316,6 @@ public class Simulator {
 		}
 		// startCId = (Integer)parser.getOptionValue(sCId_opt, STARTIDDEFAULT);
 		// endCId = (Integer)parser.getOptionValue(eCId_opt, Integer.MAX_VALUE);
-		// TODO: make command line input for start and end date
 		start = dt;
 		if (pid == null) {
 			System.err.println("Error: must specify a Project Id");
