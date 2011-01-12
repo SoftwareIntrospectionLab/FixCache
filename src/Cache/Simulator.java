@@ -137,37 +137,34 @@ public class Simulator {
     	//XXX optimize this code?
     	String bugIntroCdate = "";
     	int hunkId;
-    	Connection conn = DatabaseManager.getConnection();
-    	Statement stmt;
-    	Statement stmt1;
-    	StringBuilder sql = new StringBuilder();
-    	sql.append("select id from hunks where file_id = "+fileId+" and commit_id ="+commitId);
-//    	String sql = "select id from hunks where file_id = "+fileId+" and commit_id ="+commitId;//select the hunk id of fileId for a bug_introducing commitId
-    	ResultSet r;
-    	ResultSet r1;
-    	try{
-    		stmt = conn.createStatement();
-    		r = stmt.executeQuery(sql.toString());
-    		while(r.next())
-    	{
-    		hunkId = r.getInt(1);
-    		stmt1 = conn.createStatement();
-    		sql.setLength(0);
-    		sql.append("select date from hunk_blames, scmlog where hunk_id = "+ hunkId + " and hunk_blames.bug_commit_id=scmlog.id");
-//    		sql = "select date from hunk_blames, scmlog where hunk_id = "+ hunkId + " and hunk_blames.bug_commit_id=scmlog.id";//for each hunk find the bug introducing rev
-    		r1 = stmt1.executeQuery(sql.toString());
-    		while(r1.next())
-    		{
-    			if(r1.getString(1).compareTo(bugIntroCdate)>0)
-    			{
-    				bugIntroCdate = r1.getString(1);
-    			}
-    		}
-    	}
-    	}catch (Exception e) {
+    	String findHunkId = "select id from hunks where file_id =? and commit_id =?";
+    	String findBugIntroCdate = "select date from hunk_blames, scmlog where hunk_id =? and hunk_blames.bug_commit_id=scmlog.id";
+		PreparedStatement findHunkIdQuery;
+		PreparedStatement findBugIntroCdateQuery;
+		ResultSet r = null;
+		ResultSet r1 = null;
+		try {
+			findHunkIdQuery = conn.prepareStatement(findHunkId);
+			findHunkIdQuery.setInt(1, fileId);
+			findHunkIdQuery.setInt(2, commitId);
+			r = findHunkIdQuery.executeQuery();
+			while(r.next())
+	    	{
+	    		hunkId = r.getInt(1);
+	    		findBugIntroCdateQuery = conn.prepareStatement(findBugIntroCdate);
+	    		findBugIntroCdateQuery.setInt(1, hunkId);
+	    		r1 = findBugIntroCdateQuery.executeQuery();
+	    		while(r1.next())
+	    		{
+	    			if(r1.getString(1).compareTo(bugIntroCdate)>0)
+	    			{
+	    				bugIntroCdate = r1.getString(1);
+	    			}
+	    		}
+	    	}
+		}catch (Exception e) {
 			System.out.println(e);
 			System.exit(0);}
-    
     	return bugIntroCdate;
     }
     
@@ -204,44 +201,39 @@ public class Simulator {
     }
 
 	public void simulate() {
-		//  if you order scmlog by commitid or by date, the order is different: so order by date
-		StringBuilder sql = new StringBuilder();
-		sql.append("select id, date, is_bug_fix from scmlog where repository_id = "+pid+" and date>='"+cache.startDate+"' order by date ASC");
-//		String sql = "select id, date, is_bug_fix from scmlog where repository_id = "+pid+" and date>='"+cache.startDate+"' order by date ASC";
-	
-		Statement stmt;
-		Statement stmt1;
-		ResultSet r;
-		ResultSet r1;
 		
-		//select (id, bugfix) from scmlog orderedby date  --- need join
-		// main loop
+		String findCommit = "select id, date, is_bug_fix from scmlog where repository_id =? and date>=? order by date ASC";
+		String findFile = "select actions.file_id, type from actions, content_loc, files where actions.file_id = files.id and files.file_name like '%.java' and actions.file_id=content_loc.file_id and actions.commit_id = ? and content_loc.commit_id =? and files.repository_id=? order by loc DESC";
+		PreparedStatement findCommitQuery;
+		PreparedStatement findFileQuery;
+		ResultSet r1;
+		ResultSet r2;
 		int cid;//means commit_id in actions
 		String cdate;
 		boolean isBugFix;
-		
-		int numprefetch = 0;
-		//iterate over the selection 
 		int file_id;
 		FileType type;
+		int numprefetch = 0;
+		//iterate over the selection 
 		try {
-			stmt = conn.createStatement();
-			r = stmt.executeQuery(sql.toString());
-			while (r.next()) {
-				cid = r.getInt(1);
-				cdate = r.getString(2);
-				isBugFix = r.getBoolean(3);
+			findCommitQuery = conn.prepareStatement(findCommit);
+			findCommitQuery.setInt(1, pid);
+			findCommitQuery.setString(2, cache.startDate);
+			r1 = findCommitQuery.executeQuery();
+			while (r1.next()) {
+				cid = r1.getInt(1);
+				cdate = r1.getString(2);
+				isBugFix = r1.getBoolean(3);
 				//only deal with .java files
-				sql.setLength(0);
-				sql.append("select actions.file_id, type from actions, content_loc, files where actions.file_id = files.id and files.file_name like '%.java' and actions.file_id=content_loc.file_id and actions.commit_id = "+cid+" and content_loc.commit_id ="+cid+" and files.repository_id="+pid+" order by loc DESC");
-//				sql = "select actions.file_id, type from actions, content_loc, files where actions.file_id = files.id and files.file_name like '%.java' and actions.file_id=content_loc.file_id and actions.commit_id = "+cid+" and content_loc.commit_id ="+cid+" and files.repository_id="+pid+" order by loc DESC";
-//				sql = "select actions.file_id, type ,loc from actions, content_loc where actions.file_id=content_loc.file_id and actions.commit_id = "+id+" and content_loc.commit_id ="+id+" order by loc DESC";
-				stmt1 = conn.createStatement();
-				r1 = stmt1.executeQuery(sql.toString());
+				findFileQuery = conn.prepareStatement(findFile);
+				findFileQuery.setInt(1, cid);
+				findFileQuery.setInt(2, cid);
+				findFileQuery.setInt(3, pid);
+				r2 = findFileQuery.executeQuery();
 				// loop through those file ids
-				while (r1.next()) {
-					file_id = r1.getInt(1);
-					type = FileType.valueOf(r1.getString(2));
+				while (r2.next()) {
+					file_id = r2.getInt(1);
+					type = FileType.valueOf(r2.getString(2));
 					switch (type) {
 					case V:	
 						break;
