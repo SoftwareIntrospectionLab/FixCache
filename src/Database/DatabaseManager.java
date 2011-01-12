@@ -14,13 +14,13 @@ import java.util.Properties;
 
 public class DatabaseManager {
 
-	private static DatabaseManager dbManager = new DatabaseManager();
+	private static DatabaseManager dbManager;
 	private String drivername, databasename, username, password;
 	private Connection conn = null;
 	Statement stmt;
 
-	private DatabaseManager() {
-		File file = new File("database.properties");
+	private DatabaseManager(String props) {
+		File file = new File(props);
 		FileInputStream fis = null;
 		try {
 			fis = new FileInputStream(file);
@@ -60,10 +60,17 @@ public class DatabaseManager {
 			System.exit(0);
 		}
 	}
+	
+	public static Connection getTestConnection() {
+		if (dbManager == null) {
+			dbManager = new DatabaseManager("testdatabase.properties");
+		}
+		return dbManager.conn;
+	}
 
 	public static Connection getConnection() {
 		if (dbManager == null) {
-			dbManager = new DatabaseManager();
+			dbManager = new DatabaseManager("database.properties");
 		}
 		return dbManager.conn;
 	}
@@ -108,5 +115,7 @@ public class DatabaseManager {
 		}
 
 	}
+
+
 
 }

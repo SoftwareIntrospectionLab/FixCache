@@ -16,7 +16,7 @@ import Database.DatabaseManager;
 public class TestHelper {
 
 	public static Connection getJDBCConnection() throws Exception {
-		return DatabaseManager.getConnection();
+		return DatabaseManager.getTestConnection();
 	}
 
 	public static IDatabaseConnection getDBUnitConnection() throws Exception {
