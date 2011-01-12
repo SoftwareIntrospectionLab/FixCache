@@ -40,7 +40,6 @@ public class Cache {
 	}
 
 	public void add(int eid, int cid, String cdate, CacheReason reason) {
-		// XXX move hit/miss logic here?
 		if (cacheTable.containsKey(eid))
 			cacheTable.get(eid).update(cid, cdate, startDate);
 		else
