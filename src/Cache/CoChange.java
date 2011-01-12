@@ -15,22 +15,21 @@ import Database.DatabaseManager;
 public class CoChange {
 
 	int fileID;
-	
+
 	// database setup
 	final static Connection conn = DatabaseManager.getConnection();
-	static final String findCommitId = "SELECT commit_id from actions, scmlog where file_id=? and actions.commit_id=scmlog.id and date <=?";
+	static final String findCommitId = "SELECT commit_id from actions, scmlog " +
+			"where file_id=? and actions.commit_id=scmlog.id and date <=?";
 	static final String findCochangeFileId = "SELECT file_id from actions where commit_id =?";
 	private static PreparedStatement findCommitIdQuery;
 	private static PreparedStatement findCochangeFileIdQuery;
-	
+
 	private CoChange(int fileID) {
 		this.fileID = fileID;
 	}
-	
-	public PreparedStatement getCommitIdStatement()
-	{
-		if(findCommitIdQuery == null)
-		{
+
+	public PreparedStatement getCommitIdStatement() {
+		if (findCommitIdQuery == null) {
 			try {
 				findCommitIdQuery = conn.prepareStatement(findCommitId);
 			} catch (SQLException e) {
@@ -38,20 +37,19 @@ public class CoChange {
 			}
 		}
 		return findCommitIdQuery;
-		
+
 	}
-	
-	public PreparedStatement getCochangeFileIdStatement()
-	{
-		if(findCochangeFileIdQuery == null)
+
+	public PreparedStatement getCochangeFileIdStatement() {
+		if (findCochangeFileIdQuery == null)
 			try {
-				findCochangeFileIdQuery = conn.prepareStatement(findCochangeFileId);
+				findCochangeFileIdQuery = conn
+						.prepareStatement(findCochangeFileId);
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
 		return findCochangeFileIdQuery;
 	}
-	
 
 	public static ArrayList<Integer> getCoChangeFileList(int fileid,
 			String commitDate, int blocksize) {
@@ -60,14 +58,15 @@ public class CoChange {
 
 	}
 
-	// build a table of files that are changed with fileID, before time commitDate
+	// build a table of files that are changed with fileID, before time
+	// commitDate
 	private CoChangeFileMap buildCoChangeMap(String commitDate) {
 		CoChangeFileMap coChangeCounts = new CoChangeFileMap();
 
 		// get a list of all prior commits for fileID before commitID:
 		final PreparedStatement commitIdQuery = getCommitIdStatement();
 		ArrayList<Integer> commitList = new ArrayList<Integer>();
-	
+
 		try {
 			commitIdQuery.setInt(1, fileID);
 			commitIdQuery.setString(2, commitDate);
@@ -75,7 +74,7 @@ public class CoChange {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
+
 		// for each commit in the list, get a list of all fileIDs involved in
 		// that commit
 		int coChangeCommitID;
@@ -87,17 +86,17 @@ public class CoChange {
 			try {
 				cochangeFileIdQuery.setInt(1, coChangeCommitID);
 				r2 = cochangeFileIdQuery.executeQuery();
-			while (r2.next()) {
-				coChangeFile = r2.getInt(1);
-				if (coChangeFile != fileID) {
-					// coChangeList.add(r2.getInt(1));
-					coChangeCounts.add(coChangeFile);
+				while (r2.next()) {
+					coChangeFile = r2.getInt(1);
+					if (coChangeFile != fileID) {
+						// coChangeList.add(r2.getInt(1));
+						coChangeCounts.add(coChangeFile);
+					}
 				}
-			}
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
-			
+
 		}
 		// for each such file f:
 		// int f;
@@ -131,7 +130,7 @@ public class CoChange {
 		CoChangeFileMap countTable = coChange.buildCoChangeMap("");
 		List<Integer> coChangeList = countTable.getTopFiles(100);
 		for (int i = 0; i < coChangeList.size(); i++) {
-			System.out.println( coChangeList.get(i));
+			System.out.println(coChangeList.get(i));
 		}
 	}
 
@@ -153,21 +152,31 @@ public class CoChange {
 				int count = map.get(f);
 				map.remove(f);
 				map.put(f, count + 1);
-			}
-			else
+			} else
 				map.put(f, 1);
 		}
 
-		// TODO: when two files have the same cochange count, use loc to break them
+		// TODO: when two files have the same cochange count, use loc to break
+		// them
 		ArrayList<Integer> getTopFiles(int blocksize) {
-			ArrayList<Map.Entry<Integer, Integer>> list = new ArrayList<Map.Entry<Integer, Integer>>(map.entrySet());
+			ArrayList<Map.Entry<Integer, Integer>> list = new ArrayList<Map.Entry<Integer, Integer>>(
+					map.entrySet());
 			ArrayList<Integer> topFiles = new ArrayList<Integer>();
-			Collections.sort(list, new Comparator<Map.Entry<Integer, Integer>>() {
-				public int compare(Map.Entry<Integer, Integer> o1, Map.Entry<Integer, Integer> o2) {
-					return ( o2.getValue().compareTo(o1.getValue())); // sort the list in descending order
-				}
-			});
-			for (int i = 0; i < blocksize - 1; i++)// a block size b indicates that we load b-1 closest entities.
+			Collections.sort(list,
+					new Comparator<Map.Entry<Integer, Integer>>() {
+						public int compare(Map.Entry<Integer, Integer> o1,
+								Map.Entry<Integer, Integer> o2) {
+							return (o2.getValue().compareTo(o1.getValue())); // sort
+																				// the
+																				// list
+																				// in
+																				// descending
+																				// order
+						}
+					});
+			for (int i = 0; i < blocksize - 1; i++)// a block size b indicates
+													// that we load b-1 closest
+													// entities.
 			{
 				if (list.size() > i) {
 					Map.Entry<Integer, Integer> curr = list.get(i);

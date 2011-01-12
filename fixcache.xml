@@ -35,14 +35,14 @@
   <actions id="18" type="M" file_id="5" commit_id="9" branch_id="1"/>
   <actions id="19" type="V" file_id="8" commit_id="10" branch_id="1"/>
   <actions id="20" type="M" file_id="5" commit_id="10" branch_id="1"/>
-  <files id="1" file_name="f1.java" repository_id="1"/>
-  <files id="2" file_name="f2" repository_id="1"/>
-  <files id="3" file_name="f3.java" repository_id="1"/>
-  <files id="4" file_name="f4.java" repository_id="1"/>
-  <files id="5" file_name="f5.java" repository_id="1"/>
-  <files id="6" file_name="f6.java" repository_id="1"/>
-  <files id="7" file_name="f7.java" repository_id="1"/>
-  <files id="8" file_name="f8.java" repository_id="1"/>
+  <file_types id="1" file_id="1" type="code"/>
+  <file_types id="2" file_id="2" type="code"/>
+  <file_types id="3" file_id="3" type="code"/>
+  <file_types id="4" file_id="4" type="code"/>
+  <file_types id="5" file_id="5" type="code"/>
+  <file_types id="6" file_id="6" type="code"/>
+  <file_types id="7" file_id="7" type="code"/>
+  <file_types id="8" file_id="8" type="code"/>
   <content id="1" commit_id="1" file_id="1" content="a;&#xA;b;"/>
   <content id="2" commit_id="1" file_id="2" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;"/>
   <content id="3" commit_id="1" file_id="3" content="a;&#xA;b;&#xA;c;"/>
