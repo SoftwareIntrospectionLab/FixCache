@@ -9,9 +9,14 @@ public class CacheItem {
 
 	// Setting up the sql statement strings used in this class
 	static Connection conn = DatabaseManager.getConnection();
-	static final String findNumberOfAuthors = "select count(id) from people where id in( select author_id from scmlog, actions where repository_id=? and scmlog.id = actions.commit_id and date <=? and date >= ? and file_id = ?)";
-	static final String findNumberOfChanges = "select count(actions.id) from actions, scmlog where repository_id=? and actions.commit_id = scmlog.id and date <=? and date >=? and file_id=?";
-	static final String findNumberOfBugs = "select count(commit_id) from actions where file_id=? and commit_id in (select id from scmlog where repository_id=? and is_bug_fix=1 and date <=? and date >=?)";
+	static final String findNumberOfAuthors = "select count(id) " +
+			"from people where id in( select author_id from scmlog, actions " +
+			"where repository_id=? and scmlog.id = actions.commit_id and date <=? and date >= ? and file_id = ?)";
+	static final String findNumberOfChanges = "select count(actions.id) " +
+			"from actions, scmlog " +
+			"where repository_id=? and actions.commit_id = scmlog.id and date <=? and date >=? and file_id=?";
+	static final String findNumberOfBugs = "select count(commit_id) from actions " +
+			"where file_id=? and commit_id in (select id from scmlog where repository_id=? and is_bug_fix=1 and date <=? and date >=?)";
 	static final String findLoc = "select loc from content_loc where file_id=? and commit_id =?";
 	private static PreparedStatement findNumberOfAuthorsQuery;
 	private static PreparedStatement findNumberOfChangesQuery;
