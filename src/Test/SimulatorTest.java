@@ -20,143 +20,143 @@ import Cache.Simulator;
 
 public class SimulatorTest {
 
-	private static Connection conn;
+    private static Connection conn;
 
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-		try {
-			conn = TestHelper.getJDBCConnection();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+        try {
+            conn = TestHelper.getJDBCConnection();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
-		if (conn != null) {
-			conn.close();
-		}
-	}
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+        if (conn != null) {
+            conn.close();
+        }
+    }
 
-	@Before
-	public void setUp() throws Exception {
-		TestHelper.handleSetUpOperation();
-	}
+    @Before
+    public void setUp() throws Exception {
+        TestHelper.handleSetUpOperation();
+    }
 
-	@After
-	public void tearDown() throws Exception {
-		TestHelper.cleanDatabase();
-	}
+    @After
+    public void tearDown() throws Exception {
+        TestHelper.cleanDatabase();
+    }
 
-	@Test
-	public void testInitialPreLoad() {
+    @Test
+    public void testInitialPreLoad() {
 
-		Simulator sim1 = new Simulator(2, 2, 5, 1,
-				CacheReplacement.Policy.BUGS, "2009-10-20 01:32:19.0");
-		sim1.initialPreLoad();
-		assertEquals(sim1.getCache().getCacheSize(), 2);
-		ArrayList<CacheItem> CIList1 = sim1.getCache().getCacheItemList();
-		assertEquals(((CacheItem) CIList1.get(0)).getEntityId(), 4);
-		assertEquals(((CacheItem) CIList1.get(1)).getEntityId(), 2);
-		Simulator sim2 = new Simulator(2, 2, 5, 1,
-				CacheReplacement.Policy.BUGS, "2009-10-20 14:37:47.0");
-		sim2.initialPreLoad();
-		assertEquals(sim2.getCache().getCacheSize(), 2);
-		ArrayList<CacheItem> CIList2 = sim2.getCache().getCacheItemList();
-		assertEquals(((CacheItem) CIList2.get(0)).getEntityId(), 2);
-		assertEquals(((CacheItem) CIList2.get(1)).getEntityId(), 1);
-		Simulator sim3 = new Simulator(2, 2, 5, 1,
-				CacheReplacement.Policy.BUGS, "2009-10-23 09:50:25.0");
-		sim3.initialPreLoad();
-		ArrayList<CacheItem> CIList3 = sim3.getCache().getCacheItemList();
-		assertEquals(sim3.getCache().getCacheSize(), 1);
-		assertEquals(((CacheItem) CIList3.get(0)).getEntityId(), 1);
-		Simulator sim4 = new Simulator(2, 2, 5, 1,
-				CacheReplacement.Policy.BUGS, "2010-10-21 09:50:25.0");
-		sim4.initialPreLoad();
-		assertEquals(sim4.getCache().getCacheSize(), 0);
-		Simulator sim5 = new Simulator(2, 2, 5, 1,
-				CacheReplacement.Policy.BUGS, "2009-10-21 09:50:25.0");
-		sim5.initialPreLoad();
-		assertEquals(sim5.getCache().getCacheSize(), 0);
+        Simulator sim1 = new Simulator(2, 2, 5, 1,
+                CacheReplacement.Policy.BUGS, "2009-10-20 01:32:19.0");
+        sim1.initialPreLoad();
+        assertEquals(sim1.getCache().getCacheSize(), 2);
+        ArrayList<CacheItem> CIList1 = sim1.getCache().getCacheItemList();
+        assertEquals(((CacheItem) CIList1.get(0)).getEntityId(), 4);
+        assertEquals(((CacheItem) CIList1.get(1)).getEntityId(), 2);
+        Simulator sim2 = new Simulator(2, 2, 5, 1,
+                CacheReplacement.Policy.BUGS, "2009-10-20 14:37:47.0");
+        sim2.initialPreLoad();
+        assertEquals(sim2.getCache().getCacheSize(), 2);
+        ArrayList<CacheItem> CIList2 = sim2.getCache().getCacheItemList();
+        assertEquals(((CacheItem) CIList2.get(0)).getEntityId(), 2);
+        assertEquals(((CacheItem) CIList2.get(1)).getEntityId(), 1);
+        Simulator sim3 = new Simulator(2, 2, 5, 1,
+                CacheReplacement.Policy.BUGS, "2009-10-23 09:50:25.0");
+        sim3.initialPreLoad();
+        ArrayList<CacheItem> CIList3 = sim3.getCache().getCacheItemList();
+        assertEquals(sim3.getCache().getCacheSize(), 1);
+        assertEquals(((CacheItem) CIList3.get(0)).getEntityId(), 1);
+        Simulator sim4 = new Simulator(2, 2, 5, 1,
+                CacheReplacement.Policy.BUGS, "2010-10-21 09:50:25.0");
+        sim4.initialPreLoad();
+        assertEquals(sim4.getCache().getCacheSize(), 0);
+        Simulator sim5 = new Simulator(2, 2, 5, 1,
+                CacheReplacement.Policy.BUGS, "2009-10-21 09:50:25.0");
+        sim5.initialPreLoad();
+        assertEquals(sim5.getCache().getCacheSize(), 0);
 
-	}
+    }
 
-	@Test
-	public void testVersionPreLoad() {
-		Simulator sim = new Simulator(2, 2, 5, 1, CacheReplacement.Policy.BUGS,
-				"2009-10-20 01:32:19.0");
-		Cache cache = sim.getCache();
-		sim.initialPreLoad();
-		assertEquals(cache.getCacheSize(), 2);
-		sim.versionPreLoad(0, 1, 1, "2009-10-20 01:32:19.0",
-				CacheItem.CacheReason.NewEntity);
-		assertEquals(cache.getCacheSize(), 3);
-		sim.versionPreLoad(1, 3, 1, "2009-10-20 01:32:19.0",
-				CacheItem.CacheReason.NewEntity);
-		assertEquals(cache.getCacheSize(), 4);
-		sim.versionPreLoad(2, 5, 2, "2009-10-20 14:37:38.0",
-				CacheItem.CacheReason.ModifiedEntity);
-		assertEquals(cache.getCacheSize(), 4);
-		assertNull(cache.getCacheItem(5));
+    @Test
+    public void testVersionPreLoad() {
+        Simulator sim = new Simulator(2, 2, 5, 1, CacheReplacement.Policy.BUGS,
+                "2009-10-20 01:32:19.0");
+        Cache cache = sim.getCache();
+        sim.initialPreLoad();
+        assertEquals(cache.getCacheSize(), 2);
+        sim.versionPreLoad(0, 1, 1, "2009-10-20 01:32:19.0",
+                CacheItem.CacheReason.NewEntity);
+        assertEquals(cache.getCacheSize(), 3);
+        sim.versionPreLoad(1, 3, 1, "2009-10-20 01:32:19.0",
+                CacheItem.CacheReason.NewEntity);
+        assertEquals(cache.getCacheSize(), 4);
+        sim.versionPreLoad(2, 5, 2, "2009-10-20 14:37:38.0",
+                CacheItem.CacheReason.ModifiedEntity);
+        assertEquals(cache.getCacheSize(), 4);
+        assertNull(cache.getCacheItem(5));
 
-	}
+    }
 
-	@Test
-	public void testGetBugIntroCdate() {
+    @Test
+    public void testGetBugIntroCdate() {
 
-		Simulator sim = new Simulator(2, 2, 5, 1, CacheReplacement.Policy.BUGS,
-				"2009-10-20 01:32:19.0");
-		assertEquals(sim.getBugIntroCdate(8, 10), "2009-10-23 14:29:05.0");
-		assertEquals(sim.getBugIntroCdate(5, 9), "2009-10-23 20:01:52.0");
-	}
+        Simulator sim = new Simulator(2, 2, 5, 1, CacheReplacement.Policy.BUGS,
+                "2009-10-20 01:32:19.0");
+        assertEquals(sim.getBugIntroCdate(8, 10), "2009-10-23 14:29:05.0");
+        assertEquals(sim.getBugIntroCdate(5, 9), "2009-10-23 20:01:52.0");
+    }
 
-	@Test
-	public void testLoadBuggyEntity() {
-		Simulator sim = new Simulator(3, 2, 5, 1,
-				CacheReplacement.Policy.CHANGES, "2009-10-20 01:32:19.0");
-		Cache cache = sim.getCache();
-		sim.loadBuggyEntity(5, 9, "2009-10-24 09:50:26.0",
-				"2009-10-23 20:01:52.0");
-		assertNotNull(cache.getCacheItem(5));
-		assertNotNull(cache.getCacheItem(2));
-		assertNotNull(cache.getCacheItem(1));
-		assertEquals(cache.getCacheItem(2).getNumberOfChanges(), 3);
-		assertEquals(sim.getHit(), 0);
-		assertEquals(sim.getMiss(), 1);
-		sim.loadBuggyEntity(2, 5, "2009-10-23 14:29:05.0",
-				"2009-10-23 14:10:37.0");
-		assertEquals(sim.getHit(), 1);
-		assertEquals(sim.getMiss(), 1);
-		assertEquals(cache.getCacheItem(2).getNumberOfChanges(), 3);
-	}
+    @Test
+    public void testLoadBuggyEntity() {
+        Simulator sim = new Simulator(3, 2, 5, 1,
+                CacheReplacement.Policy.CHANGES, "2009-10-20 01:32:19.0");
+        Cache cache = sim.getCache();
+        sim.loadBuggyEntity(5, 9, "2009-10-24 09:50:26.0",
+                "2009-10-23 20:01:52.0");
+        assertNotNull(cache.getCacheItem(5));
+        assertNotNull(cache.getCacheItem(2));
+        assertNotNull(cache.getCacheItem(1));
+        assertEquals(cache.getCacheItem(2).getNumberOfChanges(), 3);
+        assertEquals(sim.getHit(), 0);
+        assertEquals(sim.getMiss(), 1);
+        sim.loadBuggyEntity(2, 5, "2009-10-23 14:29:05.0",
+                "2009-10-23 14:10:37.0");
+        assertEquals(sim.getHit(), 1);
+        assertEquals(sim.getMiss(), 1);
+        assertEquals(cache.getCacheItem(2).getNumberOfChanges(), 3);
+    }
 
-	@Test
-	public void testSimulate() {
-		Simulator sim1 = new Simulator(3, 2, 5, 1,
-				CacheReplacement.Policy.BUGS, "2009-10-24 14:30:54.0");
-		sim1.initialPreLoad();
-		sim1.simulate();
-		int rat = (int) (sim1.getHitRate() * 10);
-		assertEquals(rat, 10);
-		Simulator sim2 = new Simulator(3, 2, 5, 1,
-				CacheReplacement.Policy.BUGS, "2009-10-24 09:50:26.0");
-		sim2.initialPreLoad();
-		sim2.simulate();
-		rat = (int) (sim2.getHitRate() * 10);
-		assertEquals(rat, 10);
-		Simulator sim3 = new Simulator(3, 2, 5, 1,
-				CacheReplacement.Policy.BUGS, "2009-10-24 07:51:22.0");
-		sim3.initialPreLoad();
-		sim3.simulate();
-		rat = (int) (sim3.getHitRate() * 10);
-		assertEquals(rat, 5);
-		Simulator sim4 = new Simulator(3, 2, 5, 1,
-				CacheReplacement.Policy.BUGS, "2009-10-20 01:32:19.0");
-		sim4.initialPreLoad();
-		sim4.simulate();
-		rat = (int) (sim4.getHitRate() * 10);
-		assertEquals(rat, 6);
-	}
+    @Test
+    public void testSimulate() {
+        Simulator sim1 = new Simulator(3, 2, 5, 1,
+                CacheReplacement.Policy.BUGS, "2009-10-24 14:30:54.0");
+        sim1.initialPreLoad();
+        sim1.simulate();
+        int rat = (int) (sim1.getHitRate() * 10);
+        assertEquals(rat, 10);
+        Simulator sim2 = new Simulator(3, 2, 5, 1,
+                CacheReplacement.Policy.BUGS, "2009-10-24 09:50:26.0");
+        sim2.initialPreLoad();
+        sim2.simulate();
+        rat = (int) (sim2.getHitRate() * 10);
+        assertEquals(rat, 10);
+        Simulator sim3 = new Simulator(3, 2, 5, 1,
+                CacheReplacement.Policy.BUGS, "2009-10-24 07:51:22.0");
+        sim3.initialPreLoad();
+        sim3.simulate();
+        rat = (int) (sim3.getHitRate() * 10);
+        assertEquals(rat, 5);
+        Simulator sim4 = new Simulator(3, 2, 5, 1,
+                CacheReplacement.Policy.BUGS, "2009-10-20 01:32:19.0");
+        sim4.initialPreLoad();
+        sim4.simulate();
+        rat = (int) (sim4.getHitRate() * 10);
+        assertEquals(rat, 6);
+    }
 
 }
