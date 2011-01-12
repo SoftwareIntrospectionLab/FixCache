@@ -36,7 +36,7 @@
   <actions id="19" type="V" file_id="8" commit_id="10" branch_id="1"/>
   <actions id="20" type="M" file_id="5" commit_id="10" branch_id="1"/>
   <file_types id="1" file_id="1" type="code"/>
-  <file_types id="2" file_id="2" type="code"/>
+  <file_types id="2" file_id="2" type="unknown"/>
   <file_types id="3" file_id="3" type="code"/>
   <file_types id="4" file_id="4" type="code"/>
   <file_types id="5" file_id="5" type="code"/>
