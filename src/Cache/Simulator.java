@@ -201,7 +201,7 @@ public class Simulator {
 	public void simulate() {
 
 		String findCommit = "select id, date, is_bug_fix from scmlog where repository_id =? and date>=? order by date ASC";
-		String findFile = "select actions.file_id, type from actions, content_loc, files where actions.file_id = files.id and files.file_name like '%.java' and actions.file_id=content_loc.file_id and actions.commit_id = ? and content_loc.commit_id =? and files.repository_id=? order by loc DESC";
+		String findFile = "select actions.file_id, type from actions, content_loc where actions.file_id=content_loc.file_id and actions.commit_id=? and content_loc.commit_id=? and actions.file_id in( select file_id from file_types where type='code') order by loc DESC";
 		PreparedStatement findCommitQuery;
 		PreparedStatement findFileQuery;
 		ResultSet r1;
@@ -226,7 +226,6 @@ public class Simulator {
 				findFileQuery = conn.prepareStatement(findFile);
 				findFileQuery.setInt(1, cid);
 				findFileQuery.setInt(2, cid);
-				findFileQuery.setInt(3, pid);
 				r2 = findFileQuery.executeQuery();
 				// loop through those file ids
 				while (r2.next()) {

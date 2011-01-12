@@ -3,8 +3,6 @@ package Cache;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Calendar;
-import java.util.Date;
 import Database.DatabaseManager;
 
 public class CacheItem {
