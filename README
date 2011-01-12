@@ -19,19 +19,18 @@ slf4j-simple-1.6.1.jar
 
 INSTALL
 -------------------
-Now you need to create a database with tables from cvsanaly.
-Run mysql as root (mysql -u root -p) and create a new database: 
+Now you need to create a database with tables from cvsanaly. Run mysql as root (mysql -u root -p) and create a new database: 
 
 create database fixcache;
 use fixcache;
 source ~/path-to-FixCache/fixcache.sql;
 show tables;
 
-You need to create a database.properties file which contains database connection information. You have to 
-create your own database.properties file according to your database connection 
-information. This is the specification for a database.properties file:
+You need to create a testdatabase.properties file to run DBUnit tests. The database specified in this file will be wiped after running each test. This is the specification for a testdatabase.properties file:
 
 Driver:com.mysql.jdbc.Driver
 URL:jdbc:mysql://localhost:3306/fixcache
 UserName:root
 UserPass:
+
+If you want to run fixcache on a larger project, you will need to create a database.properties file for that project.
