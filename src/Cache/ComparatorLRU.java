@@ -8,13 +8,10 @@ public class ComparatorLRU implements Comparator<CacheItem> {
 		int d1 = c1.getCachedDate();
 		int d2 = c2.getCachedDate();
 		assert (d1 != d2);
-		
-		if(d1 < d2)
-		{
+
+		if (d1 < d2) {
 			return -1;
-		}
-		else 
-		{
+		} else {
 			return 1;
 		}
 	}

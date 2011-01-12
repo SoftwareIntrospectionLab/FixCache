@@ -13,13 +13,11 @@ import java.util.Enumeration;
 import java.util.Properties;
 
 public class DatabaseManager {
-	
+
 	private static DatabaseManager dbManager = new DatabaseManager();
 	private String drivername, databasename, username, password;
 	private Connection conn = null;
 	Statement stmt;
-	
-	
 
 	private DatabaseManager() {
 		File file = new File("database.properties");
@@ -29,11 +27,11 @@ public class DatabaseManager {
 			Properties prop = new Properties();
 			prop.load(fis);
 			Enumeration enums = prop.propertyNames();
-			drivername = (String) prop.get("Driver");  
-            databasename = 	(String) prop.get("URL");
-            username = (String) prop.get("UserName");
-            password = (String) prop.get("UserPass");
-			
+			drivername = (String) prop.get("Driver");
+			databasename = (String) prop.get("URL");
+			username = (String) prop.get("UserName");
+			password = (String) prop.get("UserPass");
+
 			while (enums.hasMoreElements()) {
 				String key = (String) enums.nextElement();
 				String value = prop.getProperty(key);
@@ -52,69 +50,63 @@ public class DatabaseManager {
 		}
 
 		try {
-            Class.forName(drivername).newInstance();
-            conn = DriverManager.getConnection(databasename,username,password);
-            stmt = conn.createStatement();
+			Class.forName(drivername).newInstance();
+			conn = DriverManager
+					.getConnection(databasename, username, password);
+			stmt = conn.createStatement();
 
-    }
-    catch (Exception e) {
-            System.out.println(e);
-            System.exit(0);
-            }
+		} catch (Exception e) {
+			System.out.println(e);
+			System.exit(0);
+		}
 	}
 
-	
-	public static Connection getConnection()
-	{
-		if(dbManager == null)
-		{
-			dbManager = new DatabaseManager(); 
+	public static Connection getConnection() {
+		if (dbManager == null) {
+			dbManager = new DatabaseManager();
 		}
 		return dbManager.conn;
 	}
-	
-	public ResultSet executeQuery(String sql)
-	{
+
+	public ResultSet executeQuery(String sql) {
 		ResultSet rs = null;
-		try{
+		try {
 			rs = stmt.executeQuery(sql);
-		}catch(SQLException e){
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		return rs;
 	}
-	
-	public static void close()
-	{
-		try{
+
+	public static void close() {
+		try {
 			dbManager.conn.close();
-		}catch (Exception e) {
+		} catch (Exception e) {
 			System.out.println(e);
-			System.exit(0);}	
+			System.exit(0);
+		}
 	}
 
 	public static void main(String[] args) {
 		Connection conn = getConnection();
 		int commitId;
-		try{
+		try {
 			Statement stmt1 = conn.createStatement();
 			Statement stmt2 = conn.createStatement();
 			ResultSet r1 = stmt1.executeQuery("select id from scmlog");
-			while(r1.next()){
-			commitId = r1.getInt(1);
-			ResultSet r2 = stmt2.executeQuery("select file_id from actions where commit_id ="+10);
-			while(r2.next())
-			{
-				System.out.print(r2.getInt(1));
+			while (r1.next()) {
+				commitId = r1.getInt(1);
+				ResultSet r2 = stmt2
+						.executeQuery("select file_id from actions where commit_id =" + 10);
+				while (r2.next()) {
+					System.out.print(r2.getInt(1));
+				}
 			}
-			}
-		}catch (Exception e) {
+		} catch (Exception e) {
 			System.out.println(e);
-			System.exit(0);}
+			System.exit(0);
+		}
 
-
-
-		
 	}
 
 }
