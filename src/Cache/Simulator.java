@@ -143,7 +143,6 @@ public class Simulator {
         }
     }
 
-    // TODO: find the bug introducing file id for a given bug fixding commitId
     public String getBugIntroCdate(int fileId, int commitId) {
         // use the fileId and commitId to get a list of changed hunks from the
         // hunk table.
@@ -187,18 +186,14 @@ public class Simulator {
 
     public void loadBuggyEntity(int fileId, int cid, String commitDate,
             String intro_cdate) {
-        if (cache.cacheTable.containsKey(fileId)) {
+        if (cache.contains(fileId)) {
             hit++;
         } else {
             miss++;
         }
-        cache.add(fileId, cid, commitDate, CacheItem.CacheReason.BugEntity); // XXX
-                                                                                // cid
-                                                                                // or
-                                                                                // intro_cid?
-
-        ArrayList<Integer> cochanges = CoChange.getCoChangeFileList(fileId,
-                intro_cdate, blocksize);
+        // XXX cid or intro_cid?
+        cache.add(fileId, cid, commitDate, CacheItem.CacheReason.BugEntity);
+        ArrayList<Integer> cochanges = CoChange.getCoChangeFileList(fileId, intro_cdate, blocksize);
         cache.add(cochanges, cid, commitDate, CacheItem.CacheReason.CoChange);
     }
 

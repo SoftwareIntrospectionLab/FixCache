@@ -156,7 +156,7 @@ public class SimulatorTest {
         sim4.initialPreLoad();
         sim4.simulate();
         rat = (int) (sim4.getHitRate() * 10);
-        assertEquals(rat, 6);
+        assertEquals(6, rat);
     }
 
 }

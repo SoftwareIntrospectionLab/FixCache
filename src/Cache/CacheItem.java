@@ -8,10 +8,11 @@ import Cache.CacheReplacement.Policy;
 import Database.DatabaseManager;
 
 public class CacheItem {
-    /* 
+    /**
      *  Database: Setting up the SQL statement strings used in this class.
      *  These are static PreparedStatements that can be shared across all cache items.
      */
+    
     static Connection conn = DatabaseManager.getConnection();
     static final String findNumberOfAuthors = 
         "select count(id) from people " +
@@ -36,7 +37,7 @@ public class CacheItem {
     private static PreparedStatement findNumberOfBugsQuery;
     private static PreparedStatement findLocQuery;
 
-    /*
+    /**
      * Member fields
      */
     
@@ -49,13 +50,14 @@ public class CacheItem {
     private int loadDate; // changed on cache hit
     private int LOC; // changed on cache hit
     private int number; // represents either the number of bugs, changes, or authors
-    private int loadCount = 1; //count how many time a file is put into cache 
+    private int loadCount = 0; //count how many time a file is put into cache 
     private final Cache parent;
+    private boolean inCache = false; // stores whether the cacheitem is in the cache
 
     @SuppressWarnings("unused") // may be useful output
     private CacheReason reason; 
 
-    /*
+    /**
      * Methods
      */
     
@@ -76,16 +78,23 @@ public class CacheItem {
      * @param sdate -- starting date
      */
     public void update(int cid, String cdate, String sdate) {
+        // update the load count each time an entry is added to the cache
+        if (!inCache){
+            inCache = true;
+            loadCount++;
+        }
         loadDate = parent.getTime(); 
         LOC = findLoc(entityId, cid);
         number = findNumber(entityId, parent.repID, cdate, sdate, parent.getPolicy());
     }
     
-    /**
-     * increased when a CacheItem is loaded into the cache
-     */
-    public void incLoad() {
-        loadCount++;
+    public boolean isInCache(){
+        return inCache;
+    }
+    
+    public void removeFromCache(){
+        assert(inCache);
+        inCache = false;
     }
 
     // XXX: Do we need pid? or is eid unique enough for the called methods?
@@ -264,7 +273,10 @@ public class CacheItem {
         return loadCount;
     }
     
-    // for debugging; used only for the DBUnit tests
+    /**
+     * for debugging; used only for the DBUnit tests
+     * @return number
+     */
     protected int getNumber() {
         return number;
     }

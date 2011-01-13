@@ -96,6 +96,7 @@ public class CacheReplacementTest {
         assertEquals(5, cache.getCacheSize());
         assertEquals(1, cache.getLoadCount(3));
         
+        assertEquals(3, cache.getMinimum());
         cache.add(7, 6, "2009-10-23 14:29:05.0", CacheReason.NewEntity); // 7,
         assertEquals(5, cache.getCacheSize());
         assertNull(cache.getCacheItem(3));
