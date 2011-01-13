@@ -180,7 +180,7 @@ public class Simulator {
             }
             break;
         case D:
-            this.cache.remove(file_id);// remove from the cache
+            this.cache.remove(file_id, cdate);// remove from the cache
             break;
         case M: // modified
             if (isBugFix) {
