@@ -4,14 +4,23 @@ import java.util.Comparator;
 
 public class CacheReplacement {
 
+    /**
+     * In order to add a new Cache Replacement policy, code should be added to
+     * 1. The 'Policy' enum and the CacheReplacement constructor (see below)
+     * 
+     * 2. A new Comparator<CacheItem> is probably needed. (see ComparatorLRU.java)
+     * 
+     * 3. If the policy uses information that is not currently being tracked, new
+     * fields may be needed in CacheItem.java and set/modified in the update() method
+     * (see findNumberOfAuthors()) Alternatively, the 'number' field may be overloaded
+     * (see findNumber()).
+     */
     public static enum Policy {
         LRU, BUGS, CHANGES, AUTHORS
     };
-
     static final Policy REPDEFAULT = Policy.LRU;
 
     Policy currentPolicy;
-
     protected Comparator<CacheItem> compareFunc;
     protected ComparatorLRU tiebreaker = new ComparatorLRU();
 
@@ -33,6 +42,12 @@ public class CacheReplacement {
         }
     }
 
+    /**
+     * Compares two cache items using the cache replacement policy and returns the minimum
+     * @param o1 
+     * @param o2
+     * @return the minimum CacheItem
+     */
     public CacheItem minimum(CacheItem o1, CacheItem o2) {
         int comparison = compareFunc.compare(o1, o2);
         if (comparison == 0) {
