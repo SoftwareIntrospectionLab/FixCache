@@ -41,17 +41,16 @@ public class Cache {
     }
 
     public void add(int eid, int cid, String cdate, CacheReason reason) {
-        if (cacheTable.containsKey(eid))
+        if (cacheTable.containsKey(eid)){
             cacheTable.get(eid).update(cid, cdate, startDate);
-        else if(backupTable.containsKey(eid))
-        {
+        } else if(backupTable.containsKey(eid)) {
             CacheItem ci = backupTable.remove(eid);
             ci.update(cid, cdate, startDate);
             ci.incLoad();
             load(ci);
-        }
-        else
+        } else {
             load(new CacheItem(eid, cid, cdate, reason, this));
+        }
     }
 
     public void add(ArrayList<Integer> eids, int cid, String cdate,
@@ -64,12 +63,11 @@ public class Cache {
         cacheTable.remove(fileid);
     }
 
+    // figures out what to remove with cache replacement policy
+    // iterates through the map and find the minimum element (given the cache
+    // replacement policy) then removes that element
+    // TODO: keep cache always sorted using cache replacement policy
     public void bumpOutItem() {
-        // figure out what to remove with cache replacement policy
-        // iterate through the map and find the minimum element, given the cache
-        // replacement policy
-        // then remove that element
-        // TODO: keep cache always sorted using cache replacement policy
 
         int entityId = getMinimum();
         backupTable.put(entityId,cacheTable.remove(entityId));
@@ -112,7 +110,12 @@ public class Cache {
         return cacheTable.size();
     }
 
-    // For debugging
+    
+    
+    /*
+     *  Methods for debugging
+     */
+    
     public ArrayList<CacheItem> getCacheItemList() {
         ArrayList<CacheItem> CIList = new ArrayList<CacheItem>();
         Iterator<CacheItem> it = cacheTable.values().iterator();
@@ -122,7 +125,6 @@ public class Cache {
         return CIList;
     }
 
-    // for debugging
     public int getNumber(int fileid) {
         CacheItem ci = cacheTable.get(fileid);
         return ci.getNumber();
