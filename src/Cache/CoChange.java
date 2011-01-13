@@ -159,8 +159,8 @@ public class CoChange {
         // TODO: when two files have the same cochange count, use loc to break
         // them
         ArrayList<Integer> getTopFiles(int blocksize) {
-            ArrayList<Map.Entry<Integer, Integer>> list = new ArrayList<Map.Entry<Integer, Integer>>(
-                    map.entrySet());
+            ArrayList<Map.Entry<Integer, Integer>> list = 
+                new ArrayList<Map.Entry<Integer, Integer>>(map.entrySet());
             ArrayList<Integer> topFiles = new ArrayList<Integer>();
             Collections.sort(list,
                     new Comparator<Map.Entry<Integer, Integer>>() {

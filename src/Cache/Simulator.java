@@ -33,8 +33,10 @@ public class Simulator {
     static final String findCommit = "select id, date, is_bug_fix from scmlog " +
             "where repository_id =? and date>=? order by date ASC";
     static final String findFile = "select actions.file_id, type from actions, content_loc " +
-            "where actions.file_id=content_loc.file_id and actions.commit_id=? and content_loc.commit_id=? " +
-            "and actions.file_id in( select file_id from file_types where type='code') order by loc DESC";
+            "where actions.file_id=content_loc.file_id " +
+            "and actions.commit_id=? and content_loc.commit_id=? " +
+            "and actions.file_id in( " +
+            "select file_id from file_types where type='code') order by loc DESC";
     static final String findHunkId = "select id from hunks where file_id =? and commit_id =?";
     static final String findBugIntroCdate = "select date from hunk_blames, scmlog " +
             "where hunk_id =? and hunk_blames.bug_commit_id=scmlog.id";
@@ -66,7 +68,8 @@ public class Simulator {
         final String findInitialPreload = "select content_loc.file_id, content_loc.commit_id " +
         		"from content_loc, scmlog, actions " +
                 "where repository_id=? and content_loc.commit_id = scmlog.id and date =? " +
-                "and content_loc.file_id=actions.file_id and content_loc.commit_id=actions.commit_id " +
+                "and content_loc.file_id=actions.file_id " +
+                "and content_loc.commit_id=actions.commit_id " +
                 "and actions.type!='D' order by loc DESC";
         PreparedStatement findInitialPreloadQuery;
         ResultSet r = null;
@@ -127,7 +130,8 @@ public class Simulator {
         System.err
                 .println("Example Usage: FixCache -b=10000 -c=500 -f=600 -r=\"LRU\" -p=1");
         System.err
-                .println("Example Usage: FixCache --blksize=10000 --csize=500 --pfsize=600 --cacherep=\"LRU\" --pid=1");
+                .println("Example Usage: FixCache --blksize=10000 " +
+                		"--csize=500 --pfsize=600 --cacherep=\"LRU\" --pid=1");
         System.err.println("-p/--pid option is required");
     }
 

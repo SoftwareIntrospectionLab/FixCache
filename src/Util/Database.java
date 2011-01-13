@@ -18,7 +18,8 @@ public class Database {
 		return res;
 	}
 	
-	public static ArrayList<Integer> getIntArrayResult(PreparedStatement intArrayQuery) throws SQLException
+	public static ArrayList<Integer> getIntArrayResult(PreparedStatement intArrayQuery) 
+	throws SQLException
 	{
 		ArrayList<Integer> res = new ArrayList<Integer>();
 		ResultSet r = intArrayQuery.executeQuery();
