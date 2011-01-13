@@ -11,6 +11,7 @@ public class Cache {
 
     private int size;
     Hashtable<Integer, CacheItem> cacheTable = new Hashtable<Integer, CacheItem>();
+    Hashtable<Integer, CacheItem> backupTable = new Hashtable<Integer, CacheItem>();
 
     CacheReplacement policy;
     String startDate;
@@ -42,6 +43,13 @@ public class Cache {
     public void add(int eid, int cid, String cdate, CacheReason reason) {
         if (cacheTable.containsKey(eid))
             cacheTable.get(eid).update(cid, cdate, startDate);
+        else if(backupTable.containsKey(eid))
+        {
+            CacheItem ci = backupTable.remove(eid);
+            ci.update(cid, cdate, startDate);
+            ci.incLoad();
+            load(ci);
+        }
         else
             load(new CacheItem(eid, cid, cdate, reason, this));
     }
@@ -64,7 +72,7 @@ public class Cache {
         // TODO: keep cache always sorted using cache replacement policy
 
         int entityId = getMinimum();
-        cacheTable.remove(entityId);
+        backupTable.put(entityId,cacheTable.remove(entityId));
     }
 
     public int getMinimum() {
@@ -118,6 +126,11 @@ public class Cache {
     public int getNumber(int fileid) {
         CacheItem ci = cacheTable.get(fileid);
         return ci.getNumber();
+    }
+    
+    public int getLoadCount(int fileid){
+        CacheItem ci = cacheTable.get(fileid);
+        return ci.getLoadCount();
     }
 
     public int getTime() {

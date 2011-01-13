@@ -65,6 +65,7 @@ public class CacheTest {
         assertEquals(cache.getCacheSize(), 4);
         cache.add(5, 3, "2009-10-20 14:37:47.0", CacheReason.BugEntity);
         assertTrue(cache.isFull());
+        assertEquals(1, cache.getLoadCount(1));
     }
 
     public void testBumpOutItem() {

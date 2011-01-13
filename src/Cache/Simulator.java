@@ -1,6 +1,7 @@
 package Cache;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -62,9 +63,11 @@ public class Simulator {
     // initial commit
     public void initialPreLoad() {
         String firstDate = findFirstDate();
-        final String findInitialPreload = "select content_loc.file_id, content_loc.commit_id from content_loc, scmlog, actions " +
-                "where repository_id=? and content_loc.commit_id = scmlog.id and date =? and content_loc.file_id=actions.file_id " +
-                "and content_loc.commit_id=actions.commit_id and actions.type!='D' order by loc DESC";
+        final String findInitialPreload = "select content_loc.file_id, content_loc.commit_id " +
+        		"from content_loc, scmlog, actions " +
+                "where repository_id=? and content_loc.commit_id = scmlog.id and date =? " +
+                "and content_loc.file_id=actions.file_id and content_loc.commit_id=actions.commit_id " +
+                "and actions.type!='D' order by loc DESC";
         PreparedStatement findInitialPreloadQuery;
         ResultSet r = null;
         int fileId = 0;
