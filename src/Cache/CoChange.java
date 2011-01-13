@@ -14,9 +14,9 @@ import Database.DatabaseManager;
 
 public class CoChange {
 
-    int fileID;
-
-    // database setup
+    /**
+     * database setup
+     */
     final static Connection conn = DatabaseManager.getConnection();
     static final String findCommitId = "SELECT commit_id from actions, scmlog " +
             "where file_id=? and actions.commit_id=scmlog.id and date <=?";
@@ -24,6 +24,8 @@ public class CoChange {
     private static PreparedStatement findCommitIdQuery;
     private static PreparedStatement findCochangeFileIdQuery;
 
+    int fileID; // which 
+    
     private CoChange(int fileID) {
         this.fileID = fileID;
     }
@@ -58,7 +60,11 @@ public class CoChange {
 
     }
 
-    // build a table of files that are changed with fileID, before time
+    /**
+     *  build a table of files that are changed with fileID, before time committDate
+     * @param commitDate
+     * @return
+     */
     // commitDate
     private CoChangeFileMap buildCoChangeMap(String commitDate) {
         CoChangeFileMap coChangeCounts = new CoChangeFileMap();
@@ -117,24 +123,9 @@ public class CoChange {
         return countTable.getTopFiles(blocksize);
     }
 
-    // private List<Integer> coChangedFiles getCoChangeList(HashMap<Integer,
-    // Integer> countTable)
-    // {
-    // for Entry<Integer, Integer> e in countTable.entrySet()
-    // if (1/e.snd < DISTANCE)
-    // add the fileID to the list
-    // }
-
-    public static void main(String args[]) {
-        CoChange coChange = new CoChange(3679);
-        CoChangeFileMap countTable = coChange.buildCoChangeMap("");
-        List<Integer> coChangeList = countTable.getTopFiles(100);
-        for (int i = 0; i < coChangeList.size(); i++) {
-            System.out.println(coChangeList.get(i));
-        }
-    }
 
     public class CoChangeFileMap {
+        // TODO: make more efficient:
         // HashSet<Integer> newFiles;
         // int []fileIds;
         // int []counts;
@@ -145,19 +136,19 @@ public class CoChange {
             map = new HashMap<Integer, Integer>();
         }
 
+        /**
+         * if it is not there, create a new entry else ++count
+         * @param f -- file id 
+         */
         void add(int f) {
-            // if it is not there, create a new entry
-            // if it is there ++count
             if (map.containsKey(f)) {
                 int count = map.get(f);
-                map.remove(f);
                 map.put(f, count + 1);
             } else
                 map.put(f, 1);
         }
 
-        // TODO: when two files have the same cochange count, use loc to break
-        // them
+        // TODO: when two files have the same cochange count, use loc to break ties 
         ArrayList<Integer> getTopFiles(int blocksize) {
             ArrayList<Map.Entry<Integer, Integer>> list = 
                 new ArrayList<Map.Entry<Integer, Integer>>(map.entrySet());
@@ -166,17 +157,11 @@ public class CoChange {
                     new Comparator<Map.Entry<Integer, Integer>>() {
                         public int compare(Map.Entry<Integer, Integer> o1,
                                 Map.Entry<Integer, Integer> o2) {
-                            return (o2.getValue().compareTo(o1.getValue())); // sort
-                                                                                // the
-                                                                                // list
-                                                                                // in
-                                                                                // descending
-                                                                                // order
+                            return (o2.getValue().compareTo(o1.getValue())); // DESCENDING order
                         }
                     });
-            for (int i = 0; i < blocksize - 1; i++)// a block size b indicates
-                                                    // that we load b-1 closest
-                                                    // entities.
+            // a block size b indicates that we load b-1 closest entities.
+            for (int i = 0; i < blocksize - 1; i++)
             {
                 if (list.size() > i) {
                     Map.Entry<Integer, Integer> curr = list.get(i);
@@ -186,4 +171,18 @@ public class CoChange {
             return topFiles;
         }
     }
+    
+    /**
+     * For testing.
+     * @param args
+     */
+    public static void main(String args[]) {
+        CoChange coChange = new CoChange(3679);
+        CoChangeFileMap countTable = coChange.buildCoChangeMap("");
+        List<Integer> coChangeList = countTable.getTopFiles(100);
+        for (int i = 0; i < coChangeList.size(); i++) {
+            System.out.println(coChangeList.get(i));
+        }
+    }
+
 }

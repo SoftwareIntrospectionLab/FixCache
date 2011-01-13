@@ -171,7 +171,6 @@ public class CacheItem {
         return ret;
     }
 
-    // XXX: Do we need pid? or is eid unique enough for this query?
     /**
      * 
      * @param eid -- entity id
