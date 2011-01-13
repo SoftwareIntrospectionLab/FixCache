@@ -17,15 +17,15 @@ public class Simulator {
      */
 
     static final String findCommit = "select id, date, is_bug_fix from scmlog " +
-        "where repository_id =? and date>=? order by date ASC";
+    "where repository_id =? and date>=? order by date ASC";
     static final String findFile = "select actions.file_id, type from actions, content_loc " +
-        "where actions.file_id=content_loc.file_id " +
-        "and actions.commit_id=? and content_loc.commit_id=? " +
-        "and actions.file_id in( " +
-        "select file_id from file_types where type='code') order by loc DESC";
+    "where actions.file_id=content_loc.file_id " +
+    "and actions.commit_id=? and content_loc.commit_id=? " +
+    "and actions.file_id in( " +
+    "select file_id from file_types where type='code') order by loc DESC";
     static final String findHunkId = "select id from hunks where file_id =? and commit_id =?";
     static final String findBugIntroCdate = "select date from hunk_blames, scmlog " +
-        "where hunk_id =? and hunk_blames.bug_commit_id=scmlog.id";
+    "where hunk_id =? and hunk_blames.bug_commit_id=scmlog.id";
     private static PreparedStatement findCommitQuery;
     private static PreparedStatement findFileQuery;
     private static PreparedStatement findHunkIdQuery;
@@ -51,14 +51,14 @@ public class Simulator {
     /**
      * Member fields
      */
-    final int blocksize;
-    final int prefetchsize;
-    final int cachesize;
-    final int pid;
-    final CacheReplacement.Policy cacheRep;
-    final Cache cache;
-    final Connection conn = DatabaseManager.getConnection();
-    
+    final int blocksize; // number of co-change files to import
+    final int prefetchsize; // number of (new or modified but not buggy) files to import
+    final int cachesize; // size of cache
+    final int pid; // project (repository) id
+    final CacheReplacement.Policy cacheRep; // cache replacement policy
+    final Cache cache; // the cache
+    final Connection conn = DatabaseManager.getConnection(); // for database
+
     int hit;
     int miss;
 
@@ -72,23 +72,23 @@ public class Simulator {
         cache = new Cache(cachesize, new CacheReplacement(rep), start, projid);
         hit = 0;
         miss = 0;
-
     }
 
-    // input: initial commit ID
-    // input: LOC for every file in initial commit ID
-    // input: pre-fetch size
-    // output: fills cache with pre-fetch size number of top-LOC files from
-    // initial commit
+    /**
+     * Fills cache with pre-fetch size number of top-LOC files from  initial commit.
+    // implicit input: initial commit ID
+    // implicit input: LOC for every file in initial commit ID
+    // implicit input: pre-fetch size
+     */
     public void initialPreLoad() {
-        String firstDate = findFirstDate();
+        final String firstDate = findFirstDate();
         final String findInitialPreload = "select content_loc.file_id, content_loc.commit_id " +
         "from content_loc, scmlog, actions " +
         "where repository_id=? and content_loc.commit_id = scmlog.id and date =? " +
         "and content_loc.file_id=actions.file_id " +
         "and content_loc.commit_id=actions.commit_id " +
         "and actions.type!='D' order by loc DESC";
-        PreparedStatement findInitialPreloadQuery;
+        final PreparedStatement findInitialPreloadQuery;
         ResultSet r = null;
         int fileId = 0;
         int commitId = 0;
@@ -106,8 +106,7 @@ public class Simulator {
                 if (r.next()) {
                     fileId = r.getInt(1);
                     commitId = r.getInt(2);
-                    cache.add(fileId, commitId, firstDate,
-                            CacheItem.CacheReason.Prefetch);
+                    cache.add(fileId, commitId, firstDate, CacheItem.CacheReason.Prefetch);
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -115,34 +114,36 @@ public class Simulator {
         }
     }
 
+    /**
+     * Finds the first date after the startDate with repository entries
+     * @return The date for the prefetch.
+     */
     private String findFirstDate() {
         String findFirstDate = "";
-        PreparedStatement findFirstDateQuery;
+        final PreparedStatement findFirstDateQuery;
         String firstDate = "";
-        if (cache.startDate == null) {
-            findFirstDate = "select min(date) from scmlog where repository_id=?";
-            try {
+        try{
+            if (cache.startDate == null) {
+                findFirstDate = "select min(date) from scmlog where repository_id=?";
                 findFirstDateQuery = conn.prepareStatement(findFirstDate);
                 findFirstDateQuery.setInt(1, pid);
-                firstDate = Util.Database.getStringResult(findFirstDateQuery);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        } else {
-            findFirstDate = "select min(date) from scmlog where repository_id=? and date >=?";
-            try {
+            } else {
+                findFirstDate = "select min(date) from scmlog where repository_id=? and date >=?";
                 findFirstDateQuery = conn.prepareStatement(findFirstDate);
                 findFirstDateQuery.setInt(1, pid);
                 findFirstDateQuery.setString(2, cache.startDate);
-                firstDate = Util.Database.getStringResult(findFirstDateQuery);
-            } catch (SQLException e) {
-                e.printStackTrace();
             }
+            firstDate = Util.Database.getStringResult(findFirstDateQuery);
+        }   
+        catch (SQLException e) {
+            e.printStackTrace();
         }
-
         return firstDate;
     }
 
+    /**
+     * Prints out the command line options
+     */
     private static void printUsage() {
         System.err
         .println("Example Usage: FixCache -b=10000 -c=500 -f=600 -r=\"LRU\" -p=1");
@@ -152,7 +153,16 @@ public class Simulator {
         System.err.println("-p/--pid option is required");
     }
 
-    public void versionPreLoad(int numprefetch, int fileId, int cid,
+    /**
+     * prefetches one file, if still within prefetch limit
+     * @param numprefetch
+     * @param fileId
+     * @param cid
+     * @param commitDate
+     * @param cacheReason
+     */
+    // XXX fix bug: numprefetch is ++'d, but not returned
+    public void prefetch(int numprefetch, int fileId, int cid,
             String commitDate, CacheItem.CacheReason cacheReason) {
         if (numprefetch < prefetchsize) {
             numprefetch++;
@@ -255,15 +265,15 @@ public class Simulator {
                     case V:
                         break;
                     case R:
-                        this.versionPreLoad(numprefetch, file_id, cid, cdate,
+                        this.prefetch(numprefetch, file_id, cid, cdate,
                                 CacheItem.CacheReason.NewEntity);
                         break;
                     case C:
-                        this.versionPreLoad(numprefetch, file_id, cid, cdate,
+                        this.prefetch(numprefetch, file_id, cid, cdate,
                                 CacheItem.CacheReason.NewEntity);
                         break;
                     case A:
-                        this.versionPreLoad(numprefetch, file_id, cid, cdate,
+                        this.prefetch(numprefetch, file_id, cid, cdate,
                                 CacheItem.CacheReason.NewEntity);
                         break;
                     case D:
@@ -276,7 +286,7 @@ public class Simulator {
                             this.loadBuggyEntity(file_id, cid, cdate,
                                     intro_cdate);
                         } else {
-                            this.versionPreLoad(numprefetch, file_id, cid,
+                            this.prefetch(numprefetch, file_id, cid,
                                     cdate, CacheItem.CacheReason.ModifiedEntity);
 
                         }
