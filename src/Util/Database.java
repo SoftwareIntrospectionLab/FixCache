@@ -11,7 +11,7 @@ public class Database {
 	{
 		int res = 0;
 		ResultSet r = intQuery.executeQuery();
-		if(r.next()){
+		if (r.next()){
 			res = r.getInt(1);
 		}
 		assert(!r.next());

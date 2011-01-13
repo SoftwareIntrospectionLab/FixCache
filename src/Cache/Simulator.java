@@ -74,7 +74,179 @@ public class Simulator {
         hit = 0;
         miss = 0;
     }
+    
+    /**
+     * Prints out the command line options
+     */
+    private static void printUsage() {
+        System.err
+        .println("Example Usage: FixCache -b=10000 -c=500 -f=600 -r=\"LRU\" -p=1");
+        System.err
+        .println("Example Usage: FixCache --blksize=10000 " +
+        "--csize=500 --pfsize=600 --cacherep=\"LRU\" --pid=1");
+        System.err.println("-p/--pid option is required");
+    }
 
+    /**
+     *  Loads an entity containing a bug into the cache. 
+     * @param fileId 
+     * @param cid -- commit id
+     * @param commitDate -- commit date
+     * @param intro_cdate -- bug introducing commit date
+     */
+    // XXX move hit and miss to the cache? 
+    // could add if (reas == BugEntity) logic to add() code
+    public void loadBuggyEntity(int fileId, int cid, String commitDate, String intro_cdate) {
+        if (cache.contains(fileId)) 
+            hit++;
+        else 
+            miss++;
+        
+        // XXX commitDate or intro_cdate?
+        cache.add(fileId, cid, commitDate, CacheItem.CacheReason.BugEntity);
+        
+        // add the co-changed files as well
+        ArrayList<Integer> cochanges = CoChange.getCoChangeFileList(fileId, intro_cdate, blocksize);
+        cache.add(cochanges, cid, commitDate, CacheItem.CacheReason.CoChange);
+    }
+
+    /**
+     * The main simulate loop. 
+     * This loop processes all revisions starting at cache.startDate
+     * 
+     */
+    public void simulate() {
+
+        final ResultSet r1;
+        ResultSet r2;
+        int cid;// means commit_id in actions
+        String cdate;
+        
+        boolean isBugFix;
+        int file_id;
+        FileType type;
+        int numprefetch = 0;
+        
+        // iterate over the selection
+        try {
+            findCommitQuery = conn.prepareStatement(findCommit);
+            findCommitQuery.setInt(1, pid);
+            findCommitQuery.setString(2, cache.startDate);
+            
+            // returns all commits to pid after cache.startDate
+            r1 = findCommitQuery.executeQuery(); 
+            
+            while (r1.next()) {
+                cid = r1.getInt(1);
+                cdate = r1.getString(2);
+                isBugFix = r1.getBoolean(3);
+                // only deal with .java files
+                findFileQuery = conn.prepareStatement(findFile);
+                findFileQuery.setInt(1, cid);
+                findFileQuery.setInt(2, cid);
+                r2 = findFileQuery.executeQuery();
+                // loop through those file ids
+                while (r2.next()) {
+                    file_id = r2.getInt(1);
+                    type = FileType.valueOf(r2.getString(2));
+                    switch (type) {
+                    case V:
+                        break;
+                    case R: 
+                    case C:
+                    case A:
+                        if (numprefetch < prefetchsize) {
+                            numprefetch++;
+                            cache.add(file_id, cid, cdate, CacheItem.CacheReason.Prefetch);
+                        }
+                        break;
+                    case D:
+                        this.cache.remove(file_id);// remove from the cache
+                        break;
+                    case M: // modified
+                        if (isBugFix) {
+                            String intro_cdate = this.getBugIntroCdate(file_id,cid);
+                            this.loadBuggyEntity(file_id, cid, cdate, intro_cdate);
+                        } else if (numprefetch < prefetchsize) {
+                                numprefetch++;
+                                cache.add(file_id, cid, cdate, CacheItem.CacheReason.Prefetch);
+                        }
+                    }
+                }
+                numprefetch = 0;
+            }
+        } catch (Exception e) {
+            System.out.println(e);
+            System.exit(0);
+        }
+    }
+
+    /**
+     * Gets the current hit rate of the cache
+     * @return hit rate of the cache
+     */
+    public double getHitRate() {
+        return (double) hit / (hit + miss);
+    }
+    
+    
+    public static void main(String args[]) {
+
+        // String startDate, endDate;
+        String start;
+        CmdLineParser parser = new CmdLineParser();
+        CmdLineParser.Option blksz_opt = parser
+        .addIntegerOption('b', "blksize");
+        CmdLineParser.Option csz_opt = parser.addIntegerOption('c', "csize");
+        CmdLineParser.Option pfsz_opt = parser.addIntegerOption('f', "pfsize");
+        CmdLineParser.Option crp_opt = parser.addStringOption('r', "cacherep");
+        CmdLineParser.Option pid_opt = parser.addIntegerOption('p', "pid");
+        CmdLineParser.Option dt_opt = parser.addStringOption('t', "datetime");
+
+        // CmdLineParser.Option sCId_opt = parser.addIntegerOption('s',"start");
+        // CmdLineParser.Option eCId_opt = parser.addIntegerOption('e',"end");
+        try {
+            parser.parse(args);
+        } catch (CmdLineParser.OptionException e) {
+            System.err.println(e.getMessage());
+            printUsage();
+            System.exit(2);
+        }
+
+        Integer blksz = (Integer) parser.getOptionValue(blksz_opt, BLKDEFAULT);
+        Integer csz = (Integer) parser.getOptionValue(csz_opt, CSIZEDEFAULT);
+        Integer pfsz = (Integer) parser.getOptionValue(pfsz_opt, PFDEFAULT);
+        String crp_string = (String) parser.getOptionValue(crp_opt, CacheReplacement.REPDEFAULT);
+        Integer pid = (Integer) parser.getOptionValue(pid_opt, PRODEFAULT);
+        String dt = (String) parser.getOptionValue(dt_opt,
+        "2000-01-01 00:00:00");
+        CacheReplacement.Policy crp;
+        try {
+            crp = CacheReplacement.Policy.valueOf(crp_string);
+        } catch (IllegalArgumentException e) {
+            System.err.println(e.getMessage());
+            System.err.println("Must specify a valid cache replacement policy");
+            crp = CacheReplacement.REPDEFAULT;
+        }
+        // startCId = (Integer)parser.getOptionValue(sCId_opt, STARTIDDEFAULT);
+        // endCId = (Integer)parser.getOptionValue(eCId_opt, Integer.MAX_VALUE);
+        start = dt;
+        if (pid == null) {
+            System.err.println("Error: must specify a Project Id");
+            System.exit(2);
+        }
+        // create a new simulator
+        Simulator sim = new Simulator(blksz, pfsz, csz, pid, crp, start);
+        sim.initialPreLoad();
+        sim.simulate();
+        sim.close();
+        System.out.println(sim.getHitRate());
+    }
+
+    /**
+     * Database accessors
+     */
+    
     /**
      * Fills cache with pre-fetch size number of top-LOC files from  initial commit.
     // implicit input: initial commit ID
@@ -93,6 +265,7 @@ public class Simulator {
         ResultSet r = null;
         int fileId = 0;
         int commitId = 0;
+        
         try {
             findInitialPreloadQuery = conn.prepareStatement(findInitialPreload);
             findInitialPreloadQuery.setInt(1, pid);
@@ -142,24 +315,13 @@ public class Simulator {
         return firstDate;
     }
 
-    /**
-     * Prints out the command line options
-     */
-    private static void printUsage() {
-        System.err
-        .println("Example Usage: FixCache -b=10000 -c=500 -f=600 -r=\"LRU\" -p=1");
-        System.err
-        .println("Example Usage: FixCache --blksize=10000 " +
-        "--csize=500 --pfsize=600 --cacherep=\"LRU\" --pid=1");
-        System.err.println("-p/--pid option is required");
-    }
+    /** use the fileId and commitId to get a list of changed hunks from the hunk table.
+    * for each changed hunk, get the blamedHunk from the hunk_blame table;
+    * get the commit id associated with this blamed hunk
+    * take the maximum (in terms of date?) commit id and return it
+    * */
 
     public String getBugIntroCdate(int fileId, int commitId) {
-        // use the fileId and commitId to get a list of changed hunks from the
-        // hunk table.
-        // for each changed hunk, get the blamedHunk from the hunk_blame table;
-        // get the commit id associated with this blamed hunk
-        // take the maximum (in terms of date?) commit id and return it
 
         // XXX optimize this code?
         String bugIntroCdate = "";
@@ -173,8 +335,8 @@ public class Simulator {
             r = findHunkIdQuery.executeQuery();
             while (r.next()) {
                 hunkId = r.getInt(1);
-                findBugIntroCdateQuery = conn
-                .prepareStatement(findBugIntroCdate);
+                
+                findBugIntroCdateQuery = conn.prepareStatement(findBugIntroCdate);
                 findBugIntroCdateQuery.setInt(1, hunkId);
                 r1 = findBugIntroCdateQuery.executeQuery();
                 while (r1.next()) {
@@ -191,23 +353,18 @@ public class Simulator {
         return bugIntroCdate;
     }
 
-    public Cache getCache() {
-        return cache;
+    /**
+     * Closes the database connection
+     */
+    private void close() {
+        DatabaseManager.close();
     }
 
-    public void loadBuggyEntity(int fileId, int cid, String commitDate,
-            String intro_cdate) {
-        if (cache.contains(fileId)) {
-            hit++;
-        } else {
-            miss++;
-        }
-        // XXX cid or intro_cid?
-        cache.add(fileId, cid, commitDate, CacheItem.CacheReason.BugEntity);
-        ArrayList<Integer> cochanges = CoChange.getCoChangeFileList(fileId, intro_cdate, blocksize);
-        cache.add(cochanges, cid, commitDate, CacheItem.CacheReason.CoChange);
-    }
-
+    
+    /**
+     * For Debugging
+     */
+    
     public int getHit() {
         return hit;
     }
@@ -215,138 +372,10 @@ public class Simulator {
     public int getMiss() {
         return miss;
     }
-
-    public void simulate() {
-
-        ResultSet r1;
-        ResultSet r2;
-        int cid;// means commit_id in actions
-        String cdate;
-        boolean isBugFix;
-        int file_id;
-        FileType type;
-        int numprefetch = 0;
-        // iterate over the selection
-        try {
-            findCommitQuery = conn.prepareStatement(findCommit);
-            findCommitQuery.setInt(1, pid);
-            findCommitQuery.setString(2, cache.startDate);
-            r1 = findCommitQuery.executeQuery();
-            while (r1.next()) {
-                cid = r1.getInt(1);
-                cdate = r1.getString(2);
-                isBugFix = r1.getBoolean(3);
-                // only deal with .java files
-                findFileQuery = conn.prepareStatement(findFile);
-                findFileQuery.setInt(1, cid);
-                findFileQuery.setInt(2, cid);
-                r2 = findFileQuery.executeQuery();
-                // loop through those file ids
-                while (r2.next()) {
-                    file_id = r2.getInt(1);
-                    type = FileType.valueOf(r2.getString(2));
-                    switch (type) {
-                    case V:
-                        break;
-                    case R:
-                    case C:
-                    case A:
-                        if (numprefetch < prefetchsize) {
-                            numprefetch++;
-                            cache.add(file_id, cid, cdate, CacheItem.CacheReason.Prefetch);
-                        }
-                        break;
-                    case D:
-                        this.cache.remove(file_id);// remove from the cache
-                        break;
-                    case M: // modified
-                        if (isBugFix) {
-                            String intro_cdate = this.getBugIntroCdate(file_id,
-                                    cid);
-                            this.loadBuggyEntity(file_id, cid, cdate,
-                                    intro_cdate);
-                        } else {
-                            if (numprefetch < prefetchsize) {
-                                numprefetch++;
-                                cache.add(file_id, cid, cdate, CacheItem.CacheReason.Prefetch);
-                            }
-                        }
-                    }
-                }
-                numprefetch = 0;
-            }
-        } catch (Exception e) {
-            System.out.println(e);
-            System.exit(0);
-        }
-    }
-
-    public double getHitRate() {
-        return (double) hit / (hit + miss);
-    }
-
-    public static void main(String args[]) {
-
-        // String startDate, endDate;
-        String start;
-        CmdLineParser parser = new CmdLineParser();
-        CmdLineParser.Option blksz_opt = parser
-        .addIntegerOption('b', "blksize");
-        CmdLineParser.Option csz_opt = parser.addIntegerOption('c', "csize");
-        CmdLineParser.Option pfsz_opt = parser.addIntegerOption('f', "pfsize");
-        CmdLineParser.Option crp_opt = parser.addStringOption('r', "cacherep");
-        CmdLineParser.Option pid_opt = parser.addIntegerOption('p', "pid");
-        CmdLineParser.Option dt_opt = parser.addStringOption('t', "datetime");
-
-        // CmdLineParser.Option sCId_opt = parser.addIntegerOption('s',"start");
-        // CmdLineParser.Option eCId_opt = parser.addIntegerOption('e',"end");
-        try {
-            parser.parse(args);
-        } catch (CmdLineParser.OptionException e) {
-            System.err.println(e.getMessage());
-            printUsage();
-            System.exit(2);
-        }
-
-        Integer blksz = (Integer) parser.getOptionValue(blksz_opt, BLKDEFAULT);
-        Integer csz = (Integer) parser.getOptionValue(csz_opt, CSIZEDEFAULT);
-        Integer pfsz = (Integer) parser.getOptionValue(pfsz_opt, PFDEFAULT);
-        String crp_string = (String) parser.getOptionValue(crp_opt,
-                CacheReplacement.REPDEFAULT);
-        Integer pid = (Integer) parser.getOptionValue(pid_opt, PRODEFAULT);
-        String dt = (String) parser.getOptionValue(dt_opt,
-        "2000-01-01 00:00:00");
-        CacheReplacement.Policy crp;
-        try {
-            crp = CacheReplacement.Policy.valueOf(crp_string);
-        } catch (IllegalArgumentException e) {
-            System.err.println(e.getMessage());
-            System.err.println("Must specify a valid cache replacement policy");
-            crp = CacheReplacement.REPDEFAULT;
-        }
-        // startCId = (Integer)parser.getOptionValue(sCId_opt, STARTIDDEFAULT);
-        // endCId = (Integer)parser.getOptionValue(eCId_opt, Integer.MAX_VALUE);
-        start = dt;
-        if (pid == null) {
-            System.err.println("Error: must specify a Project Id");
-            System.exit(2);
-        }
-        // create a new simulator
-        Simulator sim = new Simulator(blksz, pfsz, csz, pid, crp, start);
-        sim.initialPreLoad();
-        sim.simulate();
-        sim.close();
-        System.out.println(sim.getHitRate());
-    }
-
-    private void close() {
-        DatabaseManager.close();
-    }
     
-    /**
-     * For Debugging
-     */
-    
+    public Cache getCache() {
+        return cache;
+    }    
 
     public void add(int eid, int cid, String cdate, CacheReason reas) {
         cache.add(eid, cid, cdate, reas);
