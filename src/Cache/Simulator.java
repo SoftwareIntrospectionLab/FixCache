@@ -12,38 +12,55 @@ import Database.DatabaseManager;
 
 public class Simulator {
 
+    /**
+     * Database prepared sql statements.
+     */
+
+    static final String findCommit = "select id, date, is_bug_fix from scmlog " +
+        "where repository_id =? and date>=? order by date ASC";
+    static final String findFile = "select actions.file_id, type from actions, content_loc " +
+        "where actions.file_id=content_loc.file_id " +
+        "and actions.commit_id=? and content_loc.commit_id=? " +
+        "and actions.file_id in( " +
+        "select file_id from file_types where type='code') order by loc DESC";
+    static final String findHunkId = "select id from hunks where file_id =? and commit_id =?";
+    static final String findBugIntroCdate = "select date from hunk_blames, scmlog " +
+        "where hunk_id =? and hunk_blames.bug_commit_id=scmlog.id";
+    private static PreparedStatement findCommitQuery;
+    private static PreparedStatement findFileQuery;
+    private static PreparedStatement findHunkIdQuery;
+    private static PreparedStatement findBugIntroCdateQuery;
+
+
+    /**
+     * defaults
+     */
     static final int BLKDEFAULT = 3;
     static final int PFDEFAULT = 3;
     static final int CSIZEDEFAULT = 10;
     static final int PRODEFAULT = 1;
 
+    /**
+     * From the actions table.
+     * See the cvsanaly manual (http://gsyc.es/~carlosgc/files/cvsanaly.pdf), pg 11
+     */
     public enum FileType {
         A, M, D, V, C, R
     }
 
-    int blocksize;
-    int prefetchsize;
-    int cachesize;
-    int pid;
-    CacheReplacement.Policy cacheRep;
-    Cache cache;
-    Connection conn = DatabaseManager.getConnection();
+    /**
+     * Member fields
+     */
+    final int blocksize;
+    final int prefetchsize;
+    final int cachesize;
+    final int pid;
+    final CacheReplacement.Policy cacheRep;
+    final Cache cache;
+    final Connection conn = DatabaseManager.getConnection();
+    
     int hit;
     int miss;
-    static final String findCommit = "select id, date, is_bug_fix from scmlog " +
-            "where repository_id =? and date>=? order by date ASC";
-    static final String findFile = "select actions.file_id, type from actions, content_loc " +
-            "where actions.file_id=content_loc.file_id " +
-            "and actions.commit_id=? and content_loc.commit_id=? " +
-            "and actions.file_id in( " +
-            "select file_id from file_types where type='code') order by loc DESC";
-    static final String findHunkId = "select id from hunks where file_id =? and commit_id =?";
-    static final String findBugIntroCdate = "select date from hunk_blames, scmlog " +
-            "where hunk_id =? and hunk_blames.bug_commit_id=scmlog.id";
-    private static PreparedStatement findCommitQuery;
-    private static PreparedStatement findFileQuery;
-    private static PreparedStatement findHunkIdQuery;
-    private static PreparedStatement findBugIntroCdateQuery;
 
     public Simulator(int bsize, int psize, int csize, int projid,
             CacheReplacement.Policy rep, String start) {
@@ -66,11 +83,11 @@ public class Simulator {
     public void initialPreLoad() {
         String firstDate = findFirstDate();
         final String findInitialPreload = "select content_loc.file_id, content_loc.commit_id " +
-        		"from content_loc, scmlog, actions " +
-                "where repository_id=? and content_loc.commit_id = scmlog.id and date =? " +
-                "and content_loc.file_id=actions.file_id " +
-                "and content_loc.commit_id=actions.commit_id " +
-                "and actions.type!='D' order by loc DESC";
+        "from content_loc, scmlog, actions " +
+        "where repository_id=? and content_loc.commit_id = scmlog.id and date =? " +
+        "and content_loc.file_id=actions.file_id " +
+        "and content_loc.commit_id=actions.commit_id " +
+        "and actions.type!='D' order by loc DESC";
         PreparedStatement findInitialPreloadQuery;
         ResultSet r = null;
         int fileId = 0;
@@ -128,10 +145,10 @@ public class Simulator {
 
     private static void printUsage() {
         System.err
-                .println("Example Usage: FixCache -b=10000 -c=500 -f=600 -r=\"LRU\" -p=1");
+        .println("Example Usage: FixCache -b=10000 -c=500 -f=600 -r=\"LRU\" -p=1");
         System.err
-                .println("Example Usage: FixCache --blksize=10000 " +
-                		"--csize=500 --pfsize=600 --cacherep=\"LRU\" --pid=1");
+        .println("Example Usage: FixCache --blksize=10000 " +
+        "--csize=500 --pfsize=600 --cacherep=\"LRU\" --pid=1");
         System.err.println("-p/--pid option is required");
     }
 
@@ -163,7 +180,7 @@ public class Simulator {
             while (r.next()) {
                 hunkId = r.getInt(1);
                 findBugIntroCdateQuery = conn
-                        .prepareStatement(findBugIntroCdate);
+                .prepareStatement(findBugIntroCdate);
                 findBugIntroCdateQuery.setInt(1, hunkId);
                 r1 = findBugIntroCdateQuery.executeQuery();
                 while (r1.next()) {
@@ -283,7 +300,7 @@ public class Simulator {
         String start;
         CmdLineParser parser = new CmdLineParser();
         CmdLineParser.Option blksz_opt = parser
-                .addIntegerOption('b', "blksize");
+        .addIntegerOption('b', "blksize");
         CmdLineParser.Option csz_opt = parser.addIntegerOption('c', "csize");
         CmdLineParser.Option pfsz_opt = parser.addIntegerOption('f', "pfsize");
         CmdLineParser.Option crp_opt = parser.addStringOption('r', "cacherep");
@@ -307,7 +324,7 @@ public class Simulator {
                 CacheReplacement.REPDEFAULT);
         Integer pid = (Integer) parser.getOptionValue(pid_opt, PRODEFAULT);
         String dt = (String) parser.getOptionValue(dt_opt,
-                "2000-01-01 00:00:00");
+        "2000-01-01 00:00:00");
         CacheReplacement.Policy crp;
         try {
             crp = CacheReplacement.Policy.valueOf(crp_string);
