@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import Util.CmdLineParser;
 
+import Cache.CacheItem.CacheReason;
 import Database.DatabaseManager;
 
 public class Simulator {
@@ -153,23 +154,6 @@ public class Simulator {
         System.err.println("-p/--pid option is required");
     }
 
-    /**
-     * prefetches one file, if still within prefetch limit
-     * @param numprefetch
-     * @param fileId
-     * @param cid
-     * @param commitDate
-     * @param cacheReason
-     */
-    // XXX fix bug: numprefetch is ++'d, but not returned
-    public void prefetch(int numprefetch, int fileId, int cid,
-            String commitDate, CacheItem.CacheReason cacheReason) {
-        if (numprefetch < prefetchsize) {
-            numprefetch++;
-            cache.add(fileId, cid, commitDate, CacheItem.CacheReason.Prefetch);
-        }
-    }
-
     public String getBugIntroCdate(int fileId, int commitId) {
         // use the fileId and commitId to get a list of changed hunks from the
         // hunk table.
@@ -265,16 +249,12 @@ public class Simulator {
                     case V:
                         break;
                     case R:
-                        this.prefetch(numprefetch, file_id, cid, cdate,
-                                CacheItem.CacheReason.NewEntity);
-                        break;
                     case C:
-                        this.prefetch(numprefetch, file_id, cid, cdate,
-                                CacheItem.CacheReason.NewEntity);
-                        break;
                     case A:
-                        this.prefetch(numprefetch, file_id, cid, cdate,
-                                CacheItem.CacheReason.NewEntity);
+                        if (numprefetch < prefetchsize) {
+                            numprefetch++;
+                            cache.add(file_id, cid, cdate, CacheItem.CacheReason.Prefetch);
+                        }
                         break;
                     case D:
                         this.cache.remove(file_id);// remove from the cache
@@ -286,9 +266,10 @@ public class Simulator {
                             this.loadBuggyEntity(file_id, cid, cdate,
                                     intro_cdate);
                         } else {
-                            this.prefetch(numprefetch, file_id, cid,
-                                    cdate, CacheItem.CacheReason.ModifiedEntity);
-
+                            if (numprefetch < prefetchsize) {
+                                numprefetch++;
+                                cache.add(file_id, cid, cdate, CacheItem.CacheReason.Prefetch);
+                            }
                         }
                     }
                 }
@@ -361,4 +342,14 @@ public class Simulator {
     private void close() {
         DatabaseManager.close();
     }
+    
+    /**
+     * For Debugging
+     */
+    
+
+    public void add(int eid, int cid, String cdate, CacheReason reas) {
+        cache.add(eid, cid, cdate, reas);
+    }
+    
 }
