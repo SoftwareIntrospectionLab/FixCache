@@ -136,15 +136,14 @@ public class CacheItem {
         int ret = 0;
         try {
             if (findNumberOfAuthorsQuery == null)
-                findNumberOfAuthorsQuery = conn
-                .prepareStatement(findNumberOfAuthors);
+                findNumberOfAuthorsQuery = conn.prepareStatement(findNumberOfAuthors);
             findNumberOfAuthorsQuery.setString(1, cdate);
             findNumberOfAuthorsQuery.setString(2, start);
             findNumberOfAuthorsQuery.setInt(3, eid);
             ret = Util.Database.getIntResult(findNumberOfAuthorsQuery);
         } catch (SQLException e1) {
             e1.printStackTrace();
-        }
+        }        
         return ret;
     }
     
@@ -161,8 +160,7 @@ public class CacheItem {
         int ret = 0;
         try {
             if (findNumberOfChangesQuery == null)
-                findNumberOfChangesQuery = conn
-                .prepareStatement(findNumberOfChanges);
+                findNumberOfChangesQuery = conn.prepareStatement(findNumberOfChanges);
             findNumberOfChangesQuery.setString(1, cdate);
             findNumberOfChangesQuery.setString(2, start);
             findNumberOfChangesQuery.setInt(3, eid);

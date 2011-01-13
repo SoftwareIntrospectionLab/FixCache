@@ -1,7 +1,6 @@
 package Cache;
 
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -30,7 +29,7 @@ public class Simulator {
     private static PreparedStatement findCommitQuery;
     private static PreparedStatement findFileQuery;
     private static PreparedStatement findHunkIdQuery;
-    private static PreparedStatement findBugIntroCdateQuery;
+    static PreparedStatement findBugIntroCdateQuery;
 
 
     /**
@@ -73,6 +72,15 @@ public class Simulator {
         cache = new Cache(cachesize, new CacheReplacement(rep), start, projid);
         hit = 0;
         miss = 0;
+        
+        try {
+            findFileQuery = conn.prepareStatement(findFile);
+            findCommitQuery = conn.prepareStatement(findCommit);
+            findHunkIdQuery = conn.prepareStatement(findHunkId);
+            findBugIntroCdateQuery = conn.prepareStatement(findBugIntroCdate);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
     
     /**
@@ -117,8 +125,7 @@ public class Simulator {
      */
     public void simulate() {
 
-        final ResultSet r1;
-        ResultSet r2;
+        final ResultSet allCommits;
         int cid;// means commit_id in actions
         String cdate;
         
@@ -129,56 +136,62 @@ public class Simulator {
         
         // iterate over the selection
         try {
-            findCommitQuery = conn.prepareStatement(findCommit);
             findCommitQuery.setInt(1, pid);
             findCommitQuery.setString(2, cache.startDate);
             
             // returns all commits to pid after cache.startDate
-            r1 = findCommitQuery.executeQuery(); 
+            allCommits = findCommitQuery.executeQuery(); 
             
-            while (r1.next()) {
-                cid = r1.getInt(1);
-                cdate = r1.getString(2);
-                isBugFix = r1.getBoolean(3);
-                // only deal with .java files
-                findFileQuery = conn.prepareStatement(findFile);
+            while (allCommits.next()) {
+                cid = allCommits.getInt(1);
+                cdate = allCommits.getString(2);
+                isBugFix = allCommits.getBoolean(3);
+
                 findFileQuery.setInt(1, cid);
                 findFileQuery.setInt(2, cid);
-                r2 = findFileQuery.executeQuery();
+
+                final ResultSet files = findFileQuery.executeQuery();
+                
                 // loop through those file ids
-                while (r2.next()) {
-                    file_id = r2.getInt(1);
-                    type = FileType.valueOf(r2.getString(2));
-                    switch (type) {
-                    case V:
-                        break;
-                    case R: 
-                    case C:
-                    case A:
-                        if (numprefetch < prefetchsize) {
-                            numprefetch++;
-                            cache.add(file_id, cid, cdate, CacheItem.CacheReason.Prefetch);
-                        }
-                        break;
-                    case D:
-                        this.cache.remove(file_id);// remove from the cache
-                        break;
-                    case M: // modified
-                        if (isBugFix) {
-                            String intro_cdate = this.getBugIntroCdate(file_id,cid);
-                            this.loadBuggyEntity(file_id, cid, cdate, intro_cdate);
-                        } else if (numprefetch < prefetchsize) {
-                                numprefetch++;
-                                cache.add(file_id, cid, cdate, CacheItem.CacheReason.Prefetch);
-                        }
-                    }
+                while (files.next()) {
+                    file_id = files.getInt(1);
+                    type = FileType.valueOf(files.getString(2)); 
+                    numprefetch = processOneFile(cid, cdate, isBugFix, file_id, type, numprefetch);
                 }
                 numprefetch = 0;
             }
         } catch (Exception e) {
             System.out.println(e);
-            System.exit(0);
+            e.printStackTrace();
         }
+    }
+
+    private int processOneFile(int cid, String cdate, boolean isBugFix,
+            int file_id, FileType type, int numprefetch) {
+        switch (type) {
+        case V:
+            break;
+        case R: 
+        case C:
+        case A:
+            if (numprefetch < prefetchsize) {
+                numprefetch++;
+                cache.add(file_id, cid, cdate, CacheItem.CacheReason.Prefetch);
+            }
+            break;
+        case D:
+            this.cache.remove(file_id);// remove from the cache
+            break;
+        case M: // modified
+            if (isBugFix) {
+                String intro_cdate = this.getBugIntroCdate(file_id,cid);
+                this.loadBuggyEntity(file_id, cid, cdate, intro_cdate);
+            } else if (numprefetch < prefetchsize) {
+                    numprefetch++;
+                    cache.add(file_id, cid, cdate, CacheItem.CacheReason.Prefetch);
+            }
+        }
+        return numprefetch;
     }
 
     /**
@@ -189,9 +202,11 @@ public class Simulator {
         return (double) hit / (hit + miss);
     }
     
-    
     public static void main(String args[]) {
 
+        /**
+         * Command line parsing
+         */
         // String startDate, endDate;
         String start;
         CmdLineParser parser = new CmdLineParser();
@@ -226,6 +241,7 @@ public class Simulator {
         } catch (IllegalArgumentException e) {
             System.err.println(e.getMessage());
             System.err.println("Must specify a valid cache replacement policy");
+            printUsage();
             crp = CacheReplacement.REPDEFAULT;
         }
         // startCId = (Integer)parser.getOptionValue(sCId_opt, STARTIDDEFAULT);
@@ -233,9 +249,12 @@ public class Simulator {
         start = dt;
         if (pid == null) {
             System.err.println("Error: must specify a Project Id");
+            printUsage();
             System.exit(2);
         }
-        // create a new simulator
+        /**
+         *  Create a new simulator and run simulation.
+         */
         Simulator sim = new Simulator(blksz, pfsz, csz, pid, crp, start);
         sim.initialPreLoad();
         sim.simulate();
@@ -249,6 +268,7 @@ public class Simulator {
     
     /**
      * Fills cache with pre-fetch size number of top-LOC files from  initial commit.
+     * Only called once per simulation
     // implicit input: initial commit ID
     // implicit input: LOC for every file in initial commit ID
     // implicit input: pre-fetch size
@@ -289,7 +309,8 @@ public class Simulator {
     }
 
     /**
-     * Finds the first date after the startDate with repository entries
+     * Finds the first date after the startDate with repository entries.
+     * Only called once per simulation.
      * @return The date for the prefetch.
      */
     private String findFirstDate() {
@@ -329,14 +350,12 @@ public class Simulator {
         ResultSet r = null;
         ResultSet r1 = null;
         try {
-            findHunkIdQuery = conn.prepareStatement(findHunkId);
             findHunkIdQuery.setInt(1, fileId);
             findHunkIdQuery.setInt(2, commitId);
             r = findHunkIdQuery.executeQuery();
             while (r.next()) {
                 hunkId = r.getInt(1);
                 
-                findBugIntroCdateQuery = conn.prepareStatement(findBugIntroCdate);
                 findBugIntroCdateQuery.setInt(1, hunkId);
                 r1 = findBugIntroCdateQuery.executeQuery();
                 while (r1.next()) {
