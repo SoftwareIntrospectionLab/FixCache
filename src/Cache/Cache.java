@@ -53,10 +53,10 @@ public class Cache {
      * @param cacheItem
      */
     // XXX: load a chunk at a time??
-    public void load(CacheItem cacheItem) {
+    public void load(CacheItem cacheItem, String cdate) {
         int entityId = cacheItem.getEntityId();
         if (isFull())
-            bumpOutItem();
+            bumpOutItem(cdate);
         if (!cacheTable.contains(cacheItem))
             cacheTable.put(entityId, cacheItem);
         size++;
@@ -67,8 +67,8 @@ public class Cache {
      * The only method that decreases size.
      * @param fileid 
      */
-    public void remove(int fileid) {
-        cacheTable.get(fileid).removeFromCache();
+    public void remove(int fileid, String cdate) {
+        cacheTable.get(fileid).removeFromCache(cdate);
         size--;
     }
 
@@ -85,11 +85,11 @@ public class Cache {
         if (cacheTable.containsKey(eid)){ // either in cache or was bumped out
             CacheItem ci = cacheTable.get(eid);
             if (!ci.isInCache()){
-                load(ci);
+                load(ci, cdate);
             }
             ci.update(cid, cdate, startDate); // updates inCache status
         } else { // need to create a new CacheItem
-            load(new CacheItem(eid, cid, cdate, reason, this));
+            load(new CacheItem(eid, cid, cdate, reason, this), cdate);
         }
     }
 
@@ -112,9 +112,9 @@ public class Cache {
      *   replacement policy) then removes that element
      */
     // TODO: keep cache always sorted using cache replacement policy
-    public void bumpOutItem() {
+    public void bumpOutItem(String cdate) {
         int entityId = getMinimum();
-        remove(entityId);
+        remove(entityId, cdate);
     }
 
     public int getMinimum() {
@@ -135,9 +135,9 @@ public class Cache {
      * Wrapper for bumping out multiple items at once.
      * @param numItems
      */
-    public void bumpOutItem(int numItems) {
+    public void bumpOutItem(int numItems, String cdate) {
         for (int i = 0; i < numItems; ++i)
-            bumpOutItem();
+            bumpOutItem(cdate);
     }
     
 

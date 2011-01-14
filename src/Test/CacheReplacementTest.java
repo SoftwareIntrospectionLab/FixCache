@@ -56,7 +56,7 @@ public class CacheReplacementTest {
         cache.add(2, 3, "2009-10-20 14:37:47.0", CacheReason.BugEntity);
         cache.add(5, 3, "2009-10-20 14:37:47.0", CacheReason.NewEntity);
         cache.add(1, 3, "2009-10-20 14:37:47.0", CacheReason.BugEntity);
-        cache.remove(4);
+        cache.remove(4, "2009-10-20 14:37:47.0");
         cache.add(1, 5, "2009-10-23 14:10:37.0", CacheReason.BugEntity);
         cache.add(2, 6, "2009-10-23 14:29:05.0", CacheReason.BugEntity);
         cache.add(6, 6, "2009-10-23 14:29:05.0", CacheReason.NewEntity);
@@ -87,7 +87,7 @@ public class CacheReplacementTest {
         cache.add(5, 3, "2009-10-20 14:37:47.0", CacheReason.NewEntity); // LRU 3, 5, 2, 4, 1, 3
         cache.add(1, 3, "2009-10-20 14:37:47.0", CacheReason.BugEntity); // 1,
         assertEquals(5, cache.getCacheSize());
-        cache.remove(4); // 1, 5, 2, 3
+        cache.remove(4, "2009-10-20 14:37:47.0"); // 1, 5, 2, 3
         assertEquals(4, cache.getCacheSize());
         cache.add(1, 5, "2009-10-23 14:10:37.0", CacheReason.BugEntity); // 1,
         cache.add(2, 6, "2009-10-23 14:29:05.0", CacheReason.BugEntity); // 2,
@@ -125,7 +125,7 @@ public class CacheReplacementTest {
         cache.add(2, 3, "2009-10-20 14:37:47.0", CacheReason.BugEntity);
         cache.add(5, 3, "2009-10-20 14:37:47.0", CacheReason.NewEntity);
         cache.add(1, 3, "2009-10-20 14:37:47.0", CacheReason.BugEntity);
-        cache.remove(4);
+        cache.remove(4, "2009-10-20 14:37:47.0");
         cache.add(1, 5, "2009-10-23 14:10:37.0", CacheReason.BugEntity);
         cache.add(2, 6, "2009-10-23 14:29:05.0", CacheReason.BugEntity);
         cache.add(6, 6, "2009-10-23 14:29:05.0", CacheReason.NewEntity);
@@ -154,7 +154,7 @@ public class CacheReplacementTest {
         cache.add(2, 3, "2009-10-20 14:37:47.0", CacheReason.BugEntity);
         cache.add(5, 3, "2009-10-20 14:37:47.0", CacheReason.NewEntity);
         cache.add(1, 3, "2009-10-20 14:37:47.0", CacheReason.BugEntity);
-        cache.remove(4);
+        cache.remove(4, "2009-10-20 14:37:47.0");
         cache.add(1, 5, "2009-10-23 14:10:37.0", CacheReason.BugEntity);
         cache.add(2, 6, "2009-10-23 14:29:05.0", CacheReason.BugEntity);
         cache.add(6, 6, "2009-10-23 14:29:05.0", CacheReason.NewEntity);

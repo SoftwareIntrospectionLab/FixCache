@@ -139,8 +139,6 @@ public class Simulator {
             findCommitQuery.setInt(1, pid);
             findCommitQuery.setString(2, cache.startDate);
             
-            System.out.println(findCommitQuery.toString());
-            
             // returns all commits to pid after cache.startDate
             allCommits = findCommitQuery.executeQuery(); 
             
@@ -182,7 +180,7 @@ public class Simulator {
             }
             break;
         case D:
-            this.cache.remove(file_id);// remove from the cache
+            this.cache.remove(file_id, cdate);// remove from the cache
             break;
         case M: // modified
             if (isBugFix) {

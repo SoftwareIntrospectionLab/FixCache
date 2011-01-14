@@ -44,7 +44,6 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Hashtable;
 import java.util.Vector;
-import java.util.Enumeration;
 import java.util.Locale;
 
 /**
@@ -96,8 +95,7 @@ public class CmdLineParser {
 	 * string.
 	 * @author Vidar Holen
 	 */
-	public static class UnknownSuboptionException
-	extends UnknownOptionException {
+	public static class UnknownSuboptionException extends UnknownOptionException {
 		private char suboption;
 
 		UnknownSuboptionException( String option, char suboption ) {

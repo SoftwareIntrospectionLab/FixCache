@@ -51,6 +51,8 @@ public class CacheItem {
     private int LOC; // changed on cache hit
     private int number; // represents either the number of bugs, changes, or authors
     private int loadCount = 0; //count how many time a file is put into cache 
+    private int loadDuration = 0; //represents how long in repo time a file stays in cache
+    private String timeAdded; //represents repo time when a file is added to cache
     private final Cache parent;
     private boolean inCache = false; // stores whether the cacheitem is in the cache
 
@@ -82,6 +84,7 @@ public class CacheItem {
         if (!inCache){
             inCache = true;
             loadCount++;
+            timeAdded = cdate;
         }
         loadDate = parent.getTime(); 
         LOC = findLoc(entityId, cid);
@@ -92,7 +95,8 @@ public class CacheItem {
         return inCache;
     }
     
-    public void removeFromCache(){
+    public void removeFromCache(String cdate){ 
+        loadDuration += Util.Dates.getDuration(timeAdded, cdate);
         assert(inCache);
         inCache = false;
     }
@@ -225,7 +229,7 @@ public class CacheItem {
     /**
      * @return Returns the cachedDate.
      */
-    public int getCachedDate() {
+    public int getLoadedDate() {
         return loadDate;
     }
 
