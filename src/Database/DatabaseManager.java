@@ -9,7 +9,6 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Enumeration;
 import java.util.Properties;
 
 public class DatabaseManager {
@@ -26,7 +25,7 @@ public class DatabaseManager {
             fis = new FileInputStream(file);
             Properties prop = new Properties();
             prop.load(fis);
-            Enumeration enums = prop.propertyNames();
+            //Enumeration enums = prop.propertyNames(); 
             drivername = (String) prop.get("Driver");
             databasename = (String) prop.get("URL");
             username = (String) prop.get("UserName");

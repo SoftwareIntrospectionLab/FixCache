@@ -56,6 +56,8 @@ import java.util.Locale;
  * @version $Revision$
  * @see jargs.examples.gnu.OptionTest
  */
+
+@SuppressWarnings("all")
 public class CmdLineParser {
 
 	/**
