@@ -74,10 +74,10 @@ public class SimulatorTest {
                 CacheReplacement.Policy.BUGS, "2010-10-21 09:50:25.0", null);
         sim4.initialPreLoad();
         assertEquals(sim4.getCache().getCacheSize(), 0);
-        Simulator sim5 = new Simulator(2, 2, 5, 1,
-                CacheReplacement.Policy.BUGS, "2009-10-21 09:50:25.0", null);
-        sim5.initialPreLoad();
-        assertEquals(sim5.getCache().getCacheSize(), 0);
+        Simulator sim6 = new Simulator(2, 2, 5, 1,
+                CacheReplacement.Policy.BUGS, null, "2000-10-21 09:50:25.0");
+        sim1.initialPreLoad();
+        assertEquals(sim6.getCache().getCacheSize(), 0);
 
     }
 

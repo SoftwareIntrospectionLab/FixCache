@@ -345,7 +345,7 @@ public class Simulator {
             firstDate = Util.Database.getStringResult(findFirstDateQuery);
             if(firstDate==null)
             {
-            	System.out.println("Can not find any commit after"+cache.startDate);
+            	System.out.println("Can not find any commit after "+cache.startDate);
             	System.exit(2);
             }
         }   
@@ -382,7 +382,7 @@ public class Simulator {
         }
         if(lastDate==null)
         {
-        	System.out.println("Can not find any commit before"+cache.endDate);
+        	System.out.println("Can not find any commit before "+cache.endDate);
         	System.exit(2);
         }
         return lastDate;
