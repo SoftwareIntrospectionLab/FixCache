@@ -19,17 +19,17 @@ public class CacheItem {
         "where id in( " +
             "select author_id from scmlog, actions " +
             "where scmlog.id = actions.commit_id " +
-                "and date <=? and date >= ? and file_id = ?)";
+                "and date between ? and ? and file_id = ?)";
     static final String findNumberOfChanges = 
         "select count(actions.id) " +
         "from actions, scmlog " +
         "where actions.commit_id = scmlog.id " +
-        "and date <=? and date >=? and file_id=?";
+        "and date between ? and ? and file_id=?";
     static final String findNumberOfBugs = 
         "select count(commit_id) from actions " +
         "where file_id=? and commit_id in " +
             "(select id from scmlog " +
-            "where is_bug_fix=1 and date <=? and date >=?)";
+            "where is_bug_fix=1 and date between ? and ?)";
     static final String findLoc = 
         "select loc from content_loc where file_id=? and commit_id =?";
     private static PreparedStatement findNumberOfAuthorsQuery;
@@ -141,8 +141,8 @@ public class CacheItem {
         try {
             if (findNumberOfAuthorsQuery == null)
                 findNumberOfAuthorsQuery = conn.prepareStatement(findNumberOfAuthors);
-            findNumberOfAuthorsQuery.setString(1, cdate);
-            findNumberOfAuthorsQuery.setString(2, start);
+            findNumberOfAuthorsQuery.setString(1, start);
+            findNumberOfAuthorsQuery.setString(2, cdate);
             findNumberOfAuthorsQuery.setInt(3, eid);
             ret = Util.Database.getIntResult(findNumberOfAuthorsQuery);
         } catch (SQLException e1) {
@@ -165,8 +165,8 @@ public class CacheItem {
         try {
             if (findNumberOfChangesQuery == null)
                 findNumberOfChangesQuery = conn.prepareStatement(findNumberOfChanges);
-            findNumberOfChangesQuery.setString(1, cdate);
-            findNumberOfChangesQuery.setString(2, start);
+            findNumberOfChangesQuery.setString(1, start);
+            findNumberOfChangesQuery.setString(2, cdate);
             findNumberOfChangesQuery.setInt(3, eid);
             ret = Util.Database.getIntResult(findNumberOfChangesQuery);
         } catch (SQLException e1) {
@@ -190,8 +190,8 @@ public class CacheItem {
                 findNumberOfBugsQuery = conn.prepareStatement(findNumberOfBugs);
 
             findNumberOfBugsQuery.setInt(1, eid);
-            findNumberOfBugsQuery.setString(2, cdate);
-            findNumberOfBugsQuery.setString(3, start);
+            findNumberOfBugsQuery.setString(2, start);
+            findNumberOfBugsQuery.setString(3, cdate);
             ret = Util.Database.getIntResult(findNumberOfBugsQuery);
         } catch (SQLException e1) {
             e1.printStackTrace();

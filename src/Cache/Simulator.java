@@ -17,7 +17,7 @@ public class Simulator {
      */
 
     static final String findCommit = "select id, date, is_bug_fix from scmlog " +
-    "where repository_id =? and date>=? order by date ASC";
+    "where repository_id =? and date between ? and ? order by date ASC";
     static final String findFile = "select actions.file_id, type from actions, content_loc " +
     "where actions.file_id=content_loc.file_id " +
     "and actions.commit_id=? and content_loc.commit_id=? " +
@@ -114,7 +114,7 @@ public class Simulator {
         cache.add(fileId, cid, commitDate, CacheItem.CacheReason.BugEntity);
         
         // add the co-changed files as well
-        ArrayList<Integer> cochanges = CoChange.getCoChangeFileList(fileId, intro_cdate, blocksize);
+        ArrayList<Integer> cochanges = CoChange.getCoChangeFileList(fileId, cache.startDate, intro_cdate, blocksize);
         cache.add(cochanges, cid, commitDate, CacheItem.CacheReason.CoChange);
     }
 
@@ -138,6 +138,7 @@ public class Simulator {
         try {
             findCommitQuery.setInt(1, pid);
             findCommitQuery.setString(2, cache.startDate);
+            findCommitQuery.setString(3, cache.endDate);
             
             // returns all commits to pid after cache.startDate
             allCommits = findCommitQuery.executeQuery(); 
@@ -284,7 +285,7 @@ public class Simulator {
     public void initialPreLoad() {
         cache.startDate = findFirstDate();
         cache.endDate  = findLastDate();
-        if(cache.startDate.compareTo(cache.endDate )>=0)
+        if(cache.startDate.compareTo(cache.endDate )>0)
         {
             System.out.println("There is no commit between "+cache.startDate+" and "+cache.endDate);
             System.exit(1);
