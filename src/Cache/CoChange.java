@@ -148,7 +148,7 @@ public class CoChange {
                 map.put(f, 1);
         }
 
-        // TODO: when two files have the same cochange count, use loc to break ties 
+        // TODO: when two files have the same cochange count, use loc to break ties
         ArrayList<Integer> getTopFiles(int blocksize) {
             ArrayList<Map.Entry<Integer, Integer>> list = 
                 new ArrayList<Map.Entry<Integer, Integer>>(map.entrySet());

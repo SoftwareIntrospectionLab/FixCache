@@ -139,6 +139,8 @@ public class Simulator {
             findCommitQuery.setInt(1, pid);
             findCommitQuery.setString(2, cache.startDate);
             
+            System.out.println(findCommitQuery.toString());
+            
             // returns all commits to pid after cache.startDate
             allCommits = findCommitQuery.executeQuery(); 
             
@@ -208,7 +210,6 @@ public class Simulator {
          * Command line parsing
          */
         // String startDate, endDate;
-        String start;
         CmdLineParser parser = new CmdLineParser();
         CmdLineParser.Option blksz_opt = parser
         .addIntegerOption('b', "blksize");
@@ -231,14 +232,14 @@ public class Simulator {
         Integer blksz = (Integer) parser.getOptionValue(blksz_opt, BLKDEFAULT);
         Integer csz = (Integer) parser.getOptionValue(csz_opt, CSIZEDEFAULT);
         Integer pfsz = (Integer) parser.getOptionValue(pfsz_opt, PFDEFAULT);
-        String crp_string = (String) parser.getOptionValue(crp_opt, CacheReplacement.REPDEFAULT);
+        String crp_string = 
+            (String) parser.getOptionValue(crp_opt, CacheReplacement.REPDEFAULT.toString());
         Integer pid = (Integer) parser.getOptionValue(pid_opt, PRODEFAULT);
-        String dt = (String) parser.getOptionValue(dt_opt,
-        "2000-01-01 00:00:00");
+        String start = (String) parser.getOptionValue(dt_opt, null);
         CacheReplacement.Policy crp;
         try {
             crp = CacheReplacement.Policy.valueOf(crp_string);
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             System.err.println(e.getMessage());
             System.err.println("Must specify a valid cache replacement policy");
             printUsage();
@@ -246,7 +247,6 @@ public class Simulator {
         }
         // startCId = (Integer)parser.getOptionValue(sCId_opt, STARTIDDEFAULT);
         // endCId = (Integer)parser.getOptionValue(eCId_opt, Integer.MAX_VALUE);
-        start = dt;
         if (pid == null) {
             System.err.println("Error: must specify a Project Id");
             printUsage();
@@ -274,7 +274,8 @@ public class Simulator {
     // implicit input: pre-fetch size
      */
     public void initialPreLoad() {
-        final String firstDate = findFirstDate();
+        
+        cache.startDate = findFirstDate();
         final String findInitialPreload = "select content_loc.file_id, content_loc.commit_id " +
         "from content_loc, scmlog, actions " +
         "where repository_id=? and content_loc.commit_id = scmlog.id and date =? " +
@@ -289,7 +290,7 @@ public class Simulator {
         try {
             findInitialPreloadQuery = conn.prepareStatement(findInitialPreload);
             findInitialPreloadQuery.setInt(1, pid);
-            findInitialPreloadQuery.setString(2, firstDate);
+            findInitialPreloadQuery.setString(2, cache.startDate);
             r = findInitialPreloadQuery.executeQuery();
         } catch (SQLException e1) {
             e1.printStackTrace();
@@ -300,7 +301,7 @@ public class Simulator {
                 if (r.next()) {
                     fileId = r.getInt(1);
                     commitId = r.getInt(2);
-                    cache.add(fileId, commitId, firstDate, CacheItem.CacheReason.Prefetch);
+                    cache.add(fileId, commitId, cache.startDate, CacheItem.CacheReason.Prefetch);
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
