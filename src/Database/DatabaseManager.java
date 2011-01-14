@@ -32,10 +32,6 @@ public class DatabaseManager {
             username = (String) prop.get("UserName");
             password = (String) prop.get("UserPass");
 
-            while (enums.hasMoreElements()) {
-                String key = (String) enums.nextElement();
-                String value = prop.getProperty(key);
-            }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -104,7 +100,7 @@ public class DatabaseManager {
             while (r1.next()) {
                 commitId = r1.getInt(1);
                 ResultSet r2 = stmt2
-                        .executeQuery("select file_id from actions where commit_id =" + 10);
+                        .executeQuery("select file_id from actions where commit_id =" + commitId);
                 while (r2.next()) {
                     System.out.print(r2.getInt(1));
                 }

@@ -68,7 +68,7 @@ public class CacheItemTest {
                 CacheReplacement.Policy.CHANGES), "2009-10-20 01:32:19.0", 1);
         ci1 = new CacheItem(5, 10, "2009-10-24 14:30:54.0",
                 CacheReason.BugEntity, cache);
-        CacheItem ci11 = new CacheItem(1, 1, "2009-10-20 01:32:19.0", CacheReason.BugEntity, cache);
+//        CacheItem ci11 = new CacheItem(1, 1, "2009-10-20 01:32:19.0", CacheReason.BugEntity, cache);
         // assertEquals(3, ci1.getNumberOfChanges());
 
         // XXX fails due to bug in content_loc
