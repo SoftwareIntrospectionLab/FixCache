@@ -63,13 +63,13 @@ public class Simulator {
     int miss;
 
     public Simulator(int bsize, int psize, int csize, int projid,
-            CacheReplacement.Policy rep, String start) {
+            CacheReplacement.Policy rep, String start, String end) {
         blocksize = bsize;
         prefetchsize = psize;
         cachesize = csize;
         this.pid = projid;
         cacheRep = rep;
-        cache = new Cache(cachesize, new CacheReplacement(rep), start, projid);
+        cache = new Cache(cachesize, new CacheReplacement(rep), start, end, projid);
         hit = 0;
         miss = 0;
         
@@ -207,7 +207,6 @@ public class Simulator {
         /**
          * Command line parsing
          */
-        // String startDate, endDate;
         CmdLineParser parser = new CmdLineParser();
         CmdLineParser.Option blksz_opt = parser
         .addIntegerOption('b', "blksize");
@@ -234,6 +233,7 @@ public class Simulator {
             (String) parser.getOptionValue(crp_opt, CacheReplacement.REPDEFAULT.toString());
         Integer pid = (Integer) parser.getOptionValue(pid_opt, PRODEFAULT);
         String start = (String) parser.getOptionValue(dt_opt, null);
+        String end = (String)parser.getOptionValue(dt_opt, null);
         CacheReplacement.Policy crp;
         try {
             crp = CacheReplacement.Policy.valueOf(crp_string);
@@ -250,10 +250,20 @@ public class Simulator {
             printUsage();
             System.exit(2);
         }
+       if(start!=null&&end!=null)
+       {
+           if(start.compareTo(end)>0)
+           {
+               System.err.println("Error:Start date must be earlier than end date");
+               printUsage();
+               System.exit(2);
+           }
+       }
+       
         /**
          *  Create a new simulator and run simulation.
          */
-        Simulator sim = new Simulator(blksz, pfsz, csz, pid, crp, start);
+        Simulator sim = new Simulator(blksz, pfsz, csz, pid, crp, start, end);
         sim.initialPreLoad();
         sim.simulate();
         sim.close();
@@ -272,8 +282,13 @@ public class Simulator {
     // implicit input: pre-fetch size
      */
     public void initialPreLoad() {
-        
         cache.startDate = findFirstDate();
+        cache.endDate  = findLastDate();
+        if(cache.startDate.compareTo(cache.endDate )>=0)
+        {
+            System.out.println("There is no commit between "+cache.startDate+" and "+cache.endDate);
+            System.exit(1);
+        }       
         final String findInitialPreload = "select content_loc.file_id, content_loc.commit_id " +
         "from content_loc, scmlog, actions " +
         "where repository_id=? and content_loc.commit_id = scmlog.id and date =? " +
@@ -328,11 +343,49 @@ public class Simulator {
                 findFirstDateQuery.setString(2, cache.startDate);
             }
             firstDate = Util.Database.getStringResult(findFirstDateQuery);
+            if(firstDate==null)
+            {
+            	System.out.println("Can not find any commit after "+cache.startDate);
+            	System.exit(2);
+            }
         }   
         catch (SQLException e) {
             e.printStackTrace();
         }
         return firstDate;
+    }
+    
+    /**
+     * Finds the last date before the endDate with repository entries.
+     * Only called once per simulation.
+     * @return The date for the the simulator.
+     */
+    private String findLastDate() {
+        String findLastDate = null;
+        final PreparedStatement findLastDateQuery;
+        String lastDate = null;
+        try{
+            if (cache.endDate == null) {
+                findLastDate = "select max(date) from scmlog where repository_id=?";
+                findLastDateQuery = conn.prepareStatement(findLastDate);
+                findLastDateQuery.setInt(1, pid);
+            } else {
+                findLastDate = "select max(date) from scmlog where repository_id=? and date <=?";
+                findLastDateQuery = conn.prepareStatement(findLastDate);
+                findLastDateQuery.setInt(1, pid);
+                findLastDateQuery.setString(2, cache.endDate);
+            }
+            lastDate = Util.Database.getStringResult(findLastDateQuery);
+        }   
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        if(lastDate==null)
+        {
+        	System.out.println("Can not find any commit before "+cache.endDate);
+        	System.exit(2);
+        }
+        return lastDate;
     }
 
     /** use the fileId and commitId to get a list of changed hunks from the hunk table.

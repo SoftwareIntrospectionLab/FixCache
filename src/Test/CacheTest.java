@@ -48,7 +48,7 @@ public class CacheTest {
     @Test
     public void testCacheAdd() {
         Cache cache = new Cache(5, new CacheReplacement(
-                CacheReplacement.Policy.AUTHORS), "2009-10-20 01:32:19.0", 1);
+                CacheReplacement.Policy.AUTHORS), "2009-10-20 01:32:19.0", "2010-01-01 01:01:01.0",1);
         cache.add(1, 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
         assertEquals(cache.getCacheSize(), 1);
         cache.add(2, 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);

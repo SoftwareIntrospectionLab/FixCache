@@ -22,15 +22,17 @@ public class Cache {
 
     private CacheReplacement policy;
     String startDate;
+    String endDate;
     int repID;
 
     // counter, used to decide which cacheitem is LRU
     private int time = 0;
 
-    public Cache(int cacheSize, CacheReplacement pol, String start, int rep) {
+    public Cache(int cacheSize, CacheReplacement pol, String start, String end, int rep) {
         maxsize = cacheSize;
         policy = pol;
         startDate = start;
+        endDate = end;
         repID = rep;
     }
 

@@ -32,7 +32,7 @@ public class Database {
 	
 	public static String getStringResult (PreparedStatement stringQuery) throws SQLException 
 	{
-		String res = "";
+		String res = null;
 		ResultSet r = stringQuery.executeQuery();
 		if(r.next())
 		{
