@@ -343,6 +343,11 @@ public class Simulator {
                 findFirstDateQuery.setString(2, cache.startDate);
             }
             firstDate = Util.Database.getStringResult(findFirstDateQuery);
+            if(firstDate==null)
+            {
+            	System.out.println("Can not find any commit after"+cache.startDate);
+            	System.exit(2);
+            }
         }   
         catch (SQLException e) {
             e.printStackTrace();
@@ -356,11 +361,11 @@ public class Simulator {
      * @return The date for the the simulator.
      */
     private String findLastDate() {
-        String findLastDate = "";
+        String findLastDate = null;
         final PreparedStatement findLastDateQuery;
-        String lastDate = "";
+        String lastDate = null;
         try{
-            if (cache.startDate == null) {
+            if (cache.endDate == null) {
                 findLastDate = "select max(date) from scmlog where repository_id=?";
                 findLastDateQuery = conn.prepareStatement(findLastDate);
                 findLastDateQuery.setInt(1, pid);
@@ -374,6 +379,11 @@ public class Simulator {
         }   
         catch (SQLException e) {
             e.printStackTrace();
+        }
+        if(lastDate==null)
+        {
+        	System.out.println("Can not find any commit before"+cache.endDate);
+        	System.exit(2);
         }
         return lastDate;
     }
