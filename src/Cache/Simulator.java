@@ -63,13 +63,13 @@ public class Simulator {
     int miss;
 
     public Simulator(int bsize, int psize, int csize, int projid,
-            CacheReplacement.Policy rep, String start) {
+            CacheReplacement.Policy rep, String start, String end) {
         blocksize = bsize;
         prefetchsize = psize;
         cachesize = csize;
         this.pid = projid;
         cacheRep = rep;
-        cache = new Cache(cachesize, new CacheReplacement(rep), start, projid);
+        cache = new Cache(cachesize, new CacheReplacement(rep), start, end, projid);
         hit = 0;
         miss = 0;
         
@@ -229,14 +229,15 @@ public class Simulator {
         Integer blksz = (Integer) parser.getOptionValue(blksz_opt, BLKDEFAULT);
         Integer csz = (Integer) parser.getOptionValue(csz_opt, CSIZEDEFAULT);
         Integer pfsz = (Integer) parser.getOptionValue(pfsz_opt, PFDEFAULT);
-        String crp_string = (String) parser.getOptionValue(crp_opt, CacheReplacement.REPDEFAULT);
+        String crp_string = 
+            (String) parser.getOptionValue(crp_opt, CacheReplacement.REPDEFAULT.toString());
         Integer pid = (Integer) parser.getOptionValue(pid_opt, PRODEFAULT);
         String start = (String) parser.getOptionValue(dt_opt, null);
         String end = (String)parser.getOptionValue(dt_opt, null);
         CacheReplacement.Policy crp;
         try {
             crp = CacheReplacement.Policy.valueOf(crp_string);
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             System.err.println(e.getMessage());
             System.err.println("Must specify a valid cache replacement policy");
             printUsage();
@@ -262,7 +263,7 @@ public class Simulator {
         /**
          *  Create a new simulator and run simulation.
          */
-        Simulator sim = new Simulator(blksz, pfsz, csz, pid, crp, start);
+        Simulator sim = new Simulator(blksz, pfsz, csz, pid, crp, start, end);
         sim.initialPreLoad();
         sim.simulate();
         sim.close();
@@ -283,11 +284,11 @@ public class Simulator {
     public void initialPreLoad() {
         cache.startDate = findFirstDate();
         cache.endDate  = findLastDate();
-        if(firstDate.compareTo(lastDate)>=0)
+        if(cache.startDate.compareTo(cache.endDate )>=0)
         {
-            System.out.println("There is no commit between "+firstDate+" and "+lastDate);
+            System.out.println("There is no commit between "+cache.startDate+" and "+cache.endDate);
             System.exit(1);
-        }
+        }       
         final String findInitialPreload = "select content_loc.file_id, content_loc.commit_id " +
         "from content_loc, scmlog, actions " +
         "where repository_id=? and content_loc.commit_id = scmlog.id and date =? " +
@@ -302,7 +303,7 @@ public class Simulator {
         try {
             findInitialPreloadQuery = conn.prepareStatement(findInitialPreload);
             findInitialPreloadQuery.setInt(1, pid);
-            findInitialPreloadQuery.setString(2, firstDate);
+            findInitialPreloadQuery.setString(2, cache.startDate);
             r = findInitialPreloadQuery.executeQuery();
         } catch (SQLException e1) {
             e1.printStackTrace();
@@ -313,7 +314,7 @@ public class Simulator {
                 if (r.next()) {
                     fileId = r.getInt(1);
                     commitId = r.getInt(2);
-                    cache.add(fileId, commitId, firstDate, CacheItem.CacheReason.Prefetch);
+                    cache.add(fileId, commitId, cache.startDate, CacheItem.CacheReason.Prefetch);
                 }
             } catch (SQLException e) {
                 e.printStackTrace();

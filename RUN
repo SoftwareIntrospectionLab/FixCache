@@ -5,4 +5,4 @@ JARS=bin:Jar/dbunit-2.4.8.jar:Jar/junit-4.8.1.jar:Jar/log4j-1.2.16.jar:Jar/mysql
  
 java -version
 
-java -cp $JARS Cache.Simulator -p 1 -r LRU -c 5 
+java -cp $JARS Cache.Simulator -p 2 -r LRU -c 10 
