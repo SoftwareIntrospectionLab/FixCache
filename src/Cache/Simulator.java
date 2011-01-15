@@ -26,10 +26,12 @@ public class Simulator {
     static final String findHunkId = "select id from hunks where file_id =? and commit_id =?";
     static final String findBugIntroCdate = "select date from hunk_blames, scmlog " +
     "where hunk_id =? and hunk_blames.bug_commit_id=scmlog.id";
+    static final String findPid = "select id from repositories where id=?";
     private static PreparedStatement findCommitQuery;
     private static PreparedStatement findFileQuery;
     private static PreparedStatement findHunkIdQuery;
     static PreparedStatement findBugIntroCdateQuery;
+    static PreparedStatement findPidQuery;
 
 
     /**
@@ -252,6 +254,21 @@ public class Simulator {
             printUsage();
             System.exit(2);
         }
+        else
+        {
+            try {
+                findPidQuery.setInt(1, pid);
+                if(Util.Database.getIntResult(findPidQuery)==-1)
+                {
+                    System.out.println("There is no project whose id is "+pid);
+                    System.exit(2);
+                }
+            } catch (SQLException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        
        if(start!=null&&end!=null)
        {
            if(start.compareTo(end)>0)
