@@ -215,7 +215,8 @@ public class Simulator {
         CmdLineParser.Option pfsz_opt = parser.addIntegerOption('f', "pfsize");
         CmdLineParser.Option crp_opt = parser.addStringOption('r', "cacherep");
         CmdLineParser.Option pid_opt = parser.addIntegerOption('p', "pid");
-        CmdLineParser.Option dt_opt = parser.addStringOption('t', "datetime");
+        CmdLineParser.Option sd_opt = parser.addStringOption('s', "start");
+        CmdLineParser.Option ed_opt = parser.addStringOption('e', "end");
 
         // CmdLineParser.Option sCId_opt = parser.addIntegerOption('s',"start");
         // CmdLineParser.Option eCId_opt = parser.addIntegerOption('e',"end");
@@ -233,8 +234,8 @@ public class Simulator {
         String crp_string = 
             (String) parser.getOptionValue(crp_opt, CacheReplacement.REPDEFAULT.toString());
         Integer pid = (Integer) parser.getOptionValue(pid_opt, PRODEFAULT);
-        String start = (String) parser.getOptionValue(dt_opt, null);
-        String end = (String)parser.getOptionValue(dt_opt, null);
+        String start = (String) parser.getOptionValue(sd_opt, null);
+        String end = (String)parser.getOptionValue(ed_opt, null);
         CacheReplacement.Policy crp;
         try {
             crp = CacheReplacement.Policy.valueOf(crp_string);
