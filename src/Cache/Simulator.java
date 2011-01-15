@@ -407,7 +407,6 @@ public class Simulator {
 				 System.exit(2);
 			 }
 		 } catch (SQLException e) {
-			 // TODO Auto-generated catch block
 			 e.printStackTrace();
 		 }
 			
