@@ -115,5 +115,6 @@
   <hunk_blames id="19" hunk_id="32" bug_commit_id="3"/>
   <hunk_blames id="20" hunk_id="33" bug_commit_id="5"/>
   <hunk_blames id="21" hunk_id="34" bug_commit_id="6"/>
+  <repositories id="1" uri="" name="test" type="test"/>
   </dataset>
 
