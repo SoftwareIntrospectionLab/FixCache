@@ -63,6 +63,7 @@ public class Simulator {
 
     int hit;
     int miss;
+    int commits;
 
     public Simulator(int bsize, int psize, int csize, int projid,
             CacheReplacement.Policy rep, String start, String end) {
@@ -162,6 +163,7 @@ public class Simulator {
                     numprefetch = processOneFile(cid, cdate, isBugFix, file_id, type, numprefetch);
                 }
                 numprefetch = 0;
+                commits++;
             }
         } catch (Exception e) {
             System.out.println(e);
@@ -286,13 +288,22 @@ public class Simulator {
         sim.initialPreLoad();
         sim.simulate();
         sim.close();
+        
+        System.out.print("Hit rate...");
         System.out.println(sim.getHitRate());
+        
+        System.out.print("Num commits processed...");
+        System.out.println(sim.getCommitCount());
+        
+        System.out.print("Num bug fixes...");
+        System.out.println(sim.getHit() + sim.getMiss());
     }
 
     /**
      * Database accessors
      */
     
+
     /**
      * Fills cache with pre-fetch size number of top-LOC files from  initial commit.
      * Only called once per simulation
@@ -470,5 +481,10 @@ public class Simulator {
     public void add(int eid, int cid, String cdate, CacheReason reas) {
         cache.add(eid, cid, cdate, reas);
     }
+    
+    private int getCommitCount() {
+        return commits;
+    }
+
     
 }
