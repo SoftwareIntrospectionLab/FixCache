@@ -39,7 +39,6 @@ public class CoChange {
             }
         }
         return findCommitIdQuery;
-
     }
 
     public PreparedStatement getCochangeFileIdStatement() {
@@ -57,7 +56,6 @@ public class CoChange {
             String commitDate, int blocksize) {
         CoChange co = new CoChange(fileid);
         return co.getCoChangeList(co.buildCoChangeMap(startDate, commitDate), blocksize);
-
     }
 
     /**
@@ -103,19 +101,8 @@ public class CoChange {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-
         }
-        // for each such file f:
-        // int f;
-        // for(int j = 0; j < commitList.size(); j++)//I think here commitList
-        // should be coChangeList
-        // {
-        // f = (Integer)commitList.get(j);
-        // coChangeCounts.add(f);
-        // }
-
         return coChangeCounts;
-
     }
 
     // get BLOCKSIZE-1
