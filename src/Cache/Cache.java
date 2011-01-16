@@ -78,8 +78,8 @@ public class Cache {
      * Called on cache hit and cache miss.
      * Adds an item into the cache, if not already there.
      * If already there, updates the cache entry.
-     * @param eid -- entityid
-     * @param cid -- commitid
+     * @param eid -- entity id
+     * @param cid -- commit id
      * @param cdate -- commit date
      * @param reason -- reason for adding to the cache
      */
