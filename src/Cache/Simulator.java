@@ -64,6 +64,7 @@ public class Simulator {
 	int hit;
 	int miss;
     private int commits;
+    String outputDate;
 
 	public Simulator(int bsize, int psize, int csize, int projid,
 			CacheReplacement.Policy rep, String start, String end) {
@@ -151,7 +152,12 @@ public class Simulator {
 				 cid = allCommits.getInt(1);
 				 cdate = allCommits.getString(2);
 				 isBugFix = allCommits.getBoolean(3);
-
+				 
+				 if(Util.Dates.isOneMonthLater(outputDate, cdate))
+				 {
+				     writeToCSV(cdate);
+				 }
+				 
 				 findFileQuery.setInt(1, cid);
 				 findFileQuery.setInt(2, cid);
 
@@ -171,7 +177,15 @@ public class Simulator {
 		 }
 	 }
 
-	 private int processOneFile(int cid, String cdate, boolean isBugFix,
+	 private void writeToCSV(String cdate) {
+        if(Util.Dates.isOneMonthLater(outputDate, cdate))
+        {
+            
+        }
+        
+    }
+
+    private int processOneFile(int cid, String cdate, boolean isBugFix,
 			 int file_id, FileType type, int numprefetch) {
 		 switch (type) {
 		 case V:
@@ -227,7 +241,8 @@ public class Simulator {
 		 {
 			 System.out.println("There is no commit between "+cache.startDate+" and "+cache.endDate);
 			 System.exit(1);
-		 }       
+		 }  
+		 outputDate = cache.startDate;
 		 final String findInitialPreload = "select content_loc.file_id, content_loc.commit_id " +
 		 "from content_loc, scmlog, actions " +
 		 "where repository_id=? and content_loc.commit_id = scmlog.id and date =? " +

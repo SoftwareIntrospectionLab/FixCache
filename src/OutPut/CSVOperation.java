@@ -6,7 +6,7 @@ import com.csvreader.CsvWriter;
 
 public class CSVOperation {
 
-
+//in every output file, we should print :name of the graph, parameters,
 	public static void writeHitRate(String time, double hitrate)
 	{
 		String output = "hitRate.csv";
@@ -18,7 +18,7 @@ public class CSVOperation {
 			// if the file didn't already exist then we need to write out the header line
 			if (!alreadyExists)
 			{
-				csvOutput.write("time");
+			    csvOutput.write("time");
 				csvOutput.write("hitRate");
 				csvOutput.endRecord();
 			}
