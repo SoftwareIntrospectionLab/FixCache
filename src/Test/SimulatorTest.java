@@ -150,5 +150,6 @@ public class SimulatorTest {
         rat = (int) (sim4.getHitRate() * 10);
         assertEquals(6, rat);
     }
+    
 
 }

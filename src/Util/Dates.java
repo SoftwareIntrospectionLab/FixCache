@@ -24,7 +24,6 @@ public class Dates {
 
 	public static int getMinuteDuration(String start, String end)
 	{
-	    
 	    return Minutes.minutesBetween(toDateTime(start), toDateTime(end)).getMinutes();
 	}
 	
@@ -49,15 +48,15 @@ public class Dates {
 		DateTime end = toDateTime(rangeEnd);
 		range = new StringBuilder();
 		range.append(start.getYear());
-		range.append("-");
+		range.append(".");
 		range.append(start.getMonthOfYear());
-		range.append("-");
+		range.append(".");
 		range.append(start.getDayOfMonth());
 		range.append("~");
 		range.append(end.getYear());
-		range.append("-");
+		range.append(".");
 		range.append(end.getMonthOfYear());
-		range.append("-");
+		range.append(".");
 		range.append(end.getDayOfMonth());
 		return range.toString();
 	}

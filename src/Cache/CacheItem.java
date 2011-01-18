@@ -86,7 +86,7 @@ public class CacheItem {
         if (!inCache){
             inCache = true;
             loadCount++;
-            timeAdded = cdate;
+            timeAdded = cdate;System.out.println(entityId+"***"+cid+"***"+timeAdded);
         }
         loadDate = parent.getTime(); 
         LOC = findLoc(entityId, cid);
@@ -304,7 +304,14 @@ public class CacheItem {
 	}
 	
 	public int getDuration() {
-		return loadDuration;
+	    if(loadDuration!=0)
+	    {
+	        return loadDuration;
+	    }
+	    else
+	    {
+	      return Util.Dates.getMinuteDuration(timeAdded, parent.endDate);  
+	    }
 	}
 
 }

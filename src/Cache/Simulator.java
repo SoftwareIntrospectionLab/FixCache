@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import com.csvreader.CsvWriter;
+import com.sun.xml.internal.messaging.saaj.util.CharWriter;
 
 import Util.CmdLineParser;
 
@@ -265,7 +266,7 @@ public class Simulator {
 	 */
 	public double getHitRate() {
 	    double hitrate = (double)hit / (hit + miss);
-		return (double)Math.round(hitrate*10000)/10000;
+		return (double)Math.round(hitrate*10000)/100;
 	}
 
 
@@ -292,11 +293,11 @@ public class Simulator {
 		outputDate = cache.startDate;
 		lastOutputDate = cache.startDate;
 		final String findInitialPreload = "select content_loc.file_id, content_loc.commit_id " +
-		"from content_loc, scmlog, actions " +
+		"from content_loc, scmlog, actions, file_types " +
 		"where repository_id=? and content_loc.commit_id = scmlog.id and date =? " +
 		"and content_loc.file_id=actions.file_id " +
-		"and content_loc.commit_id=actions.commit_id " +
-		"and actions.type!='D' order by loc DESC";
+		"and content_loc.commit_id=actions.commit_id and actions.type!='D' " +
+		"and file_types.file_id=content_loc.file_id and file_types.type='code' order by loc DESC";
 		final PreparedStatement findInitialPreloadQuery;
 		ResultSet r = null;
 		int fileId = 0;
@@ -453,7 +454,7 @@ public class Simulator {
 	public void add(int eid, int cid, String cdate, CacheReason reas) {
 		cache.add(eid, cid, cdate, reas);
 	}
-	private void checkParameter() {
+	public void checkParameter() {
 		if(cache.startDate!=null&&cache.endDate!=null)
 		{
 			if(cache.startDate.compareTo(cache.endDate)>0)
@@ -551,7 +552,7 @@ public class Simulator {
 
 	}
 
-	private void outputFileDist() {
+	public void outputFileDist() {
 
 		csvWriter = new CsvWriter("Results/"+filename+"_filedist.csv");
 		try{
@@ -593,5 +594,10 @@ public class Simulator {
 
 	private int getCommitCount() {
 		return commits;
+	}
+	
+	public CsvWriter getCsvWriter()
+	{
+	    return csvWriter;
 	}
 }
