@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import com.csvreader.CsvWriter;
-import com.sun.xml.internal.messaging.saaj.util.CharWriter;
 
 import Util.CmdLineParser;
 
@@ -233,6 +232,7 @@ public class Simulator {
 		}	catch (IOException e) {
 			e.printStackTrace();
 		}
+		month += 3;
 	}
 
 	private int processOneFile(int cid, String cdate, boolean isBugFix,
