@@ -90,9 +90,12 @@ public class Simulator {
 		filename = pid+"_"+cachesize+"_"+blocksize+"_"+prefetchsize+"_"+cacheRep;
 		csvWriter = new CsvWriter("Results/"+filename+"_hitrate.csv");
 		try{
-		    csvWriter.write("hitrate for every 3 months, " +
+		    csvWriter.write("# hitrate for every 3 months, " +
 		    		"used to describe the variation of hit rate with time");
 		    csvWriter.endRecord();
+		    csvWriter.write("# project: "+pid+", cachesize: "+cachesize+", blocksize: "+cachesize+
+                    ", prefetchsize: "+prefetchsize+", cache replacement policy: "+cacheRep);
+            csvWriter.endRecord();
 		    csvWriter.write("Month");
 		    csvWriter.write("Range");
 		    csvWriter.write("HitRate");
@@ -150,7 +153,8 @@ public class Simulator {
 		}
 
 		// add the co-changed files as well
-		ArrayList<Integer> cochanges = CoChange.getCoChangeFileList(fileId, cache.startDate, intro_cdate, blocksize);
+		ArrayList<Integer> cochanges 
+		    = CoChange.getCoChangeFileList(fileId, cache.startDate, intro_cdate, blocksize);
 		cache.add(cochanges, cid, commitDate, CacheItem.CacheReason.CoChange);
 	}
 
@@ -184,7 +188,8 @@ public class Simulator {
 				cid = allCommits.getInt(1);
 				cdate = allCommits.getString(2);
 				isBugFix = allCommits.getBoolean(3);
-				if(Util.Dates.getMonthDuration(lastOutputDate, cdate) > 3 || cdate.equals(cache.endDate))
+				if(Util.Dates.getMonthDuration(lastOutputDate, cdate) > 3 
+				        || cdate.equals(cache.endDate))
 				{
 					outputHitRate(cdate);
 				}
@@ -228,8 +233,6 @@ public class Simulator {
 		}	catch (IOException e) {
 			e.printStackTrace();
 		}
-
-		//		 OutPut.CSVOperation.writeHitRate(filename, month, range, getHitRate(), getCommitCount());
 	}
 
 	private int processOneFile(int cid, String cdate, boolean isBugFix,
@@ -556,10 +559,13 @@ public class Simulator {
 
 		csvWriter = new CsvWriter("Results/"+filename+"_filedist.csv");
 		try{
-		    csvWriter.write("number of hit, misses and time stayed in Cache for every file");
+		    csvWriter.write("# number of hit, misses and time stayed in Cache for every file");
+		    csvWriter.endRecord();
+		    csvWriter.write("# project: "+pid+", cachesize: "+cachesize+", blocksize: "+cachesize+
+		            ", prefetchsize: "+prefetchsize+", cache replacement policy: "+cacheRep);
 		    csvWriter.endRecord();
 			csvWriter.write("file_id");
-			csvWriter.write("Loc");
+			csvWriter.write("loc");
 			csvWriter.write("num_hits");
 			csvWriter.write("num_misses");
 			csvWriter.write("duration");
@@ -577,12 +583,11 @@ public class Simulator {
 			{
 				ci = i.next();
 				csvWriter.write(Integer.toString(ci.getEntityId()));
-				csvWriter.write(Integer.toString(ci.getLOC()));
+				csvWriter.write(Integer.toString(ci.getLOC())); //LOC at time of last update
 				csvWriter.write(Integer.toString(ci.getHitCount()));
 				csvWriter.write(Integer.toString(ci.getMissCount()));
 				csvWriter.write(Integer.toString(ci.getDuration()));
 				csvWriter.endRecord();
-				//				OutPut.CSVOperation.writeFileDist(filename, ci.getEntityId(), ci.getHitCount(),ci.getMissCount(),ci.getDuration());
 			}
 
 			csvWriter.close();
