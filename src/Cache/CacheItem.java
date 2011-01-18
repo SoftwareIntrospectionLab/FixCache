@@ -86,7 +86,7 @@ public class CacheItem {
         if (!inCache){
             inCache = true;
             loadCount++;
-            timeAdded = cdate;System.out.println(entityId+"***"+cid+"***"+timeAdded);
+            timeAdded = cdate;
         }
         loadDate = parent.getTime(); 
         LOC = findLoc(entityId, cid);
