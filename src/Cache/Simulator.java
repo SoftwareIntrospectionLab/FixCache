@@ -420,8 +420,7 @@ public class Simulator {
 		  * Command line parsing
 		  */
 		 CmdLineParser parser = new CmdLineParser();
-		 CmdLineParser.Option blksz_opt = parser
-		 .addIntegerOption('b', "blksize");
+		 CmdLineParser.Option blksz_opt = parser.addIntegerOption('b', "blksize");
 		 CmdLineParser.Option csz_opt = parser.addIntegerOption('c', "csize");
 		 CmdLineParser.Option pfsz_opt = parser.addIntegerOption('f', "pfsize");
 		 CmdLineParser.Option crp_opt = parser.addStringOption('r', "cacherep");
