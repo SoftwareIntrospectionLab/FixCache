@@ -11,7 +11,6 @@ import java.util.Iterator;
 import com.csvreader.CsvWriter;
 
 import Util.CmdLineParser;
-
 import Cache.CacheItem.CacheReason;
 import Database.DatabaseManager;
 
@@ -71,7 +70,8 @@ public class Simulator {
 	private int commits;
 	String outputDate;
 	String lastOutputDate;
-	int month = 3;
+	int outputRange=3; //output the hit rate every outrange months
+	int month = outputRange;
 	String range;
 	String filename;
 	CsvWriter csvWriter;
@@ -187,7 +187,7 @@ public class Simulator {
 				cid = allCommits.getInt(1);
 				cdate = allCommits.getString(2);
 				isBugFix = allCommits.getBoolean(3);
-				if(Util.Dates.getMonthDuration(lastOutputDate, cdate) > 3 
+				if(Util.Dates.getMonthDuration(lastOutputDate, cdate) > outputRange 
 				        || cdate.equals(cache.endDate))
 				{
 					outputHitRate(cdate);
@@ -232,7 +232,7 @@ public class Simulator {
 		}	catch (IOException e) {
 			e.printStackTrace();
 		}
-		month += 3;
+		month += outputRange;
 	}
 
 	private int processOneFile(int cid, String cdate, boolean isBugFix,
