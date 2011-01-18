@@ -22,7 +22,7 @@ public class Dates {
 	    return date.toString(fmt);
 	}
 
-	public static int getMinutesDuration(String start, String end)
+	public static int getMinuteDuration(String start, String end)
 	{
 	    
 	    return Minutes.minutesBetween(toDateTime(start), toDateTime(end)).getMinutes();
@@ -33,10 +33,6 @@ public class Dates {
 	    return Months.monthsBetween(toDateTime(start), toDateTime(end)).getMonths();
 	}
 
-
-	public static int getMinuteDuration(String start, String end) {
-		return Months.monthsBetween(toDateTime(start), toDateTime(end)).getMonths();
-	}
 	
 	public static void main(String args[])
 	{

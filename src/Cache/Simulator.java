@@ -558,7 +558,7 @@ public class Simulator {
 				ci = i.next();
 				csvWriter.write(Integer.toString(ci.getEntityId()));
 				csvWriter.write(Integer.toString(ci.getHitCount()));
-				csvWriter.write(Double.toString(ci.getMissCount()));
+				csvWriter.write(Integer.toString(ci.getMissCount()));
 				csvWriter.write(Integer.toString(ci.getDuration()));
 				csvWriter.endRecord();
 				//				OutPut.CSVOperation.writeFileDist(filename, ci.getEntityId(), ci.getHitCount(),ci.getMissCount(),ci.getDuration());
