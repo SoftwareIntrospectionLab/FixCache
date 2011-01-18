@@ -97,10 +97,11 @@ public class CacheItem {
         return inCache;
     }
     
-    public void removeFromCache(String cdate){ 
+    public int removeFromCache(String cdate){ 
         loadDuration += Util.Dates.getMinuteDuration(timeAdded, cdate);
         assert(inCache);
         inCache = false;
+        return loadDuration;
     }
 
     // XXX: Do we need pid? or is eid unique enough for the called methods?

@@ -27,6 +27,7 @@ public class Cache {
 
     // counter, used to decide which cacheitem is LRU
     private int time = 0;
+    private int totalDuration = 0;
 
     public Cache(int cacheSize, CacheReplacement pol, String start, String end, int rep) {
         maxsize = cacheSize;
@@ -70,7 +71,7 @@ public class Cache {
      * @param fileid 
      */
     public void remove(int fileid, String cdate) {
-        cacheTable.get(fileid).removeFromCache(cdate);
+        totalDuration += cacheTable.get(fileid).removeFromCache(cdate);
         size--;
     }
 
@@ -218,6 +219,10 @@ public class Cache {
 
     public int getTime() {
         return time++;
+    }
+    
+    public int getTotalDuration(){
+        return totalDuration;
     }
 
 }

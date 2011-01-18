@@ -546,9 +546,16 @@ public class Simulator {
 		    csvWriter.write("number of hit, misses and time stayed in Cache for every file");
 		    csvWriter.endRecord();
 			csvWriter.write("file_id");
+			csvWriter.write("Loc");
 			csvWriter.write("num_hits");
 			csvWriter.write("num_misses");
-			csvWriter.write("duration_mins");
+			csvWriter.write("duration");
+			csvWriter.endRecord();
+			csvWriter.write("0");
+			csvWriter.write("0");
+			csvWriter.write("0");
+			csvWriter.write("0");
+			csvWriter.write(Integer.toString(cache.getTotalDuration()));
 			csvWriter.endRecord();
 			// else assume that the file already has the correct header line
 			//		 write out record
@@ -557,6 +564,7 @@ public class Simulator {
 			{
 				ci = i.next();
 				csvWriter.write(Integer.toString(ci.getEntityId()));
+				csvWriter.write(Integer.toString(ci.getLOC()));
 				csvWriter.write(Integer.toString(ci.getHitCount()));
 				csvWriter.write(Integer.toString(ci.getMissCount()));
 				csvWriter.write(Integer.toString(ci.getDuration()));
