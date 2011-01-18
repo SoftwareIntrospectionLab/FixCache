@@ -1,0 +1,11 @@
+In order to generate graphs from a particular run of FixCache, you will need R (http://cran.r-project.org/) and bash installed.
+
+Sample output files are shown with rates.txt and filedist.txt. All R scripts are in the rscripts directory. The CLEAN script removes all pdf files.
+
+To generate the graphs, run:
+
+./makegraphs.bash *rates.txt *filedist.txt
+
+where * is any prefix. Test out with:
+
+./makegraphs.bash rates.txt filedist.txt
