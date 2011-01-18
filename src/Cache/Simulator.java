@@ -65,6 +65,9 @@ public class Simulator {
 	int miss;
     private int commits;
     String outputDate;
+    int month = 3;
+    String range;
+    String filename;
 
 	public Simulator(int bsize, int psize, int csize, int projid,
 			CacheReplacement.Policy rep, String start, String end) {
@@ -153,7 +156,7 @@ public class Simulator {
 				 cdate = allCommits.getString(2);
 				 isBugFix = allCommits.getBoolean(3);
 				 
-				 if(Util.Dates.isOneMonthLater(outputDate, cdate))
+				 if(Util.Dates.getMonthDuration(outputDate, cdate) > 3 || cdate.equals(cache.endDate))
 				 {
 				     writeToCSV(cdate);
 				 }
@@ -178,11 +181,9 @@ public class Simulator {
 	 }
 
 	 private void writeToCSV(String cdate) {
-        if(Util.Dates.isOneMonthLater(outputDate, cdate))
-        {
-            
-        }
-        
+		 filename = pid+"_"+cachesize+"_"+blocksize+"_"+prefetchsize+"_"+cacheRep+"_rates";
+		 range = Util.Dates.getRange(outputDate, cdate);
+		 OutPut.CSVOperation.writeHitRate(filename, month, range, getHitRate(), getCommitCount());
     }
 
     private int processOneFile(int cid, String cdate, boolean isBugFix,

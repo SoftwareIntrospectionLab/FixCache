@@ -7,9 +7,9 @@ import com.csvreader.CsvWriter;
 public class CSVOperation {
 
 //in every output file, we should print :name of the graph, parameters,
-	public static void writeHitRate(String time, double hitrate)
+	public static void writeHitRate(String filename, int month, String range, double hitrate, int numCommits)
 	{
-		String output = "hitRate.csv";
+		String output = "Results/"+filename+".csv";
 		boolean alreadyExists = new File(output).exists();
 
 		try {
@@ -18,14 +18,18 @@ public class CSVOperation {
 			// if the file didn't already exist then we need to write out the header line
 			if (!alreadyExists)
 			{
-			    csvOutput.write("time");
-				csvOutput.write("hitRate");
+			    csvOutput.write("Month");
+				csvOutput.write("Range");
+				csvOutput.write("HitRate");
+				csvOutput.write("NumCommits");
 				csvOutput.endRecord();
 			}
 			// else assume that the file already has the correct header line
 			// write out record
-			csvOutput.write(time);
+			csvOutput.write(Integer.toString(month));
+			csvOutput.write(range);
 			csvOutput.write(Double.toString(hitrate));
+			csvOutput.write(Integer.toString(numCommits));
 			csvOutput.endRecord();
 			csvOutput.close();
 		} catch (IOException e) {
@@ -35,6 +39,6 @@ public class CSVOperation {
 	}
 
 	public static void main(String[] args) {
-		writeHitRate("2010-10-10 00:00:00~2011-10-10 00:00:00", 0.6);
+		writeHitRate("example",3,"2010-10-10~2011-10-10", 0.6, 20);
 	}
 }

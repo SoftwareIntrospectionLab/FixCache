@@ -96,7 +96,7 @@ public class CacheItem {
     }
     
     public void removeFromCache(String cdate){ 
-        loadDuration += Util.Dates.getDuration(timeAdded, cdate);
+        loadDuration += Util.Dates.getMinuteDuration(timeAdded, cdate);
         assert(inCache);
         inCache = false;
     }
