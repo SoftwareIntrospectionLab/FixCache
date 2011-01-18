@@ -132,21 +132,20 @@ public class Simulator {
 	// XXX move hit and miss to the cache? 
 	// could add if (reas == BugEntity) logic to add() code
 	public void loadBuggyEntity(int fileId, int cid, String commitDate, String intro_cdate) {
-		if (cache.contains(fileId))
+		
+	    if (cache.contains(fileId))
 		{
 			hit++;
+			cache.add(fileId, cid, commitDate, CacheItem.CacheReason.BugEntity);
 			cache.getCacheItem(fileId).addHitCount();
 		}
 
 		else 
 		{
 			miss++;
+			cache.add(fileId, cid, commitDate, CacheItem.CacheReason.BugEntity);
 			cache.getCacheItem(fileId).addMissCount();
 		}
-
-
-		// XXX commitDate or intro_cdate?
-		cache.add(fileId, cid, commitDate, CacheItem.CacheReason.BugEntity);
 
 		// add the co-changed files as well
 		ArrayList<Integer> cochanges = CoChange.getCoChangeFileList(fileId, cache.startDate, intro_cdate, blocksize);
