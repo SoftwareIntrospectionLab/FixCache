@@ -42,9 +42,9 @@ public class Simulator {
 	/**
 	 * defaults
 	 */
-	static final int BLKDEFAULT = 3;
-	static final int PFDEFAULT = 3;
-	static final int CSIZEDEFAULT = 10;
+	static final int BLKDEFAULT = 100;
+	static final int PFDEFAULT = 20;
+	static final int CSIZEDEFAULT = 200;
 	static final int PRODEFAULT = 1;
 
 	/**
@@ -70,6 +70,7 @@ public class Simulator {
 	int miss;
 	private int commits;
 	String outputDate;
+	String lastOutputDate;
 	int month = 3;
 	String range;
 	String filename;
@@ -182,7 +183,7 @@ public class Simulator {
 				cid = allCommits.getInt(1);
 				cdate = allCommits.getString(2);
 				isBugFix = allCommits.getBoolean(3);
-				if(Util.Dates.getMonthDuration(outputDate, cdate) > 3 || cdate.equals(cache.endDate))
+				if(Util.Dates.getMonthDuration(lastOutputDate, cdate) > 3 || cdate.equals(cache.endDate))
 				{
 					outputHitRate(cdate);
 				}
@@ -207,7 +208,16 @@ public class Simulator {
 	}
 
 	private void outputHitRate(String cdate) {
-		range = Util.Dates.getRange(outputDate, cdate);
+	    if(!cdate.equals(cache.endDate))
+	    {
+	        outputDate = Util.Dates.threeMonthLater(lastOutputDate);
+	    }
+	    else
+	    {
+	        outputDate = cdate;
+	    }
+		range = Util.Dates.getRange(lastOutputDate, outputDate);
+		lastOutputDate = outputDate;
 		try{
 			csvWriter.write(Integer.toString(month));
 			csvWriter.write(range);
@@ -254,11 +264,12 @@ public class Simulator {
 	 * @return hit rate of the cache
 	 */
 	public double getHitRate() {
-		return (double) hit / (hit + miss);
+	    double hitrate = (double)hit / (hit + miss);
+		return (double)Math.round(hitrate*10000)/10000;
 	}
 
 
-	/**
+    /**
 	 * Database accessors
 	 */
 
@@ -279,6 +290,7 @@ public class Simulator {
 			System.exit(1);
 		}  
 		outputDate = cache.startDate;
+		lastOutputDate = cache.startDate;
 		final String findInitialPreload = "select content_loc.file_id, content_loc.commit_id " +
 		"from content_loc, scmlog, actions " +
 		"where repository_id=? and content_loc.commit_id = scmlog.id and date =? " +

@@ -33,6 +33,10 @@ public class Dates {
 	    return Months.monthsBetween(toDateTime(start), toDateTime(end)).getMonths();
 	}
 
+	public static String threeMonthLater(String start)
+	{
+	    return toString(toDateTime(start).plusMonths(3));
+	}
 	
 	public static void main(String args[])
 	{
