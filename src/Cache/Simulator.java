@@ -87,7 +87,20 @@ public class Simulator {
 		miss = 0;
 		filename = pid+"_"+cachesize+"_"+blocksize+"_"+prefetchsize+"_"+cacheRep;
 		csvWriter = new CsvWriter("Results/"+filename+"_hitrate.csv");
-		try {
+		try{
+		    csvWriter.write("hitrate for every 3 months, " +
+		    		"used to describe the variation of hit rate with time");
+		    csvWriter.endRecord();
+		    csvWriter.write("Month");
+		    csvWriter.write("Range");
+		    csvWriter.write("HitRate");
+		    csvWriter.write("NumCommits");
+		    csvWriter.endRecord();
+		}catch(IOException e)
+		{
+		    e.printStackTrace();
+		}
+		try{
 			findFileQuery = conn.prepareStatement(findFile);
 			findCommitQuery = conn.prepareStatement(findCommit);
 			findHunkIdQuery = conn.prepareStatement(findHunkId);
@@ -531,6 +544,8 @@ public class Simulator {
 
 		csvWriter = new CsvWriter("Results/"+filename+"_filedist.csv");
 		try{
+		    csvWriter.write("number of hit, misses and time stayed in Cache for every file");
+		    csvWriter.endRecord();
 			csvWriter.write("file_id");
 			csvWriter.write("num_hits");
 			csvWriter.write("num_misses");
