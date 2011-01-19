@@ -73,7 +73,7 @@ public class CacheTest {
     public void testGetTotalDuration()
     {
         Simulator sim = new Simulator(3, 2, 5, 1,
-                CacheReplacement.Policy.LRU, null, "2009-10-20 14:37:38.0");
+                CacheReplacement.Policy.LRU, null, "2009-10-20 14:37:38.0", false);
         sim.checkParameter();
         sim.initialPreLoad();
         sim.simulate();

@@ -31,8 +31,8 @@ public class Simulator {
     static final String findBugIntroCdate = "select date from hunk_blames, scmlog "
             + "where hunk_id =? and hunk_blames.bug_commit_id=scmlog.id";
     static final String findPid = "select id from repositories where id=?";
-    static final String findFileCount = "select count(files.id) from files, file_types " +
-    		"where files.id = file_types.file_id and type = 'code' and repository_id=?";
+    static final String findFileCount = "select count(files.id) from files, file_types "
+            + "where files.id = file_types.file_id and type = 'code' and repository_id=?";
     private static PreparedStatement findCommitQuery;
     private static PreparedStatement findFileQuery;
     private static PreparedStatement findHunkIdQuery;
@@ -64,6 +64,7 @@ public class Simulator {
                             // to import
     final int cachesize; // size of cache
     final int pid; // project (repository) id
+    final boolean saveToFile;
     final CacheReplacement.Policy cacheRep; // cache replacement policy
     final Cache cache; // the cache
     final Connection conn = DatabaseManager.getConnection(); // for database
@@ -81,7 +82,8 @@ public class Simulator {
     int fileCount;
 
     public Simulator(int bsize, int psize, int csize, int projid,
-            CacheReplacement.Policy rep, String start, String end) {
+            CacheReplacement.Policy rep, String start, String end, Boolean save) {
+
         pid = projid;
 
         if (csize == -1 || bsize == -1 || psize == -1) {
@@ -95,43 +97,50 @@ public class Simulator {
             }
         }
 
-        if(bsize==-1)
-            blocksize = (int) Math.round(fileCount*0.05);
-        else 
+        if (bsize == -1)
+            blocksize = (int) Math.round(fileCount * 0.05);
+        else
             blocksize = bsize;
-        if(csize==-1)
-            cachesize = (int) Math.round(fileCount*0.1);
+        if (csize == -1)
+            cachesize = (int) Math.round(fileCount * 0.1);
         else
             cachesize = csize;
-        if(psize==-1)
-            prefetchsize = (int) Math.round(fileCount*0.01);
+        if (psize == -1)
+            prefetchsize = (int) Math.round(fileCount * 0.01);
         else
             prefetchsize = psize;
-        
+
         cacheRep = rep;
         cache = new Cache(cachesize, new CacheReplacement(rep), start, end,
                 projid);
         hit = 0;
         miss = 0;
-        filename = pid + "_" + cachesize + "_" + blocksize + "_" + prefetchsize
-                + "_" + cacheRep;
-        csvWriter = new CsvWriter("Results/" + filename + "_hitrate.csv");
-        try {
-            csvWriter.write("# hitrate for every 3 months, "
-                    + "used to describe the variation of hit rate with time");
-            csvWriter.endRecord();
-            csvWriter.write("# project: " + pid + ", cachesize: " + cachesize
-                    + ", blocksize: " + cachesize + ", prefetchsize: "
-                    + prefetchsize + ", cache replacement policy: " + cacheRep);
-            csvWriter.endRecord();
-            csvWriter.write("Month");
-            csvWriter.write("Range");
-            csvWriter.write("HitRate");
-            csvWriter.write("NumCommits");
-            csvWriter.endRecord();
-        } catch (IOException e) {
-            e.printStackTrace();
+        this.saveToFile = save;
+
+        if (saveToFile == true) {
+            filename = pid + "_" + cachesize + "_" + blocksize + "_"
+                    + prefetchsize + "_" + cacheRep;
+            csvWriter = new CsvWriter("Results/" + filename + "_hitrate.csv");
+            try {
+                csvWriter
+                        .write("# hitrate for every 3 months, "
+                                + "used to describe the variation of hit rate with time");
+                csvWriter.endRecord();
+                csvWriter.write("# project: " + pid + ", cachesize: "
+                        + cachesize + ", blocksize: " + cachesize
+                        + ", prefetchsize: " + prefetchsize
+                        + ", cache replacement policy: " + cacheRep);
+                csvWriter.endRecord();
+                csvWriter.write("Month");
+                csvWriter.write("Range");
+                csvWriter.write("HitRate");
+                csvWriter.write("NumCommits");
+                csvWriter.endRecord();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+
         try {
             findFileQuery = conn.prepareStatement(findFile);
             findCommitQuery = conn.prepareStatement(findCommit);
@@ -217,9 +226,11 @@ public class Simulator {
                 cid = allCommits.getInt(1);
                 cdate = allCommits.getString(2);
                 isBugFix = allCommits.getBoolean(3);
-                if (Util.Dates.getMonthDuration(lastOutputDate, cdate) > outputRange
-                        || cdate.equals(cache.endDate)) {
-                    outputHitRate(cdate);
+                if (saveToFile == true) {
+                    if (Util.Dates.getMonthDuration(lastOutputDate, cdate) > outputRange
+                            || cdate.equals(cache.endDate)) {
+                        outputHitRate(cdate);
+                    }
                 }
 
                 findFileQuery.setInt(1, cid);
@@ -520,6 +531,7 @@ public class Simulator {
         CmdLineParser.Option pid_opt = parser.addIntegerOption('p', "pid");
         CmdLineParser.Option sd_opt = parser.addStringOption('s', "start");
         CmdLineParser.Option ed_opt = parser.addStringOption('e', "end");
+        CmdLineParser.Option save_opt = parser.addBooleanOption('o',"save");
 
         // CmdLineParser.Option sCId_opt = parser.addIntegerOption('s',"start");
         // CmdLineParser.Option eCId_opt = parser.addIntegerOption('e',"end");
@@ -539,6 +551,7 @@ public class Simulator {
         Integer pid = (Integer) parser.getOptionValue(pid_opt, PRODEFAULT);
         String start = (String) parser.getOptionValue(sd_opt, null);
         String end = (String) parser.getOptionValue(ed_opt, null);
+        Boolean saveToFile = (Boolean) parser.getOptionValue(save_opt, false);
         CacheReplacement.Policy crp;
         try {
             crp = CacheReplacement.Policy.valueOf(crp_string);
@@ -559,12 +572,18 @@ public class Simulator {
         /**
          * Create a new simulator and run simulation.
          */
-        Simulator sim = new Simulator(blksz, pfsz, csz, pid, crp, start, end);
+        Simulator sim = new Simulator(blksz, pfsz, csz, pid, crp, start, end,
+                saveToFile);
         sim.checkParameter();
         sim.initialPreLoad();
         sim.simulate();
-        sim.csvWriter.close();
-        sim.outputFileDist();
+        
+        if(sim.saveToFile==true)
+        {
+            sim.csvWriter.close();
+            sim.outputFileDist();
+        }
+        
         sim.close();
 
         System.out.println(sim.getHitRate());
