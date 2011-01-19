@@ -197,7 +197,6 @@ public class Simulator {
 				findFileQuery.setInt(2, cid);
 
 				final ResultSet files = findFileQuery.executeQuery();
-
 				// loop through those file ids
 				while (files.next()) {
 					file_id = files.getInt(1);
@@ -559,7 +558,8 @@ public class Simulator {
 
 		csvWriter = new CsvWriter("Results/"+filename+"_filedist.csv");
 		try{
-		    csvWriter.write("# number of hit, misses and time stayed in Cache for every file");
+//		    csvWriter.write("# number of hit, misses and time stayed in Cache for every file");
+		    csvWriter.write("number of hit, misses and time stayed in Cache for every file");
 		    csvWriter.endRecord();
 		    csvWriter.write("# project: "+pid+", cachesize: "+cachesize+", blocksize: "+cachesize+
 		            ", prefetchsize: "+prefetchsize+", cache replacement policy: "+cacheRep);
