@@ -34,13 +34,13 @@ public class Simulator {
 	static PreparedStatement findPidQuery;
 
 
+	// XXX get rid of these
 	/**
 	 * defaults
 	 */
 	static final int BLKDEFAULT = 3;
 	static final int PFDEFAULT = 3;
 	static final int CSIZEDEFAULT = 10;
-	static final int PRODEFAULT = 1;
 
 	/**
 	 * From the actions table.
@@ -390,29 +390,30 @@ public class Simulator {
 	 public void add(int eid, int cid, String cdate, CacheReason reas) {
 		 cache.add(eid, cid, cdate, reas);
 	 }
+	 
 	 private void checkParameter() {
-		 if(cache.startDate!=null&&cache.endDate!=null)
-		 {
-			 if(cache.startDate.compareTo(cache.endDate)>0)
-			 {
-				 System.err.println("Error:Start date must be earlier than end date");
-				 printUsage();
-				 System.exit(2);
-			 }
-		 }
-		 try {
-			 findPidQuery = conn.prepareStatement(findPid);
-			 findPidQuery.setInt(1, pid);
-			 if(Util.Database.getIntResult(findPidQuery)==-1)
-			 {
-				 System.out.println("There is no project whose id is "+pid);
-				 System.exit(2);
-			 }
-		 } catch (SQLException e) {
-			 e.printStackTrace();
-		 }
-			
-		}
+	     if(cache.startDate!=null&&cache.endDate!=null)
+	     {
+	         if(cache.startDate.compareTo(cache.endDate)>0)
+	         {
+	             System.err.println("Error:Start date must be earlier than end date");
+	             printUsage();
+	             System.exit(2);
+	         }
+	     }
+	     try {
+	         findPidQuery = conn.prepareStatement(findPid);
+	         findPidQuery.setInt(1, pid);
+	         if(Util.Database.getIntResult(findPidQuery)==-1)
+	         {
+	             System.out.println("There is no project whose id is "+pid);
+	             System.exit(2);
+	         }
+	     } catch (SQLException e) {
+	         e.printStackTrace();
+	     }
+
+	 }
 
 	 public static void main(String args[]) {
 
@@ -443,20 +444,18 @@ public class Simulator {
 		 Integer pfsz = (Integer) parser.getOptionValue(pfsz_opt, PFDEFAULT);
 		 String crp_string = 
 			 (String) parser.getOptionValue(crp_opt, CacheReplacement.REPDEFAULT.toString());
-		 Integer pid = (Integer) parser.getOptionValue(pid_opt, PRODEFAULT);
+		 Integer pid = (Integer) parser.getOptionValue(pid_opt); // no default, must be specified
 		 String start = (String) parser.getOptionValue(sd_opt, null);
 		 String end = (String)parser.getOptionValue(ed_opt, null);
+		 
 		 CacheReplacement.Policy crp;
 		 try {
 			 crp = CacheReplacement.Policy.valueOf(crp_string);
 		 } catch (Exception e) {
 			 System.err.println(e.getMessage());
-			 System.err.println("Must specify a valid cache replacement policy");
-			 printUsage();
+			 System.err.println("Must specify a valid cache replacement policy: using LRU");
 			 crp = CacheReplacement.REPDEFAULT;
 		 }
-		 // startCId = (Integer)parser.getOptionValue(sCId_opt, STARTIDDEFAULT);
-		 // endCId = (Integer)parser.getOptionValue(eCId_opt, Integer.MAX_VALUE);
 		 if (pid == null) {
 			 System.err.println("Error: must specify a Project Id");
 			 printUsage();
@@ -483,7 +482,7 @@ public class Simulator {
 		 System.out.print("Num bug fixes...");
 		 System.out.println(sim.getHit() + sim.getMiss());
 
-	 }
+    }
 
     private int getCommitCount() {
         return commits;
