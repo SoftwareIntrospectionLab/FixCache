@@ -21,15 +21,16 @@ public class Cache {
     private Hashtable<Integer, CacheItem> cacheTable = new Hashtable<Integer, CacheItem>();
 
     private CacheReplacement policy;
-    String startDate;
+    String startDate; // XXX should be a real time in the version control system
     String endDate;
     int repID;
 
     // counter, used to decide which cacheitem is LRU
     private int time = 0;
-    private int totalDuration = 0;
 
     public Cache(int cacheSize, CacheReplacement pol, String start, String end, int rep) {
+        assert(start !=null);
+        assert(end != null);
         maxsize = cacheSize;
         policy = pol;
         startDate = start;
@@ -71,7 +72,7 @@ public class Cache {
      * @param fileid 
      */
     public void remove(int fileid, String cdate) {
-        totalDuration += cacheTable.get(fileid).removeFromCache(cdate);
+        cacheTable.get(fileid).removeFromCache(cdate);
         size--;
     }
 
@@ -222,7 +223,7 @@ public class Cache {
     }
     
     public int getTotalDuration(){
-        return totalDuration;
+        return Util.Dates.getMinuteDuration(startDate, endDate);
     }
 
 }
