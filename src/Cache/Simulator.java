@@ -67,7 +67,7 @@ public class Simulator {
 	final boolean saveToFile;
 	final CacheReplacement.Policy cacheRep; // cache replacement policy
 	final Cache cache; // the cache
-	final Connection conn = DatabaseManager.getConnection(); // for database
+	final static Connection conn = DatabaseManager.getConnection(); // for database
 
 	int hit;
 	int miss;
@@ -85,17 +85,6 @@ public class Simulator {
 			CacheReplacement.Policy rep, String start, String end, Boolean save) {
 
 		pid = projid;
-
-		if (csize == -1 || bsize == -1 || psize == -1) {
-			try {
-				findFileCountQuery = conn.prepareStatement(findFileCount);
-				findFileCountQuery.setInt(1, pid);
-				fileCount = Util.Database.getIntResult(findFileCountQuery);
-			} catch (SQLException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-		}
 
 		if (bsize == -1)
 			blocksize = (int) Math.round(fileCount * 0.05);
@@ -222,7 +211,7 @@ public class Simulator {
 			allCommits = findCommitQuery.executeQuery();
 
 			while (allCommits.next()) {
-				commits++;System.out.println(commits);
+				commits++;
 				cid = allCommits.getInt(1);
 				cdate = allCommits.getString(2);
 				isBugFix = allCommits.getBoolean(3);
@@ -554,7 +543,7 @@ public class Simulator {
 		String start = (String) parser.getOptionValue(sd_opt, null);
 		String end = (String) parser.getOptionValue(ed_opt, null);
 		Boolean saveToFile = (Boolean) parser.getOptionValue(save_opt, false);
-		Boolean tune = (Boolean)parser.getOptionValue(tune_opt, false);
+		Boolean tune = (Boolean)parser.getOptionValue(tune_opt, true);
 		CacheReplacement.Policy crp;
 		try {
 			crp = CacheReplacement.Policy.valueOf(crp_string);
@@ -570,6 +559,14 @@ public class Simulator {
 			System.err.println("Error: must specify a Project Id");
 			printUsage();
 			System.exit(2);
+		}
+		
+		try {
+			findFileCountQuery = conn.prepareStatement(findFileCount);
+			findFileCountQuery.setInt(1, pid);
+			fileCount = Util.Database.getIntResult(findFileCountQuery);
+		} catch (SQLException e1) {
+			e1.printStackTrace();
 		}
 
 		/**
@@ -636,7 +633,7 @@ public class Simulator {
 					sim.checkParameter();
 					sim.initialPreLoad();
 					sim.simulate();
-					sim.close();
+					//sim.close();
 					if(sim.getHitRate()>maxhitrate)
 					{
 						maxhitrate = sim.getHitRate();
