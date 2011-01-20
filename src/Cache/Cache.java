@@ -91,7 +91,7 @@ public class Cache {
             if (!ci.isInCache()){
                 load(ci, cdate);
             }
-            ci.update(cid, cdate, startDate); // updates inCache status
+            ci.update(cid, cdate, startDate, reason); // updates inCache status
         } else { // need to create a new CacheItem
             load(new CacheItem(eid, cid, cdate, reason, this), cdate);
         }

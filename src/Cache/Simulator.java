@@ -6,8 +6,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Iterator;
-
 import com.csvreader.CsvWriter;
 
 import Util.CmdLineParser;
@@ -41,14 +39,6 @@ public class Simulator {
     static PreparedStatement findFileCountQuery;
 
     /**
-     * defaults
-     */
-    static final int BLKDEFAULT = -1;
-    static final int PFDEFAULT = -1;
-    static final int CSIZEDEFAULT = -1;
-    static final int PRODEFAULT = -1;
-
-    /**
      * From the actions table. See the cvsanaly manual
      * (http://gsyc.es/~carlosgc/files/cvsanaly.pdf), pg 11
      */
@@ -64,7 +54,7 @@ public class Simulator {
     // to import
     final int cachesize; // size of cache
     final int pid; // project (repository) id
-    final boolean saveToFile;
+    final boolean saveToFile; // whether there should be csv output
     final CacheReplacement.Policy cacheRep; // cache replacement policy
     final Cache cache; // the cache
     final static Connection conn = DatabaseManager.getConnection(); // for database
@@ -72,20 +62,23 @@ public class Simulator {
     int hit;
     int miss;
     private int commits;
+    
+    // For output
+    // XXX separate class to manage output
     String outputDate;
-    String lastOutputDate;
-    int outputRange = 3; // output the hit rate every outrange months
-    int month = outputRange;
-    String range;
-    String filename;
+    int outputSpacing = 3; // output the hit rate every 3 months
+    int month = outputSpacing;
     CsvWriter csvWriter;
-    static int fileCount;
+    int fileCount; // XXX where is this set? why static?
+    String filename;
 
     public Simulator(int bsize, int psize, int csize, int projid,
             CacheReplacement.Policy rep, String start, String end, Boolean save) {
 
         pid = projid;
 
+        fileCount = getFileCount(pid);
+        
         if (bsize == -1)
             blocksize = (int) Math.round(fileCount * 0.05);
         else
@@ -110,16 +103,14 @@ public class Simulator {
             filename = pid + "_" + cachesize + "_" + blocksize + "_"
             + prefetchsize + "_" + cacheRep;
             csvWriter = new CsvWriter("Results/" + filename + "_hitrate.csv");
+            csvWriter.setComment('#');
             try {
-                csvWriter
-                .write("# hitrate for every 3 months, "
+                csvWriter.writeComment("hitrate for every 3 months, "
                         + "used to describe the variation of hit rate with time");
-                csvWriter.endRecord();
-                csvWriter.write("# project: " + pid + ", cachesize: "
+                csvWriter.writeComment("project: " + pid + ", cachesize: "
                         + cachesize + ", blocksize: " + cachesize
                         + ", prefetchsize: " + prefetchsize
                         + ", cache replacement policy: " + cacheRep);
-                csvWriter.endRecord();
                 csvWriter.write("Month");
                 csvWriter.write("Range");
                 csvWriter.write("HitRate");
@@ -138,6 +129,18 @@ public class Simulator {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    static int getFileCount(int projid) {
+        int ret = 0;
+        try {
+            findFileCountQuery = conn.prepareStatement(findFileCount);
+            findFileCountQuery.setInt(1, projid);
+            ret = Util.Database.getIntResult(findFileCountQuery);
+        } catch (SQLException e1) {
+            e1.printStackTrace();
+        }
+        return ret;
     }
 
     /**
@@ -164,20 +167,14 @@ public class Simulator {
      */
     // XXX move hit and miss to the cache?
     // could add if (reas == BugEntity) logic to add() code
-    public void loadBuggyEntity(int fileId, int cid, String commitDate,
-            String intro_cdate) {
+    public void loadBuggyEntity(int fileId, int cid, String commitDate, String intro_cdate) {
 
-        if (cache.contains(fileId)) {
-            hit++;
-            cache.add(fileId, cid, commitDate, CacheItem.CacheReason.BugEntity);
-            cache.getCacheItem(fileId).addHitCount();
-        }
-
-        else {
+        if (cache.contains(fileId))
+            hit++; 
+        else
             miss++;
-            cache.add(fileId, cid, commitDate, CacheItem.CacheReason.BugEntity);
-            cache.getCacheItem(fileId).addMissCount();
-        }
+        
+        cache.add(fileId, cid, commitDate, CacheItem.CacheReason.BugEntity);
 
         // add the co-changed files as well
         ArrayList<Integer> cochanges = CoChange.getCoChangeFileList(fileId,
@@ -215,12 +212,6 @@ public class Simulator {
                 cid = allCommits.getInt(1);
                 cdate = allCommits.getString(2);
                 isBugFix = allCommits.getBoolean(3);
-                if (saveToFile == true) {
-                    if (Util.Dates.getMonthDuration(lastOutputDate, cdate) > outputRange
-                            || cdate.equals(cache.endDate)) {
-                        outputHitRate(cdate);
-                    }
-                }
 
                 findFileQuery.setInt(1, cid);
                 findFileQuery.setInt(2, cid);
@@ -234,6 +225,14 @@ public class Simulator {
                             type, numprefetch);
                 }
                 numprefetch = 0;
+                
+                if (saveToFile == true) {
+                    if (Util.Dates.getMonthDuration(outputDate, cdate) > outputSpacing
+                            || cdate.equals(cache.endDate)) {
+                        outputHitRate(cdate);
+                    }
+                }
+
             }
         } catch (Exception e) {
             System.out.println(e);
@@ -242,23 +241,26 @@ public class Simulator {
     }
 
     private void outputHitRate(String cdate) {
+        // XXX what if commits are more than 3 months apart?
+        // XXX eliminate range?
+        final String formerOutputDate = outputDate;
+        
         if (!cdate.equals(cache.endDate)) {
-            outputDate = Util.Dates.threeMonthLater(lastOutputDate);
+            outputDate = Util.Dates.monthsLater(outputDate, outputSpacing);
         } else {
             outputDate = cdate;
         }
-        range = Util.Dates.getRange(lastOutputDate, outputDate);
-        lastOutputDate = outputDate;
+        
         try {
             csvWriter.write(Integer.toString(month));
-            csvWriter.write(range);
+            csvWriter.write(Util.Dates.getRange(formerOutputDate, outputDate));
             csvWriter.write(Double.toString(getHitRate()));
             csvWriter.write(Integer.toString(getCommitCount()));
             csvWriter.endRecord();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        month += outputRange;
+        month += outputSpacing;
     }
 
     private int processOneFile(int cid, String cdate, boolean isBugFix,
@@ -278,7 +280,6 @@ public class Simulator {
             if(cache.contains(file_id)){
                 this.cache.remove(file_id, cdate);
             }
-            // remove from the cache
             break;
         case M: // modified
         if (isBugFix) {
@@ -322,7 +323,6 @@ public class Simulator {
             System.exit(1);
         }
         outputDate = cache.startDate;
-        lastOutputDate = cache.startDate;
         final String findInitialPreload = "select content_loc.file_id, content_loc.commit_id "
             + "from content_loc, scmlog, actions, file_types "
             + "where repository_id=? and content_loc.commit_id = scmlog.id and date =? "
@@ -487,6 +487,7 @@ public class Simulator {
         cache.add(eid, cid, cdate, reas);
     }
 
+    // XXX move to a different part of the file
     public void checkParameter() {
         if (cache.startDate != null && cache.endDate != null) {
             if (cache.startDate.compareTo(cache.endDate) > 0) {
@@ -534,16 +535,16 @@ public class Simulator {
             System.exit(2);
         }
 
-        Integer blksz = (Integer) parser.getOptionValue(blksz_opt, BLKDEFAULT);
-        Integer csz = (Integer) parser.getOptionValue(csz_opt, CSIZEDEFAULT);
-        Integer pfsz = (Integer) parser.getOptionValue(pfsz_opt, PFDEFAULT);
+        Integer blksz = (Integer) parser.getOptionValue(blksz_opt, -1);
+        Integer csz = (Integer) parser.getOptionValue(csz_opt, -1);
+        Integer pfsz = (Integer) parser.getOptionValue(pfsz_opt, -1);
         String crp_string = (String) parser.getOptionValue(crp_opt,
                 CacheReplacement.REPDEFAULT.toString());
-        Integer pid = (Integer) parser.getOptionValue(pid_opt, PRODEFAULT);
+        Integer pid = (Integer) parser.getOptionValue(pid_opt);
         String start = (String) parser.getOptionValue(sd_opt, null);
         String end = (String) parser.getOptionValue(ed_opt, null);
         Boolean saveToFile = (Boolean) parser.getOptionValue(save_opt, false);
-        Boolean tune = (Boolean)parser.getOptionValue(tune_opt, true);
+        Boolean tune = (Boolean)parser.getOptionValue(tune_opt, false);
         CacheReplacement.Policy crp;
         try {
             crp = CacheReplacement.Policy.valueOf(crp_string);
@@ -561,13 +562,6 @@ public class Simulator {
             System.exit(2);
         }
         
-        try {
-            findFileCountQuery = conn.prepareStatement(findFileCount);
-            findFileCountQuery.setInt(1, pid);
-            fileCount = Util.Database.getIntResult(findFileCountQuery);
-        } catch (SQLException e1) {
-            e1.printStackTrace();
-        }
 
         /**
          * Create a new simulator and run simulation.
@@ -624,7 +618,7 @@ public class Simulator {
         double maxhitrate = 0;
         int blksz;
         int pfsz;
-        int onepercent = getPercentOfFiles();
+        int onepercent = getPercentOfFiles(pid);
         final int UPPER = 20*onepercent;
         for(blksz=onepercent;blksz<UPPER;blksz+=onepercent){
             for(pfsz=onepercent;pfsz<UPPER;pfsz+=onepercent){
@@ -645,22 +639,20 @@ public class Simulator {
         return maxsim;
     }
 
-    private static int getPercentOfFiles() {
-        return (int) Math.round(fileCount*0.01);
+    private static int getPercentOfFiles(int pid) {
+        return (int) Math.round(getFileCount(pid)*0.01);
     }
 
     public void outputFileDist() {
 
         csvWriter = new CsvWriter("Results/" + filename + "_filedist.csv");
+        csvWriter.setComment('#');
         try {
             // csvWriter.write("# number of hit, misses and time stayed in Cache for every file");
-            csvWriter
-            .write("number of hit, misses and time stayed in Cache for every file");
-            csvWriter.endRecord();
-            csvWriter.write("# project: " + pid + ", cachesize: " + cachesize
+            csvWriter.writeComment("number of hit, misses and time stayed in Cache for every file");
+            csvWriter.writeComment("project: " + pid + ", cachesize: " + cachesize
                     + ", blocksize: " + cachesize + ", prefetchsize: "
                     + prefetchsize + ", cache replacement policy: " + cacheRep);
-            csvWriter.endRecord();
             csvWriter.write("file_id");
             csvWriter.write("loc");
             csvWriter.write("num_hits");
@@ -675,10 +667,8 @@ public class Simulator {
             csvWriter.endRecord();
             // else assume that the file already has the correct header line
             // write out record
-            CacheItem ci;
-            for (Iterator<CacheItem> i = cache.getCacheItemList().iterator(); i
-            .hasNext();) {
-                ci = i.next();
+            //XXX rewrite with built in iteratable
+            for (CacheItem ci : cache.getCacheItemList()){
                 csvWriter.write(Integer.toString(ci.getEntityId()));
                 csvWriter.write(Integer.toString(ci.getLOC())); // LOC at time
                 // of last

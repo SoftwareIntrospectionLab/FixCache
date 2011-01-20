@@ -69,7 +69,7 @@ public class CacheItem {
         entityId = eid;
         reason = r;
         parent = p;
-        update(cid, cdate, p.getStartDate());
+        update(cid, cdate, p.getStartDate(), r);
     }
     
     
@@ -81,12 +81,17 @@ public class CacheItem {
      * @param cdate -- commit date
      * @param sdate -- starting date
      */
-    public void update(int cid, String cdate, String sdate) {
+    public void update(int cid, String cdate, String sdate, CacheReason r) {
         // update the load count each time an entry is added to the cache
         if (!inCache){
             inCache = true;
             loadCount++;
             timeAdded = cdate;
+            if (r == CacheReason.BugEntity)
+                missCount++;
+        } else { //is in cache
+            if (r == CacheReason.BugEntity)            
+                hitCount++;
         }
         loadDate = parent.getTime(); 
         LOC = findLoc(entityId, cid);
@@ -275,6 +280,13 @@ public class CacheItem {
     }
     
     /**
+     * @return Returns the hitcount
+     */
+    public int getHitCount() {
+        return hitCount;
+    }
+    
+    /**
      * for debugging; used only for the DBUnit tests
      * @return number
      */
@@ -282,36 +294,19 @@ public class CacheItem {
         return number;
     }
 
-
-	public void addHitCount() {
-		hitCount++;
-		
-	}
-
-
-	public void addMissCount() {
-		missCount++;
-		
-	}
-
-
-	public int getHitCount() {
-		return hitCount;
-	}
-	
-	public int getMissCount() {
-		return missCount;
-	}
-	
+	/**
+	 * 
+	 * @return the amount of time this cache item was in cache
+	 */
 	public int getDuration() {
-	    if(loadDuration!=0)
-	    {
-	        return loadDuration;
-	    }
-	    else
-	    {
-	      return Util.Dates.getMinuteDuration(timeAdded, parent.endDate);  
-	    }
+	    if(inCache)
+	        loadDuration += Util.Dates.getMinuteDuration(timeAdded, parent.endDate);
+	    return loadDuration;
 	}
+
+
+    public int getMissCount() {
+        return missCount;
+    }
 
 }
