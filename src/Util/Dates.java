@@ -60,5 +60,4 @@ public class Dates {
 		range.append(end.getDayOfMonth());
 		return range.toString();
 	}
-
 }
