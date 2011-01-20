@@ -55,6 +55,8 @@ public class CacheItem {
     private String timeAdded; //represents repo time when a file is added to cache
     private final Cache parent;
     private boolean inCache = false; // stores whether the cacheitem is in the cache
+    private int hitCount = 0;
+    private int missCount = 0;
 
     @SuppressWarnings("unused") // may be useful output
     private CacheReason reason; 
@@ -95,10 +97,11 @@ public class CacheItem {
         return inCache;
     }
     
-    public void removeFromCache(String cdate){ 
-        loadDuration += Util.Dates.getDuration(timeAdded, cdate);
+    public int removeFromCache(String cdate){ 
+        loadDuration += Util.Dates.getMinuteDuration(timeAdded, cdate);
         assert(inCache);
         inCache = false;
+        return loadDuration;
     }
 
     // XXX: Do we need pid? or is eid unique enough for the called methods?
@@ -278,5 +281,37 @@ public class CacheItem {
     protected int getNumber() {
         return number;
     }
+
+
+	public void addHitCount() {
+		hitCount++;
+		
+	}
+
+
+	public void addMissCount() {
+		missCount++;
+		
+	}
+
+
+	public int getHitCount() {
+		return hitCount;
+	}
+	
+	public int getMissCount() {
+		return missCount;
+	}
+	
+	public int getDuration() {
+	    if(loadDuration!=0)
+	    {
+	        return loadDuration;
+	    }
+	    else
+	    {
+	      return Util.Dates.getMinuteDuration(timeAdded, parent.endDate);  
+	    }
+	}
 
 }

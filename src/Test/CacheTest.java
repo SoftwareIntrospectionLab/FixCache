@@ -14,6 +14,7 @@ import org.junit.Test;
 import Cache.Cache;
 import Cache.CacheReplacement;
 import Cache.CacheItem.CacheReason;
+import Cache.Simulator;
 
 public class CacheTest {
 
@@ -68,7 +69,15 @@ public class CacheTest {
         assertEquals(1, cache.getLoadCount(1));
     }
 
-    public void testBumpOutItem() {
-
+    @Test
+    public void testGetTotalDuration()
+    {
+        Simulator sim = new Simulator(3, 2, 5, 1,
+                CacheReplacement.Policy.LRU, null, "2009-10-20 14:37:38.0", false);
+        sim.checkParameter();
+        sim.initialPreLoad();
+        sim.simulate();
+        sim.getCsvWriter().close();
+        sim.outputFileDist();
     }
 }

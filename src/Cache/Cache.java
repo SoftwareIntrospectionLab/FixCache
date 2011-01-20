@@ -27,6 +27,7 @@ public class Cache {
 
     // counter, used to decide which cacheitem is LRU
     private int time = 0;
+    private int totalDuration = 0;
 
     public Cache(int cacheSize, CacheReplacement pol, String start, String end, int rep) {
         maxsize = cacheSize;
@@ -70,7 +71,7 @@ public class Cache {
      * @param fileid 
      */
     public void remove(int fileid, String cdate) {
-        cacheTable.get(fileid).removeFromCache(cdate);
+        totalDuration += cacheTable.get(fileid).removeFromCache(cdate);
         size--;
     }
 
@@ -78,8 +79,8 @@ public class Cache {
      * Called on cache hit and cache miss.
      * Adds an item into the cache, if not already there.
      * If already there, updates the cache entry.
-     * @param eid -- entityid
-     * @param cid -- commitid
+     * @param eid -- entity id
+     * @param cid -- commit id
      * @param cdate -- commit date
      * @param reason -- reason for adding to the cache
      */
@@ -188,12 +189,13 @@ public class Cache {
      * or null if it is not in the cache.
      */
     public CacheItem getCacheItem(int entityId) {
-        CacheItem ci = cacheTable.get(entityId);
-        if (ci == null)
-            return null;
-        if (!ci.isInCache())
-            return null;
-        return ci;
+//        CacheItem ci = cacheTable.get(entityId);
+//        if (ci == null)
+//            return null;
+//        if (!ci.isInCache())
+//            return null;
+//        return ci;
+    	return cacheTable.get(entityId);
     }
 
     public ArrayList<CacheItem> getCacheItemList() {
@@ -217,6 +219,10 @@ public class Cache {
 
     public int getTime() {
         return time++;
+    }
+    
+    public int getTotalDuration(){
+        return totalDuration;
     }
 
 }

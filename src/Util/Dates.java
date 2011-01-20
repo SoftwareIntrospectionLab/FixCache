@@ -2,12 +2,15 @@ package Util;
 
 import org.joda.time.DateTime;
 import org.joda.time.Minutes;
+import org.joda.time.Months;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import java.lang.StringBuilder;
 
 public class Dates {
     
     static final DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.S");
+    static StringBuilder range;
 
 	public static DateTime toDateTime(String date){
 	    
@@ -19,10 +22,19 @@ public class Dates {
 	    return date.toString(fmt);
 	}
 
-	public static int getDuration(String start, String end)
+	public static int getMinuteDuration(String start, String end)
 	{
-	    
 	    return Minutes.minutesBetween(toDateTime(start), toDateTime(end)).getMinutes();
+	}
+	
+	public static int getMonthDuration(String start, String end)
+	{
+	    return Months.monthsBetween(toDateTime(start), toDateTime(end)).getMonths();
+	}
+
+	public static String threeMonthLater(String start)
+	{
+	    return toString(toDateTime(start).plusMonths(3));
 	}
 	
 	public static void main(String args[])
@@ -30,4 +42,23 @@ public class Dates {
 	    DateTime d = new DateTime("2000-05-04T01:02:03");
 	    System.out.print(toString(d));
 	}
+
+	public static String getRange(String rangeStart, String rangeEnd) {
+		DateTime start = toDateTime(rangeStart);
+		DateTime end = toDateTime(rangeEnd);
+		range = new StringBuilder();
+		range.append(start.getYear());
+		range.append(".");
+		range.append(start.getMonthOfYear());
+		range.append(".");
+		range.append(start.getDayOfMonth());
+		range.append("~");
+		range.append(end.getYear());
+		range.append(".");
+		range.append(end.getMonthOfYear());
+		range.append(".");
+		range.append(end.getDayOfMonth());
+		return range.toString();
+	}
+
 }
