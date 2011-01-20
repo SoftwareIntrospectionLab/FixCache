@@ -32,9 +32,9 @@ public class Dates {
 	    return Months.monthsBetween(toDateTime(start), toDateTime(end)).getMonths();
 	}
 
-	public static String threeMonthLater(String start)
+	public static String monthsLater(String start, int numMonths)
 	{
-	    return toString(toDateTime(start).plusMonths(3));
+	    return toString(toDateTime(start).plusMonths(numMonths));
 	}
 	
 	public static void main(String args[])
