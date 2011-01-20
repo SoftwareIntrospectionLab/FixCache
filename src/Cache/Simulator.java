@@ -222,7 +222,7 @@ public class Simulator {
 			allCommits = findCommitQuery.executeQuery();
 
 			while (allCommits.next()) {
-				commits++;
+				commits++;System.out.println(commits);
 				cid = allCommits.getInt(1);
 				cdate = allCommits.getString(2);
 				isBugFix = allCommits.getBoolean(3);
@@ -286,7 +286,10 @@ public class Simulator {
 			}
 			break;
 		case D:
-			this.cache.remove(file_id, cdate);// remove from the cache
+			if(cache.contains(file_id)){
+				this.cache.remove(file_id, cdate);
+			}
+			// remove from the cache
 			break;
 		case M: // modified
 		if (isBugFix) {
@@ -575,7 +578,7 @@ public class Simulator {
 		if(tune)
 		{
 			Simulator sim = tune(pid);
-			System.out.println(sim.getHitRate());
+			System.out.println("highest hitrate:"+sim.getHitRate());
 			System.out.println(sim.blocksize);
 			System.out.println(sim.prefetchsize);
 			System.out.println(sim.cacheRep.toString());
@@ -584,9 +587,6 @@ public class Simulator {
 		{
 			Simulator sim = mainloop(blksz, pfsz, csz, pid, crp, start, end,
 					saveToFile);
-			sim.checkParameter();
-			sim.initialPreLoad();
-			sim.simulate();
 
 			if(sim.saveToFile==true)
 			{
