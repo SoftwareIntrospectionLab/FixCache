@@ -698,7 +698,7 @@ public class Simulator {
             // else assume that the file already has the correct header line
             // write out record
             //XXX rewrite with built in iteratable
-            for (CacheItem ci : cache.getCacheItemList()){
+            for (CacheItem ci : cache){
                 csvWriter.write(Integer.toString(ci.getEntityId()));
                 csvWriter.write(Integer.toString(ci.getLOC())); // LOC at time of last update
                 csvWriter.write(Integer.toString(ci.getLoadCount()));
