@@ -680,10 +680,12 @@ public class Simulator {
                     + prefetchsize + ", cache replacement policy: " + cacheRep);
             csvWriter.write("file_id");
             csvWriter.write("loc");
+            csvWriter.write("num_load");
             csvWriter.write("num_hits");
             csvWriter.write("num_misses");
             csvWriter.write("duration");
             csvWriter.endRecord();
+            csvWriter.write("0");
             csvWriter.write("0");
             csvWriter.write("0");
             csvWriter.write("0");
@@ -695,9 +697,8 @@ public class Simulator {
             //XXX rewrite with built in iteratable
             for (CacheItem ci : cache.getCacheItemList()){
                 csvWriter.write(Integer.toString(ci.getEntityId()));
-                csvWriter.write(Integer.toString(ci.getLOC())); // LOC at time
-                // of last
-                // update
+                csvWriter.write(Integer.toString(ci.getLOC())); // LOC at time of last update
+                csvWriter.write(Integer.toString(ci.getLoadCount()));
                 csvWriter.write(Integer.toString(ci.getHitCount()));
                 csvWriter.write(Integer.toString(ci.getMissCount()));
                 csvWriter.write(Integer.toString(ci.getDuration()));
