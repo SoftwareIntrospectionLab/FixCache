@@ -88,7 +88,7 @@ public class SimulatorTest {
         sim.add(1, 1, "2009-10-20 01:32:19.0", CacheItem.CacheReason.NewEntity);
         assertEquals(cache.getCacheSize(), 3);
         sim.add(3, 1, "2009-10-20 01:32:19.0", CacheItem.CacheReason.NewEntity);
-        assertEquals(cache.getCacheSize(), 4);
+        assertEquals(cache.getCacheSize(), 3);
     }
 
     @Test
@@ -126,26 +126,26 @@ public class SimulatorTest {
                 CacheReplacement.Policy.BUGS, "2009-10-24 14:30:53.0", null, false);
         sim1.initialPreLoad();
         sim1.simulate();
-        int rat = (int) (sim1.getHitRate() * 10);
-        assertEquals(rat, 10);
+        int rat = (int) (sim1.getHitRate()*100);
+        assertEquals(10000, rat);
         Simulator sim2 = new Simulator(3, 2, 5, 1,
                 CacheReplacement.Policy.BUGS, "2009-10-24 09:50:26.0", null, false);
         sim2.initialPreLoad();
         sim2.simulate();
-        rat = (int) (sim2.getHitRate() * 10);
-        assertEquals(rat, 10);
+        rat = (int) (sim2.getHitRate()*100);
+        assertEquals(10000, rat);
         Simulator sim3 = new Simulator(3, 2, 5, 1,
                 CacheReplacement.Policy.BUGS, "2009-10-24 07:51:22.0", null, false);
         sim3.initialPreLoad();
         sim3.simulate();
-        rat = (int) (sim3.getHitRate() * 10);
-        assertEquals(rat, 5);
+        rat = (int) (sim3.getHitRate()*100);
+        assertEquals(5000, rat);
         Simulator sim4 = new Simulator(3, 2, 5, 1,
                 CacheReplacement.Policy.BUGS, "2009-10-20 01:32:19.0", null, false);
         sim4.initialPreLoad();
         sim4.simulate();
-        rat = (int) (sim4.getHitRate() * 10);
-        assertEquals(6, rat);
+        rat = (int) (sim4.getHitRate()*100);
+        assertEquals(6000, rat);
     }
     
 
