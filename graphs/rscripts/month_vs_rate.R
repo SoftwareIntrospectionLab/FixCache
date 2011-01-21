@@ -2,7 +2,7 @@
 # month vs hitrate
 rates <- read.csv("ratesfile", comment.char="#")
 attach(rates)
-plot(Month, HitRate, type="p", ylim=range(0,1), xlim=range(1,max(Month)), xaxt="n")
+plot(Month, HitRate, type="p", ylim=range(0,100), xlim=range(1,max(Month)), xaxt="n")
 axis(at=Month, side=1)
 abline(h=max(HitRate), lty=2)
 abline(h=min(HitRate), lty=2)
