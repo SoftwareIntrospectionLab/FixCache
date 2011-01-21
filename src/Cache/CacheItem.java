@@ -70,6 +70,8 @@ public class CacheItem {
         reason = r;
         parent = p;
         update(cid, cdate, p.getStartDate(), r);
+        assert(r != CacheReason.BugEntity || missCount != 0);
+        assert(parent.neverInCache(eid));
     }
     
     

@@ -197,6 +197,10 @@ public class Cache {
             return null;
         return ci;
     }
+    
+    public boolean neverInCache(int entityId){
+        return (cacheTable.get(entityId) == null);
+    }
 
     public ArrayList<CacheItem> getCacheItemList() {
         ArrayList<CacheItem> CIList = new ArrayList<CacheItem>();
