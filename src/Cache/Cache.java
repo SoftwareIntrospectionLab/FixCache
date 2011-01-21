@@ -190,7 +190,12 @@ public class Cache {
      * or null if it is not in the cache.
      */
     public CacheItem getCacheItem(int entityId) {
-    	return cacheTable.get(entityId);
+        CacheItem ci = cacheTable.get(entityId);
+        if (ci == null)
+            return null;
+        if (!ci.isInCache())
+            return null;
+        return ci;
     }
 
     public ArrayList<CacheItem> getCacheItemList() {

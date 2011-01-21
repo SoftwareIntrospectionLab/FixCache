@@ -61,14 +61,14 @@ public class CacheReplacementTest {
         cache.add(2, 6, "2009-10-23 14:29:05.0", CacheReason.BugEntity);
         cache.add(6, 6, "2009-10-23 14:29:05.0", CacheReason.NewEntity);
         cache.add(7, 6, "2009-10-23 14:29:05.0", CacheReason.NewEntity);
-        assertFalse(cache.getCacheItem(3).isInCache());
+        assertNull(cache.getCacheItem(3) );
         cache.add(3, 7, "2009-10-23 20:01:52.0", CacheReason.BugEntity);
-        assertFalse(cache.getCacheItem(5).isInCache());
+        assertNull(cache.getCacheItem(5) );
         cache.add(8, 8, "2009-10-24 07:51:22.0", CacheReason.NewEntity);
-        assertFalse(cache.getCacheItem(6).isInCache());
+        assertNull(cache.getCacheItem(6) );
         cache.add(1, 8, "2009-10-24 07:51:22.0", CacheReason.ModifiedEntity);
         cache.add(5, 9, "2009-10-24 09:50:26.0", CacheReason.ModifiedEntity);
-        assertFalse(cache.getCacheItem(7).isInCache());
+        assertNull(cache.getCacheItem(7) );
     }
 
     @Test
@@ -99,17 +99,17 @@ public class CacheReplacementTest {
         assertEquals(3, cache.getMinimum());
         cache.add(7, 6, "2009-10-23 14:29:05.0", CacheReason.NewEntity); // 7,
         assertEquals(5, cache.getCacheSize());
-        assertFalse(cache.getCacheItem(3).isInCache());
+        assertNull(cache.getCacheItem(3) );
 
         cache.add(3, 7, "2009-10-23 20:01:52.0", CacheReason.BugEntity); // 3,
         assertEquals(2, cache.getLoadCount(3));
-        assertFalse(cache.getCacheItem(5).isInCache());
+        assertNull(cache.getCacheItem(5) );
         cache.add(8, 8, "2009-10-24 07:51:22.0", CacheReason.NewEntity); // 8,
-        assertFalse(cache.getCacheItem(1).isInCache());
+        assertNull(cache.getCacheItem(1) );
         cache.add(1, 8, "2009-10-24 07:51:22.0", CacheReason.ModifiedEntity); // 1,
-        assertFalse(cache.getCacheItem(2).isInCache());
+        assertNull(cache.getCacheItem(2) );
         cache.add(5, 9, "2009-10-24 09:50:26.0", CacheReason.ModifiedEntity);
-        assertFalse(cache.getCacheItem(6).isInCache());
+        assertNull(cache.getCacheItem(6) );
     }
 
     @Test
@@ -130,14 +130,14 @@ public class CacheReplacementTest {
         cache.add(2, 6, "2009-10-23 14:29:05.0", CacheReason.BugEntity);
         cache.add(6, 6, "2009-10-23 14:29:05.0", CacheReason.NewEntity);
         cache.add(7, 6, "2009-10-23 14:29:05.0", CacheReason.NewEntity);
-        assertFalse(cache.getCacheItem(3).isInCache());
+        assertNull(cache.getCacheItem(3) );
         cache.add(3, 7, "2009-10-23 20:01:52.0", CacheReason.BugEntity);
-        assertFalse(cache.getCacheItem(5).isInCache());
+        assertNull(cache.getCacheItem(5) );
         cache.add(8, 8, "2009-10-24 07:51:22.0", CacheReason.NewEntity);
-        assertFalse(cache.getCacheItem(6).isInCache());
+        assertNull(cache.getCacheItem(6) );
         cache.add(1, 8, "2009-10-24 07:51:22.0", CacheReason.ModifiedEntity);
         cache.add(5, 9, "2009-10-24 09:50:26.0", CacheReason.ModifiedEntity);
-        assertFalse(cache.getCacheItem(7).isInCache());
+        assertNull(cache.getCacheItem(7) );
     }
 
     @Test
@@ -159,14 +159,14 @@ public class CacheReplacementTest {
         cache.add(2, 6, "2009-10-23 14:29:05.0", CacheReason.BugEntity);
         cache.add(6, 6, "2009-10-23 14:29:05.0", CacheReason.NewEntity);
         cache.add(7, 6, "2009-10-23 14:29:05.0", CacheReason.NewEntity);
-        assertFalse(cache.getCacheItem(3).isInCache());
+        assertNull(cache.getCacheItem(3) );
         cache.add(3, 7, "2009-10-23 20:01:52.0", CacheReason.BugEntity);
-        assertFalse(cache.getCacheItem(5).isInCache());
+        assertNull(cache.getCacheItem(5) );
         cache.add(8, 8, "2009-10-24 07:51:22.0", CacheReason.NewEntity);
-        assertFalse(cache.getCacheItem(6).isInCache());
+        assertNull(cache.getCacheItem(6) );
         cache.add(1, 8, "2009-10-24 07:51:22.0", CacheReason.ModifiedEntity);
         cache.add(5, 9, "2009-10-24 09:50:26.0", CacheReason.ModifiedEntity);
-        assertFalse(cache.getCacheItem(8).isInCache());
+        assertNull(cache.getCacheItem(8) );
     }
 
 }

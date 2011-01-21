@@ -93,8 +93,15 @@ public class Simulator {
             prefetchsize = psize;
 
         cacheRep = rep;
+        
+        start = findFirstDate(start, pid);
+        end = findLastDate(end, pid);
+
+        
         cache = new Cache(cachesize, new CacheReplacement(rep), start, end,
                 projid);
+        outputDate = cache.startDate;
+
         hit = 0;
         miss = 0;
         this.saveToFile = save;
@@ -315,14 +322,6 @@ public class Simulator {
      */
     public void initialPreLoad() {
 
-        cache.startDate = findFirstDate();
-        cache.endDate = findLastDate();
-        if (cache.startDate.compareTo(cache.endDate) > 0) {
-            System.out.println("There is no commit between " + cache.startDate
-                    + " and " + cache.endDate);
-            System.exit(1);
-        }
-        outputDate = cache.startDate;
         final String findInitialPreload = "select content_loc.file_id, content_loc.commit_id "
             + "from content_loc, scmlog, actions, file_types "
             + "where repository_id=? and content_loc.commit_id = scmlog.id and date =? "
@@ -363,12 +362,12 @@ public class Simulator {
      * 
      * @return The date for the prefetch.
      */
-    private String findFirstDate() {
+    private static String findFirstDate(String start, int pid) {
         String findFirstDate = "";
         final PreparedStatement findFirstDateQuery;
         String firstDate = "";
         try {
-            if (cache.startDate == null) {
+            if (start == null) {
                 findFirstDate = "select min(date) from scmlog where repository_id=?";
                 findFirstDateQuery = conn.prepareStatement(findFirstDate);
                 findFirstDateQuery.setInt(1, pid);
@@ -376,12 +375,12 @@ public class Simulator {
                 findFirstDate = "select min(date) from scmlog where repository_id=? and date >=?";
                 findFirstDateQuery = conn.prepareStatement(findFirstDate);
                 findFirstDateQuery.setInt(1, pid);
-                findFirstDateQuery.setString(2, cache.startDate);
+                findFirstDateQuery.setString(2, start);
             }
             firstDate = Util.Database.getStringResult(findFirstDateQuery);
             if (firstDate == null) {
                 System.out.println("Can not find any commit after "
-                        + cache.startDate);
+                        + start);
                 System.exit(2);
             }
         } catch (SQLException e) {
@@ -396,12 +395,12 @@ public class Simulator {
      * 
      * @return The date for the the simulator.
      */
-    private String findLastDate() {
+    private static String findLastDate(String end, int pid) {
         String findLastDate = null;
         final PreparedStatement findLastDateQuery;
         String lastDate = null;
         try {
-            if (cache.endDate == null) {
+            if (end == null) {
                 findLastDate = "select max(date) from scmlog where repository_id=?";
                 findLastDateQuery = conn.prepareStatement(findLastDate);
                 findLastDateQuery.setInt(1, pid);
@@ -409,7 +408,7 @@ public class Simulator {
                 findLastDate = "select max(date) from scmlog where repository_id=? and date <=?";
                 findLastDateQuery = conn.prepareStatement(findLastDate);
                 findLastDateQuery.setInt(1, pid);
-                findLastDateQuery.setString(2, cache.endDate);
+                findLastDateQuery.setString(2, end);
             }
             lastDate = Util.Database.getStringResult(findLastDateQuery);
         } catch (SQLException e) {
@@ -417,7 +416,7 @@ public class Simulator {
         }
         if (lastDate == null) {
             System.out.println("Can not find any commit before "
-                    + cache.endDate);
+                    + end);
             System.exit(2);
         }
         return lastDate;
@@ -488,9 +487,9 @@ public class Simulator {
     }
 
     // XXX move to a different part of the file
-    public void checkParameter() {
-        if (cache.startDate != null && cache.endDate != null) {
-            if (cache.startDate.compareTo(cache.endDate) > 0) {
+    public static void checkParameter(String start, String end, int pid) {
+        if (start != null && end != null) {
+            if (start.compareTo(end) > 0) {
                 System.err
                 .println("Error:Start date must be earlier than end date");
                 printUsage();
@@ -562,7 +561,7 @@ public class Simulator {
             System.exit(2);
         }
         
-
+        checkParameter(start, end, pid);
         /**
          * Create a new simulator and run simulation.
          */
@@ -577,8 +576,9 @@ public class Simulator {
         }
         else
         {
-            Simulator sim = mainloop(blksz, pfsz, csz, pid, crp, start, end,
-                    saveToFile);
+            Simulator sim = new Simulator(blksz, pfsz, csz, pid, crp, start, end, saveToFile);
+            sim.initialPreLoad();
+            sim.simulate();
 
             if(sim.saveToFile==true)
             {
@@ -600,17 +600,7 @@ public class Simulator {
         }
 
     }
-    
-    public static Simulator mainloop(int blksz, int csz, int pfsz, int pid, CacheReplacement.Policy crp,
-            String start, String end, Boolean saveToFile)
-    {
-        Simulator sim = new Simulator(blksz, pfsz, csz, pid, crp, start, end, saveToFile);
-        sim.checkParameter();
-        sim.initialPreLoad();
-        sim.simulate();
-        sim.close();
-        return sim;
-    }
+
     
     private static Simulator tune(int pid)
     {
@@ -626,7 +616,6 @@ public class Simulator {
             for(pfsz=onepercent;pfsz<UPPER;pfsz+=onepercent*3){
                 for(CacheReplacement.Policy  crp:CacheReplacement.Policy.values()){
                     sim = new Simulator(blksz, pfsz,-1, pid, crp, null, null, false);
-                    sim.checkParameter();
                     sim.initialPreLoad();
                     sim.simulate();
                     //sim.close();
@@ -638,6 +627,7 @@ public class Simulator {
                 }
             }
         }
+        maxsim.close();
         return maxsim;
     }
 
