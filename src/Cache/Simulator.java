@@ -243,8 +243,11 @@ public class Simulator {
                         outputHitRate(cdate);
                         nextCommit = false;
                     }
-                }
-
+                    else
+                    {
+                        nextCommit = true;
+                    }
+                }          
             }
         } catch (Exception e) {
             System.out.println(e);
