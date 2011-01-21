@@ -75,20 +75,19 @@ public class Simulator {
     public Simulator(int bsize, int psize, int csize, int projid,
             CacheReplacement.Policy rep, String start, String end, Boolean save) {
 
-        pid = projid;
-
-        fileCount = getFileCount(pid);
+        pid = projid;        
+        int onepercent = getPercentOfFiles(pid);
         
         if (bsize == -1)
-            blocksize = (int) Math.round(fileCount * 0.05);
+            blocksize = onepercent*5;
         else
             blocksize = bsize;
         if (csize == -1)
-            cachesize = (int) Math.round(fileCount * 0.1);
+            cachesize = onepercent*10; 
         else
             cachesize = csize;
         if (psize == -1)
-            prefetchsize = (int) Math.round(fileCount * 0.01);
+            prefetchsize = onepercent;
         else
             prefetchsize = psize;
 
@@ -138,7 +137,7 @@ public class Simulator {
         }
     }
 
-    static int getFileCount(int projid) {
+    private static int getFileCount(int projid) {
         int ret = 0;
         try {
             findFileCountQuery = conn.prepareStatement(findFileCount);
@@ -565,18 +564,18 @@ public class Simulator {
         /**
          * Create a new simulator and run simulation.
          */
+        Simulator sim;
+        
         if(tune)
         {
             System.out.println("tuning...");
-            Simulator sim = tune(pid);
+            sim = tune(pid);
+            System.out.println(".... finished tuning!");
             System.out.println("highest hitrate:"+sim.getHitRate());
-            System.out.println(sim.blocksize);
-            System.out.println(sim.prefetchsize);
-            System.out.println(sim.cacheRep.toString());
         }
         else
         {
-            Simulator sim = new Simulator(blksz, pfsz, csz, pid, crp, start, end, saveToFile);
+            sim = new Simulator(blksz, pfsz, csz, pid, crp, start, end, saveToFile);
             sim.initialPreLoad();
             sim.simulate();
 
@@ -586,19 +585,44 @@ public class Simulator {
                 sim.outputFileDist();
             }
 
-            sim.close();
-
-            System.out.print("Hit rate...");
-            System.out.println(sim.getHitRate());
-
-            System.out.print("Num commits processed...");
-            System.out.println(sim.getCommitCount());
-
-            System.out.print("Num bug fixes...");
-            System.out.println(sim.getHit() + sim.getMiss());
-
         }
+        
+        // should always happen
+        sim.close();
+        printSummary(sim);
+    }
 
+
+    private static void printSummary(Simulator sim) {
+        System.out.println("Simulator specs:");
+        System.out.print("Project....");
+        System.out.println(sim.pid);
+        System.out.print("Cache size....");
+        System.out.println(sim.cachesize);
+        System.out.print("Blk size....");
+        System.out.println(sim.blocksize);
+        System.out.print("Prefetch size....");
+        System.out.println(sim.prefetchsize);
+        System.out.print("Start date....");
+        System.out.println(sim.cache.startDate);
+        System.out.print("End date....");
+        System.out.println(sim.cache.endDate);
+        System.out.print("Cache Replacement Policy ....");
+        System.out.println(sim.cacheRep.toString());
+        System.out.print("saving to file....");
+        System.out.println(sim.saveToFile);
+
+        
+        System.out.println("\nResults:");
+        
+        System.out.print("Hit rate...");
+        System.out.println(sim.getHitRate());
+
+        System.out.print("Num commits processed...");
+        System.out.println(sim.getCommitCount());
+
+        System.out.print("Num bug fixes...");
+        System.out.println(sim.getHit() + sim.getMiss());
     }
 
     
@@ -610,7 +634,7 @@ public class Simulator {
         int blksz;
         int pfsz;
         int onepercent = getPercentOfFiles(pid);
-        final int UPPER = 21*onepercent;
+        final int UPPER = 22*onepercent;
                 
         for(blksz=onepercent;blksz<UPPER;blksz+=onepercent*3){
             for(pfsz=onepercent;pfsz<UPPER;pfsz+=onepercent*3){
@@ -618,7 +642,6 @@ public class Simulator {
                     sim = new Simulator(blksz, pfsz,-1, pid, crp, null, null, false);
                     sim.initialPreLoad();
                     sim.simulate();
-                    //sim.close();
                     if(sim.getHitRate()>maxhitrate)
                     {
                         maxhitrate = sim.getHitRate();
