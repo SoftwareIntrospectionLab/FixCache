@@ -197,12 +197,13 @@ public class Simulator {
 
         final ResultSet allCommits;
         int cid;// means commit_id in actions
-        String cdate;
+        String cdate = null;
 
         boolean isBugFix;
         int file_id;
         FileType type;
         int numprefetch = 0;
+        Boolean nextCommit = true;
 
         // iterate over the selection
         try {
@@ -214,28 +215,33 @@ public class Simulator {
             allCommits = findCommitQuery.executeQuery();
 
             while (allCommits.next()) {
-                commits++;
-                cid = allCommits.getInt(1);
-                cdate = allCommits.getString(2);
-                isBugFix = allCommits.getBoolean(3);
+                if(nextCommit==true)
+                {
+                    commits++;
+                    cid = allCommits.getInt(1);
+                    cdate = allCommits.getString(2);
+                    isBugFix = allCommits.getBoolean(3);
 
-                findFileQuery.setInt(1, cid);
-                findFileQuery.setInt(2, cid);
+                    findFileQuery.setInt(1, cid);
+                    findFileQuery.setInt(2, cid);
 
-                final ResultSet files = findFileQuery.executeQuery();
-                // loop through those file ids
-                while (files.next()) {
-                    file_id = files.getInt(1);
-                    type = FileType.valueOf(files.getString(2));
-                    numprefetch = processOneFile(cid, cdate, isBugFix, file_id,
-                            type, numprefetch);
+                    final ResultSet files = findFileQuery.executeQuery();
+                    // loop through those file ids
+                    while (files.next()) {
+                        file_id = files.getInt(1);
+                        type = FileType.valueOf(files.getString(2));
+                        numprefetch = processOneFile(cid, cdate, isBugFix, file_id,
+                                type, numprefetch);
+                    }
+                    numprefetch = 0;
                 }
-                numprefetch = 0;
+                
                 
                 if (saveToFile == true) {
                     if (Util.Dates.getMonthDuration(outputDate, cdate) > outputSpacing
                             || cdate.equals(cache.endDate)) {
                         outputHitRate(cdate);
+                        nextCommit = false;
                     }
                 }
 
