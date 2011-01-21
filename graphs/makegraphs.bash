@@ -7,8 +7,8 @@ if [[ $# -lt 2 ]]; then
 fi
 
 # verify that $1 contains string "rates"
-if [[ ! $1 =~ "rates" ]]; then
-	echo "Usage: first file must contain the substring \"rates\""
+if [[ ! $1 =~ "rate" ]]; then
+	echo "Usage: first file must contain the substring \"rate\""
 fi
 
 # verify that $2 contains string "filedist"

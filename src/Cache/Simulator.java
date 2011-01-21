@@ -112,7 +112,7 @@ public class Simulator {
                         + ", prefetchsize: " + prefetchsize
                         + ", cache replacement policy: " + cacheRep);
                 csvWriter.write("Month");
-                csvWriter.write("Range");
+                //csvWriter.write("Range");
                 csvWriter.write("HitRate");
                 csvWriter.write("NumCommits");
                 csvWriter.endRecord();
@@ -243,7 +243,7 @@ public class Simulator {
     private void outputHitRate(String cdate) {
         // XXX what if commits are more than 3 months apart?
         // XXX eliminate range?
-        final String formerOutputDate = outputDate;
+        //final String formerOutputDate = outputDate;
         
         if (!cdate.equals(cache.endDate)) {
             outputDate = Util.Dates.monthsLater(outputDate, outputSpacing);
@@ -253,7 +253,7 @@ public class Simulator {
         
         try {
             csvWriter.write(Integer.toString(month));
-            csvWriter.write(Util.Dates.getRange(formerOutputDate, outputDate));
+            //csvWriter.write(Util.Dates.getRange(formerOutputDate, outputDate));
             csvWriter.write(Double.toString(getHitRate()));
             csvWriter.write(Integer.toString(getCommitCount()));
             csvWriter.endRecord();
@@ -568,6 +568,7 @@ public class Simulator {
          */
         if(tune)
         {
+            System.out.println("tuning...");
             Simulator sim = tune(pid);
             System.out.println("highest hitrate:"+sim.getHitRate());
             System.out.println(sim.blocksize);
@@ -619,9 +620,10 @@ public class Simulator {
         int blksz;
         int pfsz;
         int onepercent = getPercentOfFiles(pid);
-        final int UPPER = 20*onepercent;
-        for(blksz=onepercent;blksz<UPPER;blksz+=onepercent){
-            for(pfsz=onepercent;pfsz<UPPER;pfsz+=onepercent){
+        final int UPPER = 21*onepercent;
+                
+        for(blksz=onepercent;blksz<UPPER;blksz+=onepercent*3){
+            for(pfsz=onepercent;pfsz<UPPER;pfsz+=onepercent*3){
                 for(CacheReplacement.Policy  crp:CacheReplacement.Policy.values()){
                     sim = new Simulator(blksz, pfsz,-1, pid, crp, null, null, false);
                     sim.checkParameter();
@@ -640,7 +642,11 @@ public class Simulator {
     }
 
     private static int getPercentOfFiles(int pid) {
-        return (int) Math.round(getFileCount(pid)*0.01);
+        int ret =  (int) Math.round(getFileCount(pid)*0.01);
+        if (ret == 0)
+           return 1;
+        else
+           return ret;
     }
 
     public void outputFileDist() {
