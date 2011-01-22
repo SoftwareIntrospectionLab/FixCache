@@ -20,7 +20,7 @@ public class CoChange {
     final static Connection conn = DatabaseManager.getConnection();
     static final String findCommitId = "SELECT commit_id from actions, scmlog " +
             "where file_id=? and actions.commit_id=scmlog.id and date between ? and ?";
-    static final String findCochangeFileId = "SELECT file_id from actions where commit_id =?";
+    static final String findCochangeFileId = "SELECT actions.file_id from actions, file_types where commit_id =? and actions.file_id=file_types.file_id and file_types.type='code'";
     private static PreparedStatement findCommitIdQuery;
     private static PreparedStatement findCochangeFileIdQuery;
 
