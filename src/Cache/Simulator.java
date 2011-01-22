@@ -231,15 +231,13 @@ public class Simulator {
                             type, numprefetch);
                 }
                 numprefetch = 0;
-            }
-
-
-            if (saveToFile == true) {
-                if (Util.Dates.getMonthDuration(outputDate, cdate) > outputSpacing
-                        || cdate.equals(cache.endDate)) {
-                    outputHitRate(cdate);
-                }
-            }          
+                if (saveToFile == true) {
+                    if (Util.Dates.getMonthDuration(outputDate, cdate) > outputSpacing
+                            || cdate.equals(cache.endDate)) {
+                        outputHitRate(cdate);
+                    }
+                }                   
+            }      
         } catch (Exception e) {
             System.out.println(e);
             e.printStackTrace();
