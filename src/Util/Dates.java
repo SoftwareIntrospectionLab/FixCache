@@ -28,7 +28,7 @@ public class Dates {
 	}
 	
 	public static int getMonthDuration(String start, String end)
-	{System.out.println(start+"*****"+end);
+	{
 	    return Months.monthsBetween(toDateTime(start), toDateTime(end)).getMonths();
 	}
 
