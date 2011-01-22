@@ -267,8 +267,7 @@ public class Simulator {
             e.printStackTrace();
         }
         month += outputSpacing;
-        if (Util.Dates.getMonthDuration(outputDate, cdate) > outputSpacing
-                || cdate.equals(cache.endDate)) {
+        if (Util.Dates.getMonthDuration(outputDate, cdate) > outputSpacing){
             outputHitRate(cdate);
         }
     }
