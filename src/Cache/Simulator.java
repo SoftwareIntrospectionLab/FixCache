@@ -552,8 +552,6 @@ public class Simulator {
             printUsage();
             crp = CacheReplacement.REPDEFAULT;
         }
-        // startCId = (Integer)parser.getOptionValue(sCId_opt, STARTIDDEFAULT);
-        // endCId = (Integer)parser.getOptionValue(eCId_opt, Integer.MAX_VALUE);
         if (pid == null) {
             System.err.println("Error: must specify a Project Id");
             printUsage();
@@ -634,22 +632,41 @@ public class Simulator {
         int blksz;
         int pfsz;
         int onepercent = getPercentOfFiles(pid);
-        final int UPPER = 22*onepercent;
-                
-        for(blksz=onepercent;blksz<UPPER;blksz+=onepercent*3){
-            for(pfsz=onepercent;pfsz<UPPER;pfsz+=onepercent*3){
-                for(CacheReplacement.Policy  crp:CacheReplacement.Policy.values()){
-                    sim = new Simulator(blksz, pfsz,-1, pid, crp, null, null, false);
-                    sim.initialPreLoad();
-                    sim.simulate();
-                    if(sim.getHitRate()>maxhitrate)
-                    {
-                        maxhitrate = sim.getHitRate();
-                        maxsim = sim;
-                    }
+        System.out.println("One percent of files: " + onepercent);
+        
+        final int UPPER = 10*onepercent;
+        CacheReplacement.Policy crp = CacheReplacement.REPDEFAULT;
+
+        for(blksz=onepercent;blksz<UPPER;blksz+=onepercent*2){
+            for(pfsz=onepercent;pfsz<UPPER;pfsz+=onepercent*2){
+                sim = new Simulator(blksz, pfsz,-1, pid, crp, null, null, false);
+                sim.initialPreLoad();
+                sim.simulate();
+                System.out.println(sim.getHitRate());
+                if(sim.getHitRate()>maxhitrate)
+                {
+                    maxhitrate = sim.getHitRate();
+                    maxsim = sim;
                 }
+
             }
         }
+        
+        System.out.println("Trying out different cache replacment policies...");
+        for(CacheReplacement.Policy crtst :CacheReplacement.Policy.values()){
+            sim = 
+                new Simulator(maxsim.blocksize, maxsim.prefetchsize,
+                        -1, pid, crtst, null, null, false);
+            sim.initialPreLoad();
+            sim.simulate();
+            System.out.println(sim.getHitRate());
+            if(sim.getHitRate()>maxhitrate)
+            {
+                maxhitrate = sim.getHitRate();
+                maxsim = sim;
+            }
+        }
+
         maxsim.close();
         return maxsim;
     }
