@@ -2,4 +2,5 @@ bin/
 database.properties
 testdatabase.properties
 soedatabase.properties
+mydatabase.properties
 .project
