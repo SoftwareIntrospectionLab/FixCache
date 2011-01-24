@@ -626,7 +626,6 @@ public class Simulator {
     
     private static Simulator tune(int pid)
     {
-        Simulator sim;
         Simulator maxsim = null;
         double maxhitrate = 0;
         int blksz;
@@ -639,7 +638,7 @@ public class Simulator {
 
         for(blksz=onepercent;blksz<UPPER;blksz+=onepercent*2){
             for(pfsz=onepercent;pfsz<UPPER;pfsz+=onepercent*2){
-                sim = new Simulator(blksz, pfsz,-1, pid, crp, null, null, false);
+                final Simulator sim = new Simulator(blksz, pfsz,-1, pid, crp, null, null, false);
                 sim.initialPreLoad();
                 sim.simulate();
                 System.out.println(sim.getHitRate());
@@ -654,7 +653,7 @@ public class Simulator {
         
         System.out.println("Trying out different cache replacment policies...");
         for(CacheReplacement.Policy crtst :CacheReplacement.Policy.values()){
-            sim = 
+            final Simulator sim = 
                 new Simulator(maxsim.blocksize, maxsim.prefetchsize,
                         -1, pid, crtst, null, null, false);
             sim.initialPreLoad();
