@@ -62,7 +62,7 @@ public class Simulator {
     int hit;
     int miss;
     private int commits;
-    
+
     // For output
     // XXX separate class to manage output
     String outputDate;
@@ -77,7 +77,7 @@ public class Simulator {
 
         pid = projid;        
         int onepercent = getPercentOfFiles(pid);
-        
+
         if (bsize == -1)
             blocksize = onepercent*5;
         else
@@ -92,11 +92,11 @@ public class Simulator {
             prefetchsize = psize;
 
         cacheRep = rep;
-        
+
         start = findFirstDate(start, pid);
         end = findLastDate(end, pid);
 
-        
+
         cache = new Cache(cachesize, new CacheReplacement(rep), start, end,
                 projid);
         outputDate = cache.startDate;
@@ -179,7 +179,7 @@ public class Simulator {
             hit++; 
         else
             miss++;
-        
+
         cache.add(fileId, cid, commitDate, CacheItem.CacheReason.BugEntity);
 
         // add the co-changed files as well
@@ -203,7 +203,6 @@ public class Simulator {
         int file_id;
         FileType type;
         int numprefetch = 0;
-        Boolean nextCommit = true;
 
         // iterate over the selection
         try {
@@ -215,40 +214,30 @@ public class Simulator {
             allCommits = findCommitQuery.executeQuery();
 
             while (allCommits.next()) {
-                if(nextCommit==true)
-                {
-                    commits++;
-                    cid = allCommits.getInt(1);
-                    cdate = allCommits.getString(2);
-                    isBugFix = allCommits.getBoolean(3);
+                commits++;
+                cid = allCommits.getInt(1);
+                cdate = allCommits.getString(2);
+                isBugFix = allCommits.getBoolean(3);
 
-                    findFileQuery.setInt(1, cid);
-                    findFileQuery.setInt(2, cid);
+                findFileQuery.setInt(1, cid);
+                findFileQuery.setInt(2, cid);
 
-                    final ResultSet files = findFileQuery.executeQuery();
-                    // loop through those file ids
-                    while (files.next()) {
-                        file_id = files.getInt(1);
-                        type = FileType.valueOf(files.getString(2));
-                        numprefetch = processOneFile(cid, cdate, isBugFix, file_id,
-                                type, numprefetch);
-                    }
-                    numprefetch = 0;
+                final ResultSet files = findFileQuery.executeQuery();
+                // loop through those file ids
+                while (files.next()) {
+                    file_id = files.getInt(1);
+                    type = FileType.valueOf(files.getString(2));
+                    numprefetch = processOneFile(cid, cdate, isBugFix, file_id,
+                            type, numprefetch);
                 }
-                
-                
+                numprefetch = 0;
                 if (saveToFile == true) {
                     if (Util.Dates.getMonthDuration(outputDate, cdate) > outputSpacing
                             || cdate.equals(cache.endDate)) {
                         outputHitRate(cdate);
-                        nextCommit = false;
                     }
-                    else
-                    {
-                        nextCommit = true;
-                    }
-                }          
-            }
+                }                   
+            }      
         } catch (Exception e) {
             System.out.println(e);
             e.printStackTrace();
@@ -259,13 +248,13 @@ public class Simulator {
         // XXX what if commits are more than 3 months apart?
         // XXX eliminate range?
         //final String formerOutputDate = outputDate;
-        
+
         if (!cdate.equals(cache.endDate)) {
             outputDate = Util.Dates.monthsLater(outputDate, outputSpacing);
         } else {
             outputDate = cdate;
         }
-        
+
         try {
             csvWriter.write(Integer.toString(month));
             //csvWriter.write(Util.Dates.getRange(formerOutputDate, outputDate));
@@ -276,6 +265,9 @@ public class Simulator {
             e.printStackTrace();
         }
         month += outputSpacing;
+        if (Util.Dates.getMonthDuration(outputDate, cdate) > outputSpacing){
+            outputHitRate(cdate);
+        }
     }
 
     private int processOneFile(int cid, String cdate, boolean isBugFix,
@@ -297,13 +289,13 @@ public class Simulator {
             }
             break;
         case M: // modified
-        if (isBugFix) {
-            String intro_cdate = this.getBugIntroCdate(file_id, cid);
-            this.loadBuggyEntity(file_id, cid, cdate, intro_cdate);
-        } else if (numprefetch < prefetchsize) {
-            numprefetch++;
-            cache.add(file_id, cid, cdate, CacheItem.CacheReason.Prefetch);
-        }
+            if (isBugFix) {
+                String intro_cdate = this.getBugIntroCdate(file_id, cid);
+                this.loadBuggyEntity(file_id, cid, cdate, intro_cdate);
+            } else if (numprefetch < prefetchsize) {
+                numprefetch++;
+                cache.add(file_id, cid, cdate, CacheItem.CacheReason.Prefetch);
+            }
         }
         return numprefetch;
     }
@@ -568,13 +560,13 @@ public class Simulator {
             printUsage();
             System.exit(2);
         }
-        
+
         checkParameter(start, end, pid);
         /**
          * Create a new simulator and run simulation.
          */
         Simulator sim;
-        
+
         if(tune)
         {
             System.out.println("tuning...");
@@ -595,7 +587,7 @@ public class Simulator {
             }
 
         }
-        
+
         // should always happen
         sim.close();
         printSummary(sim);
@@ -621,9 +613,9 @@ public class Simulator {
         System.out.print("saving to file....");
         System.out.println(sim.saveToFile);
 
-        
+
         System.out.println("\nResults:");
-        
+
         System.out.print("Hit rate...");
         System.out.println(sim.getHitRate());
 
@@ -634,7 +626,7 @@ public class Simulator {
         System.out.println(sim.getHit() + sim.getMiss());
     }
 
-    
+
     private static Simulator tune(int pid)
     {
         Simulator sim;
@@ -644,7 +636,7 @@ public class Simulator {
         int pfsz;
         int onepercent = getPercentOfFiles(pid);
         final int UPPER = 22*onepercent;
-                
+
         for(blksz=onepercent;blksz<UPPER;blksz+=onepercent*3){
             for(pfsz=onepercent;pfsz<UPPER;pfsz+=onepercent*3){
                 for(CacheReplacement.Policy  crp:CacheReplacement.Policy.values()){
@@ -666,9 +658,9 @@ public class Simulator {
     private static int getPercentOfFiles(int pid) {
         int ret =  (int) Math.round(getFileCount(pid)*0.01);
         if (ret == 0)
-           return 1;
+            return 1;
         else
-           return ret;
+            return ret;
     }
 
     public void outputFileDist() {
@@ -698,7 +690,7 @@ public class Simulator {
             // else assume that the file already has the correct header line
             // write out record
             //XXX rewrite with built in iteratable
-            for (CacheItem ci : cache.getCacheItemList()){
+            for (CacheItem ci : cache){
                 csvWriter.write(Integer.toString(ci.getEntityId()));
                 csvWriter.write(Integer.toString(ci.getLOC())); // LOC at time of last update
                 csvWriter.write(Integer.toString(ci.getLoadCount()));

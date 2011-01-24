@@ -5,7 +5,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import Cache.CacheItem.CacheReason;
 
-public class Cache {
+public class Cache implements Iterable<CacheItem>{
 
     /**
      *  Invariant: cacheTable.size() <= size;
@@ -202,15 +202,6 @@ public class Cache {
         return (cacheTable.get(entityId) == null);
     }
 
-    public ArrayList<CacheItem> getCacheItemList() {
-        ArrayList<CacheItem> CIList = new ArrayList<CacheItem>();
-        Iterator<CacheItem> it = cacheTable.values().iterator();
-        while (it.hasNext()) {
-            CIList.add(it.next());
-        }
-        return CIList;
-    }
-
     public int getNumber(int fileid) {
         CacheItem ci = cacheTable.get(fileid);
         return ci.getNumber();
@@ -227,6 +218,11 @@ public class Cache {
     
     public int getTotalDuration(){
         return Util.Dates.getMinuteDuration(startDate, endDate);
+    }
+
+    @Override
+    public Iterator<CacheItem> iterator() {
+        return cacheTable.values().iterator();
     }
 
 }
