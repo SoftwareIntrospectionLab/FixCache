@@ -19,7 +19,7 @@ public class CacheReplacement {
         LRU, BUGS, CHANGES, AUTHORS
     };
     static final Policy REPDEFAULT = Policy.LRU;
-
+    
     Policy currentPolicy;
     protected Comparator<CacheItem> compareFunc;
     protected ComparatorLRU tiebreaker = new ComparatorLRU();
