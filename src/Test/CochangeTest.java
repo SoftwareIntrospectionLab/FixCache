@@ -1,6 +1,7 @@
 package Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -45,22 +46,20 @@ public class CochangeTest {
 
     @Test
     public void testCoChange() {
-        ArrayList<String> cochanges1 = CoChange.getCoChangeFileList("5", "2009-10-20 01:32:19",
+        ArrayList<String> cochanges1 = CoChange.getCoChangeFileList("e.java", "2009-10-20 01:32:19",
                 "2009-10-24 09:50:26.0", 3);
-        assertEquals(cochanges1.size(), 2);
-        assertEquals(cochanges1.get(0), 1);
-        assertEquals(cochanges1.get(1), 2);
-        ArrayList<String> cochanges2 = CoChange.getCoChangeFileList("1","2009-10-20 01:32:19",
+        assertEquals(cochanges1.size(), 1);
+        assertTrue(cochanges1.contains("a.java"));
+        ArrayList<String> cochanges2 = CoChange.getCoChangeFileList("a.java","2009-10-20 01:32:19",
                 "2009-10-24 07:51:22.0", 4);
         assertEquals(cochanges2.size(), 3);
-        assertEquals(cochanges2.get(0), 2);
-        assertEquals(cochanges2.get(1), 4);
-        assertEquals(cochanges2.get(2), 3);
-        ArrayList<String> cochanges3 = CoChange.getCoChangeFileList("7","2009-10-20 01:32:19",
+        assertTrue(cochanges2.contains("d.java"));
+        assertTrue(cochanges2.contains("c.java"));
+        assertTrue(cochanges2.contains("e.java"));
+        ArrayList<String> cochanges3 = CoChange.getCoChangeFileList("g.java","2009-10-20 01:32:19",
                 "2009-10-23 14:29:05.0", 5);
-        assertEquals(cochanges3.size(), 2);
-        assertEquals(cochanges3.get(0), 2);
-        assertEquals(cochanges3.get(1), 6);
+        assertEquals(cochanges3.size(), 1);
+        assertTrue(cochanges3.contains("f.java"));
     }
 
 }

@@ -20,16 +20,17 @@ public class Simulator {
 
     static final String findCommit = "select id, date, is_bug_fix from scmlog "
         + "where repository_id =? and date between ? and ? order by date ASC";
-    static final String findFile = "select actions.file_id, type from actions, content_loc "
-        + "where actions.file_id=content_loc.file_id "
+    static final String findFile = "select file_name, type from actions, content_loc, files "
+        + "where actions.file_id=content_loc.file_id and actions.file_id=files.id "
         + "and actions.commit_id=? and content_loc.commit_id=? "
         + "and actions.file_id in( "
         + "select file_id from file_types where type='code') order by loc DESC";
-    static final String findHunkId = "select id from hunks where file_id =? and commit_id =?";
+    static final String findHunkId = "select hunks.id from hunks, files where hunks.file_id=files.id and " +
+    		"file_name =? and commit_id =?";
     static final String findBugIntroCdate = "select date from hunk_blames, scmlog "
         + "where hunk_id =? and hunk_blames.bug_commit_id=scmlog.id";
     static final String findPid = "select id from repositories where id=?";
-    static final String findFileCount = "select count(distinct(files.file_name)) " +
+    static final String findFileCount = "select count(distinct(file_name)) " +
     		"from files, file_types "
         + "where files.id = file_types.file_id and type = 'code' and repository_id=?";
     private static PreparedStatement findCommitQuery;
@@ -201,7 +202,7 @@ public class Simulator {
         String cdate = null;
 
         boolean isBugFix;
-        String file_id;
+        String fileName;
         FileType type;
         int numprefetch = 0;
 
@@ -226,9 +227,9 @@ public class Simulator {
                 final ResultSet files = findFileQuery.executeQuery();
                 // loop through those file ids
                 while (files.next()) {
-                    file_id = files.getInt(1); //XXX fix query
+                    fileName = files.getString(1); //XXX fix query
                     type = FileType.valueOf(files.getString(2));
-                    numprefetch = processOneFile(cid, cdate, isBugFix, file_id,
+                    numprefetch = processOneFile(cid, cdate, isBugFix, fileName,
                             type, numprefetch);
                 }
                 numprefetch = 0;
@@ -322,15 +323,16 @@ public class Simulator {
      */
     public void initialPreLoad() {
 
-        final String findInitialPreload = "select content_loc.file_id, content_loc.commit_id "
-            + "from content_loc, scmlog, actions, file_types "
-            + "where repository_id=? and content_loc.commit_id = scmlog.id and date =? "
-            + "and content_loc.file_id=actions.file_id "
+        final String findInitialPreload = "select files.file_name, content_loc.commit_id "
+            + "from content_loc, scmlog, actions, file_types, files "
+            + "where files.repository_id=? and content_loc.commit_id = scmlog.id and date =? "
+            + "and content_loc.file_id=actions.file_id and files.id=actions.file_id "
             + "and content_loc.commit_id=actions.commit_id and actions.type!='D' "
-            + "and file_types.file_id=content_loc.file_id and file_types.type='code' order by loc DESC";
+            + "and file_types.file_id=content_loc.file_id and file_types.type='code' " +
+            		"order by loc DESC";
         final PreparedStatement findInitialPreloadQuery;
         ResultSet r = null;
-        String fileId = null;
+        String fileName = null;
         int commitId = 0;
 
         try {
@@ -345,9 +347,9 @@ public class Simulator {
         for (int size = 0; size < prefetchsize; size++) {
             try {
                 if (r.next()) {
-                    fileId = r.getInt(1); //XXX fix query
+                    fileName = r.getString(1); //XXX fix query
                     commitId = r.getInt(2);
-                    cache.add(fileId, commitId, cache.startDate,
+                    cache.add(fileName, commitId, cache.startDate,
                             CacheItem.CacheReason.Prefetch);
                 }
             } catch (SQLException e) {
@@ -429,7 +431,7 @@ public class Simulator {
      * maximum (in terms of date?) commit id and return it
      * */
 
-    public String getBugIntroCdate(String fileId, int commitId) {
+    public String getBugIntroCdate(String fileName, int commitId) {
 
         // XXX optimize this code?
         String bugIntroCdate = "";
@@ -437,7 +439,7 @@ public class Simulator {
         ResultSet r = null;
         ResultSet r1 = null;
         try {
-            findHunkIdQuery.setInt(1, fileId); // XXX fix query 
+            findHunkIdQuery.setString(1, fileName); // XXX fix query 
             findHunkIdQuery.setInt(2, commitId);
             r = findHunkIdQuery.executeQuery();
             while (r.next()) {
@@ -707,7 +709,7 @@ public class Simulator {
             // write out record
             //XXX rewrite with built in iteratable
             for (CacheItem ci : cache){
-                csvWriter.write((ci.getEntityId()));
+                csvWriter.write((ci.getFileName()));
                 csvWriter.write(Integer.toString(ci.getLOC())); // LOC at time of last update
                 csvWriter.write(Integer.toString(ci.getLoadCount()));
                 csvWriter.write(Integer.toString(ci.getHitCount()));

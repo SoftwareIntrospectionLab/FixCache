@@ -2,6 +2,7 @@ package Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.sql.Connection;
@@ -54,19 +55,19 @@ public class SimulatorTest {
                 CacheReplacement.Policy.BUGS, "2009-10-20 01:32:19.0", null, false);
         sim1.initialPreLoad();
         assertEquals(sim1.getCache().getCacheSize(), 2);
-        assertTrue(sim1.getCache().contains("4"));
-        assertTrue(sim1.getCache().contains("3"));
+        assertTrue(sim1.getCache().contains("d.java"));
+        assertTrue(sim1.getCache().contains("c.java"));
         Simulator sim2 = new Simulator(2, 2, 5, 1,
                 CacheReplacement.Policy.BUGS, "2009-10-20 14:37:47.0", null, false);
         sim2.initialPreLoad();
         assertEquals(sim2.getCache().getCacheSize(), 2);
-        assertTrue(sim2.getCache().contains("1"));
-        assertTrue(sim2.getCache().contains("5"));
+        assertTrue(sim2.getCache().contains("a.java"));
+        assertTrue(sim2.getCache().contains("e.java"));
         Simulator sim3 = new Simulator(2, 2, 5, 1,
                 CacheReplacement.Policy.BUGS, "2009-10-23 09:50:25.0", null, false);
         sim3.initialPreLoad();
         assertEquals(sim3.getCache().getCacheSize(), 1);
-        assertTrue(sim3.getCache().contains("1"));
+        assertTrue(sim3.getCache().contains("a.java"));
 //        Simulator sim4 = new Simulator(2, 2, 5, 1,
 //                CacheReplacement.Policy.BUGS, "2010-10-21 09:50:25.0", null);
 //        sim4.initialPreLoad();
@@ -85,9 +86,9 @@ public class SimulatorTest {
         Cache cache = sim.getCache();
         sim.initialPreLoad();
         assertEquals(cache.getCacheSize(), 2);
-        sim.add("1", 1, "2009-10-20 01:32:19.0", CacheItem.CacheReason.NewEntity);
+        sim.add("a.java", 1, "2009-10-20 01:32:19.0", CacheItem.CacheReason.NewEntity);
         assertEquals(cache.getCacheSize(), 3);
-        sim.add("3", 1, "2009-10-20 01:32:19.0", CacheItem.CacheReason.NewEntity);
+        sim.add("c.java", 1, "2009-10-20 01:32:19.0", CacheItem.CacheReason.NewEntity);
         assertEquals(cache.getCacheSize(), 3);
     }
 
@@ -96,8 +97,8 @@ public class SimulatorTest {
 
         Simulator sim = new Simulator(2, 2, 5, 1, CacheReplacement.Policy.BUGS,
                 "2009-10-20 01:32:19.0", null, false);
-        assertEquals(sim.getBugIntroCdate("8", 10), "2009-10-23 14:29:05.0");
-        assertEquals(sim.getBugIntroCdate("5", 9), "2009-10-23 20:01:52.0");
+        assertEquals(sim.getBugIntroCdate("h.java", 10), "2009-10-23 14:29:05.0");
+        assertEquals(sim.getBugIntroCdate("e.java", 9), "2009-10-23 20:01:52.0");
     }
 
     @Test
@@ -105,19 +106,13 @@ public class SimulatorTest {
         Simulator sim = new Simulator(3, 2, 5, 1,
                 CacheReplacement.Policy.CHANGES, "2009-10-20 01:32:19.0", null, false);
         Cache cache = sim.getCache();
-        sim.loadBuggyEntity("5", 9, "2009-10-24 09:50:26.0",
+        sim.loadBuggyEntity("e.java", 9, "2009-10-24 09:50:26.0",
                 "2009-10-23 20:01:52.0");
-        assertNotNull(cache.getCacheItem("5"));
-        assertNotNull(cache.getCacheItem("2"));
-        assertNotNull(cache.getCacheItem("1"));
-        assertEquals(cache.getCacheItem("2").getNumberOfChanges(), 3);
+        assertNotNull(cache.getCacheItem("e.java"));
+        assertNull(cache.getCacheItem("b"));
+        assertNotNull(cache.getCacheItem("a.java"));
         assertEquals(sim.getHit(), 0);
         assertEquals(sim.getMiss(), 1);
-        sim.loadBuggyEntity("2", 5, "2009-10-23 14:29:05.0",
-                "2009-10-23 14:10:37.0");
-        assertEquals(sim.getHit(), 1);
-        assertEquals(sim.getMiss(), 1);
-        assertEquals(cache.getCacheItem("2").getNumberOfChanges(), 3);
     }
 
     @Test
