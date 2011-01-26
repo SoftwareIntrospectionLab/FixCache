@@ -29,7 +29,8 @@ public class Simulator {
     static final String findBugIntroCdate = "select date from hunk_blames, scmlog "
         + "where hunk_id =? and hunk_blames.bug_commit_id=scmlog.id";
     static final String findPid = "select id from repositories where id=?";
-    static final String findFileCount = "select count(files.id) from files, file_types "
+    static final String findFileCount = "select count(distinct(files.file_name)) " +
+    		"from files, file_types "
         + "where files.id = file_types.file_id and type = 'code' and repository_id=?";
     private static PreparedStatement findCommitQuery;
     private static PreparedStatement findFileQuery;
@@ -173,7 +174,7 @@ public class Simulator {
      */
     // XXX move hit and miss to the cache?
     // could add if (reas == BugEntity) logic to add() code
-    public void loadBuggyEntity(int fileId, int cid, String commitDate, String intro_cdate) {
+    public void loadBuggyEntity(String fileId, int cid, String commitDate, String intro_cdate) {
 
         if (cache.contains(fileId))
             hit++; 
@@ -183,7 +184,7 @@ public class Simulator {
         cache.add(fileId, cid, commitDate, CacheItem.CacheReason.BugEntity);
 
         // add the co-changed files as well
-        ArrayList<Integer> cochanges = CoChange.getCoChangeFileList(fileId,
+        ArrayList<String> cochanges = CoChange.getCoChangeFileList(fileId,
                 cache.startDate, intro_cdate, blocksize);
         cache.add(cochanges, cid, commitDate, CacheItem.CacheReason.CoChange);
     }
@@ -200,7 +201,7 @@ public class Simulator {
         String cdate = null;
 
         boolean isBugFix;
-        int file_id;
+        String file_id;
         FileType type;
         int numprefetch = 0;
 
@@ -225,7 +226,7 @@ public class Simulator {
                 final ResultSet files = findFileQuery.executeQuery();
                 // loop through those file ids
                 while (files.next()) {
-                    file_id = files.getInt(1);
+                    file_id = files.getInt(1); //XXX fix query
                     type = FileType.valueOf(files.getString(2));
                     numprefetch = processOneFile(cid, cdate, isBugFix, file_id,
                             type, numprefetch);
@@ -270,7 +271,7 @@ public class Simulator {
     }
 
     private int processOneFile(int cid, String cdate, boolean isBugFix,
-            int file_id, FileType type, int numprefetch) {
+            String file_id, FileType type, int numprefetch) {
         switch (type) {
         case V:
             break;
@@ -329,7 +330,7 @@ public class Simulator {
             + "and file_types.file_id=content_loc.file_id and file_types.type='code' order by loc DESC";
         final PreparedStatement findInitialPreloadQuery;
         ResultSet r = null;
-        int fileId = 0;
+        String fileId = null;
         int commitId = 0;
 
         try {
@@ -344,7 +345,7 @@ public class Simulator {
         for (int size = 0; size < prefetchsize; size++) {
             try {
                 if (r.next()) {
-                    fileId = r.getInt(1);
+                    fileId = r.getInt(1); //XXX fix query
                     commitId = r.getInt(2);
                     cache.add(fileId, commitId, cache.startDate,
                             CacheItem.CacheReason.Prefetch);
@@ -428,7 +429,7 @@ public class Simulator {
      * maximum (in terms of date?) commit id and return it
      * */
 
-    public String getBugIntroCdate(int fileId, int commitId) {
+    public String getBugIntroCdate(String fileId, int commitId) {
 
         // XXX optimize this code?
         String bugIntroCdate = "";
@@ -436,7 +437,7 @@ public class Simulator {
         ResultSet r = null;
         ResultSet r1 = null;
         try {
-            findHunkIdQuery.setInt(1, fileId);
+            findHunkIdQuery.setInt(1, fileId); // XXX fix query 
             findHunkIdQuery.setInt(2, commitId);
             r = findHunkIdQuery.executeQuery();
             while (r.next()) {
@@ -481,7 +482,7 @@ public class Simulator {
         return cache;
     }
 
-    public void add(int eid, int cid, String cdate, CacheReason reas) {
+    public void add(String eid, int cid, String cdate, CacheReason reas) {
         cache.add(eid, cid, cdate, reas);
     }
 
@@ -706,7 +707,7 @@ public class Simulator {
             // write out record
             //XXX rewrite with built in iteratable
             for (CacheItem ci : cache){
-                csvWriter.write(Integer.toString(ci.getEntityId()));
+                csvWriter.write((ci.getEntityId()));
                 csvWriter.write(Integer.toString(ci.getLOC())); // LOC at time of last update
                 csvWriter.write(Integer.toString(ci.getLoadCount()));
                 csvWriter.write(Integer.toString(ci.getHitCount()));

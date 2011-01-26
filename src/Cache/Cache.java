@@ -18,7 +18,7 @@ public class Cache implements Iterable<CacheItem>{
     private int size = 0; // current size of cache
 
     // keeps every cacheitem that was ever in the cache
-    private Hashtable<Integer, CacheItem> cacheTable = new Hashtable<Integer, CacheItem>();
+    private Hashtable<String, CacheItem> cacheTable = new Hashtable<String, CacheItem>();
 
     private CacheReplacement policy;
     String startDate; // XXX should be a real time in the version control system
@@ -58,7 +58,7 @@ public class Cache implements Iterable<CacheItem>{
      */
     // XXX: load a chunk at a time??
     public void load(CacheItem cacheItem, String cdate) {
-        int entityId = cacheItem.getEntityId();
+        String entityId = cacheItem.getEntityId();
         if (isFull())
             bumpOutItem(cdate);
         if (!cacheTable.contains(cacheItem))
@@ -71,7 +71,7 @@ public class Cache implements Iterable<CacheItem>{
      * The only method that decreases size.
      * @param fileid 
      */
-    public void remove(int fileid, String cdate) {
+    public void remove(String fileid, String cdate) {
         cacheTable.get(fileid).removeFromCache(cdate);
         size--;
     }
@@ -85,7 +85,7 @@ public class Cache implements Iterable<CacheItem>{
      * @param cdate -- commit date
      * @param reason -- reason for adding to the cache
      */
-    public void add(int eid, int cid, String cdate, CacheReason reason) {
+    public void add(String eid, int cid, String cdate, CacheReason reason) {
         if (cacheTable.containsKey(eid)){ // either in cache or was bumped out
             CacheItem ci = cacheTable.get(eid);
             if (!ci.isInCache()){
@@ -104,8 +104,8 @@ public class Cache implements Iterable<CacheItem>{
      * @param cdate -- commit date
      * @param reason -- reason for adding to the cache
      */
-    public void add(ArrayList<Integer> eids, int cid, String cdate, CacheReason reas) {
-        for (int eid : eids)
+    public void add(ArrayList<String> eids, int cid, String cdate, CacheReason reas) {
+        for (String eid : eids)
             add(eid, cid, cdate, reas);
     }
 
@@ -117,11 +117,11 @@ public class Cache implements Iterable<CacheItem>{
      */
     // TODO: keep cache always sorted using cache replacement policy
     public void bumpOutItem(String cdate) {
-        int entityId = getMinimum();
+        String entityId = getMinimum();
         remove(entityId, cdate);
     }
 
-    public int getMinimum() {
+    public String getMinimum() {
         CacheItem min = null;
 
         for (CacheItem c : cacheTable.values()) {
@@ -171,7 +171,7 @@ public class Cache implements Iterable<CacheItem>{
      * @param eid -- entity id
      * @return whether that entity is in the cache
      */
-    public boolean contains(int eid){
+    public boolean contains(String eid){
         final CacheItem ci = cacheTable.get(eid);
         if (ci == null)
             return false;
@@ -189,7 +189,7 @@ public class Cache implements Iterable<CacheItem>{
      * Returns either the CacheItem associated with entityId, if in the cache
      * or null if it is not in the cache.
      */
-    public CacheItem getCacheItem(int entityId) {
+    public CacheItem getCacheItem(String entityId) {
         CacheItem ci = cacheTable.get(entityId);
         if (ci == null)
             return null;
@@ -198,16 +198,20 @@ public class Cache implements Iterable<CacheItem>{
         return ci;
     }
     
-    public boolean neverInCache(int entityId){
+    public CacheItem getCacheItem(int eid){
+        return getCacheItem(Integer.toString(eid));
+    }
+    
+    public boolean neverInCache(String entityId){
         return (cacheTable.get(entityId) == null);
     }
 
-    public int getNumber(int fileid) {
+    public int getNumber(String fileid) {
         CacheItem ci = cacheTable.get(fileid);
         return ci.getNumber();
     }
 
-    public int getLoadCount(int fileid){
+    public int getLoadCount(String fileid){
         CacheItem ci = cacheTable.get(fileid);
         return ci.getLoadCount();
     }
@@ -219,10 +223,13 @@ public class Cache implements Iterable<CacheItem>{
     public int getTotalDuration(){
         return Util.Dates.getMinuteDuration(startDate, endDate);
     }
+    
+    public void add(int eid, int cid, String cdate, CacheReason reason) {
+        add(Integer.toString(eid), cid, cdate, reason);
+    }
 
     @Override
     public Iterator<CacheItem> iterator() {
         return cacheTable.values().iterator();
     }
-
 }
