@@ -124,6 +124,7 @@ public class Simulator {
                 //csvWriter.write("Range");
                 csvWriter.write("HitRate");
                 csvWriter.write("NumCommits");
+                csvWriter.write("NumAdds");
                 csvWriter.endRecord();
             } catch (IOException e) {
                 e.printStackTrace();

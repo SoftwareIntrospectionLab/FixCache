@@ -97,6 +97,7 @@ public class Cache implements Iterable<CacheItem>{
             ci.update(cid, cdate, startDate, reason); // updates inCache status
         } else { // need to create a new CacheItem
             load(new CacheItem(fileName, cid, cdate, reason, this), cdate);
+            addCount++;
         }
     }
 
