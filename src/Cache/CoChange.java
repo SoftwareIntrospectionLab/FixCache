@@ -18,16 +18,19 @@ public class CoChange {
      * database setup
      */
     final static Connection conn = DatabaseManager.getConnection();
-    static final String findCommitId = "SELECT commit_id from actions, scmlog " +
-            "where file_id=? and actions.commit_id=scmlog.id and date between ? and ?";
-    static final String findCochangeFileId = "SELECT actions.file_id from actions, file_types where commit_id =? and actions.file_id=file_types.file_id and file_types.type='code'";
+    static final String findCommitId = "SELECT commit_id from actions, scmlog, files " +
+            "where file_name=? and actions.file_id=files.id and actions.commit_id=scmlog.id and " +
+            "date between ? and ?";
+    static final String findCochangeFileName = "SELECT file_name from files, actions, file_types " +
+    		"where files.id=actions.file_id and commit_id =? and " +
+    		"files.id=file_types.file_id and file_types.type='code'";
     private static PreparedStatement findCommitIdQuery;
-    private static PreparedStatement findCochangeFileIdQuery;
+    private static PreparedStatement findCochangeFileNameQuery;
 
-    String fileID; // which 
+    String fileName; // which 
     
-    private CoChange(String fileID) {
-        this.fileID = fileID;
+    private CoChange(String fName) {
+        this.fileName = fName;
     }
 
     public PreparedStatement getCommitIdStatement() {
@@ -41,20 +44,20 @@ public class CoChange {
         return findCommitIdQuery;
     }
 
-    public PreparedStatement getCochangeFileIdStatement() {
-        if (findCochangeFileIdQuery == null)
+    public PreparedStatement getCochangeFileNameStatement() {
+        if (findCochangeFileNameQuery == null)
             try {
-                findCochangeFileIdQuery = conn
-                        .prepareStatement(findCochangeFileId);
+                findCochangeFileNameQuery = conn
+                        .prepareStatement(findCochangeFileName);
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-        return findCochangeFileIdQuery;
+        return findCochangeFileNameQuery;
     }
 
-    public static ArrayList<String> getCoChangeFileList(String fileid, String startDate,
+    public static ArrayList<String> getCoChangeFileList(String fileName, String startDate,
             String commitDate, int blocksize) {
-        CoChange co = new CoChange(fileid);
+        CoChange co = new CoChange(fileName);
         return co.getCoChangeList(co.buildCoChangeMap(startDate, commitDate), blocksize);
     }
 
@@ -72,7 +75,7 @@ public class CoChange {
         ArrayList<Integer> commitList = new ArrayList<Integer>();
 
         try {
-            commitIdQuery.setInt(1, fileID); //XXX fix query to use file_name
+            commitIdQuery.setString(1, fileName); //XXX fix query to use file_name
             commitIdQuery.setString(2, startDate);
             commitIdQuery.setString(3, commitDate);
             commitList = Util.Database.getIntArrayResult(commitIdQuery);
@@ -85,15 +88,15 @@ public class CoChange {
         int coChangeCommitID;
         ResultSet r2;
         String coChangeFile;
-        final PreparedStatement cochangeFileIdQuery = getCochangeFileIdStatement();
+        final PreparedStatement cochangeFileNameQuery = getCochangeFileNameStatement();
         for (int i = 0; i < commitList.size(); i++) {
             coChangeCommitID = commitList.get(i);
             try {
-                cochangeFileIdQuery.setInt(1, coChangeCommitID);
-                r2 = cochangeFileIdQuery.executeQuery();
+                cochangeFileNameQuery.setInt(1, coChangeCommitID);
+                r2 = cochangeFileNameQuery.executeQuery();
                 while (r2.next()) {
-                    coChangeFile = r2.getInt(1); // XXX fix query to use file_name
-                    if (coChangeFile != fileID) {
+                    coChangeFile = r2.getString(1); // XXX fix query to use file_name
+                    if (!coChangeFile.equals(fileName)) {
                         // coChangeList.add(r2.getInt(1));
                         coChangeCounts.add(coChangeFile);
                     }
@@ -126,14 +129,14 @@ public class CoChange {
 
         /**
          * if it is not there, create a new entry else ++count
-         * @param f -- file id 
+         * @param f -- file name 
          */
-        void add(String f) {
-            if (map.containsKey(f)) {
-                int count = map.get(f);
-                map.put(f, count + 1);
+        void add(String fName) {
+            if (map.containsKey(fName)) {
+                int count = map.get(fName);
+                map.put(fName, count + 1);
             } else
-                map.put(f, 1);
+                map.put(fName, 1);
         }
 
         // TODO: when two files have the same cochange count, use loc to break ties

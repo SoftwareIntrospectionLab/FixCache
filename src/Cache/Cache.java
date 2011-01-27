@@ -58,11 +58,11 @@ public class Cache implements Iterable<CacheItem>{
      */
     // XXX: load a chunk at a time??
     public void load(CacheItem cacheItem, String cdate) {
-        String entityId = cacheItem.getEntityId();
+        String fileName = cacheItem.getFileName();
         if (isFull())
             bumpOutItem(cdate);
         if (!cacheTable.contains(cacheItem))
-            cacheTable.put(entityId, cacheItem);
+            cacheTable.put(fileName, cacheItem);
         size++;
     }
 
@@ -85,15 +85,15 @@ public class Cache implements Iterable<CacheItem>{
      * @param cdate -- commit date
      * @param reason -- reason for adding to the cache
      */
-    public void add(String eid, int cid, String cdate, CacheReason reason) {
-        if (cacheTable.containsKey(eid)){ // either in cache or was bumped out
-            CacheItem ci = cacheTable.get(eid);
+    public void add(String fileName, int cid, String cdate, CacheReason reason) {
+        if (cacheTable.containsKey(fileName)){ // either in cache or was bumped out
+            CacheItem ci = cacheTable.get(fileName);
             if (!ci.isInCache()){
                 load(ci, cdate);
             }
             ci.update(cid, cdate, startDate, reason); // updates inCache status
         } else { // need to create a new CacheItem
-            load(new CacheItem(eid, cid, cdate, reason, this), cdate);
+            load(new CacheItem(fileName, cid, cdate, reason, this), cdate);
         }
     }
 
@@ -104,9 +104,9 @@ public class Cache implements Iterable<CacheItem>{
      * @param cdate -- commit date
      * @param reason -- reason for adding to the cache
      */
-    public void add(ArrayList<String> eids, int cid, String cdate, CacheReason reas) {
-        for (String eid : eids)
-            add(eid, cid, cdate, reas);
+    public void add(ArrayList<String> fileNames, int cid, String cdate, CacheReason reas) {
+        for (String fName : fileNames)
+            add(fName, cid, cdate, reas);
     }
 
 
@@ -132,7 +132,7 @@ public class Cache implements Iterable<CacheItem>{
             else
                 min = policy.minimum(min, c);
         }
-        return min.getEntityId();
+        return min.getFileName();
     }
 
     /**
@@ -211,8 +211,8 @@ public class Cache implements Iterable<CacheItem>{
         return ci.getNumber();
     }
 
-    public int getLoadCount(String fileid){
-        CacheItem ci = cacheTable.get(fileid);
+    public int getLoadCount(String fileName){
+        CacheItem ci = cacheTable.get(fileName);
         return ci.getLoadCount();
     }
 
@@ -222,10 +222,6 @@ public class Cache implements Iterable<CacheItem>{
     
     public int getTotalDuration(){
         return Util.Dates.getMinuteDuration(startDate, endDate);
-    }
-    
-    public void add(int eid, int cid, String cdate, CacheReason reason) {
-        add(Integer.toString(eid), cid, cdate, reason);
     }
 
     @Override

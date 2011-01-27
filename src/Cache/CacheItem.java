@@ -17,21 +17,22 @@ public class CacheItem {
     static final String findNumberOfAuthors = 
         "select count(id) from people " +
         "where id in( " +
-            "select author_id from scmlog, actions " +
-            "where scmlog.id = actions.commit_id " +
-                "and date between ? and ? and file_id = ?)";
+            "select author_id from scmlog, actions, files" +
+            " where scmlog.id = actions.commit_id " +
+                "and date between ? and ? and actions.file_id=files.id and file_name = ?)";
     static final String findNumberOfChanges = 
         "select count(actions.id) " +
-        "from actions, scmlog " +
-        "where actions.commit_id = scmlog.id " +
-        "and date between ? and ? and file_id=?";
+        "from actions, scmlog, files" +
+        " where actions.commit_id = scmlog.id " +
+        "and date between ? and ? and actions.file_id=files.id and file_name=?";
     static final String findNumberOfBugs = 
-        "select count(commit_id) from actions " +
-        "where file_id=? and commit_id in " +
+        "select count(commit_id) from actions, files " +
+        "where actions.file_id=files.id and file_name=? and commit_id in " +
             "(select id from scmlog " +
             "where is_bug_fix=1 and date between ? and ?)";
     static final String findLoc = 
-        "select loc from content_loc where file_id=? and commit_id =?";
+        "select loc from content_loc, files where content_loc.file_id=files.id and" +
+        " file_name=? and commit_id =?";
     private static PreparedStatement findNumberOfAuthorsQuery;
     private static PreparedStatement findNumberOfChangesQuery;
     private static PreparedStatement findNumberOfBugsQuery;
@@ -46,7 +47,7 @@ public class CacheItem {
         Prefetch, CoChange, NewEntity, ModifiedEntity, BugEntity
     }
 
-    private final String entityId; // id of file
+    private final String fileName; // id of file
     private int loadDate; // changed on cache hit
     private int LOC; // changed on cache hit
     private int number; // represents either the number of bugs, changes, or authors
@@ -65,13 +66,13 @@ public class CacheItem {
      * Methods
      */
     
-    public CacheItem(String eid, int cid, String cdate, CacheReason r, Cache p) {
-        entityId = eid;
+    public CacheItem(String fName, int cid, String cdate, CacheReason r, Cache p) {
+        fileName = fName;
         reason = r;
         parent = p;
         update(cid, cdate, p.getStartDate(), r);
         assert(r != CacheReason.BugEntity || missCount != 0);
-        assert(parent.neverInCache(eid));
+        assert(parent.neverInCache(fileName));
     }
     
     
@@ -96,8 +97,8 @@ public class CacheItem {
                 hitCount++;
         }
         loadDate = parent.getTime(); 
-        LOC = findLoc(entityId, cid);
-        number = findNumber(entityId, parent.repID, cdate, sdate, parent.getPolicy());
+        LOC = findLoc(fileName, cid);
+        number = findNumber(fileName, parent.repID, cdate, sdate, parent.getPolicy());
     }
     
     public boolean isInCache(){
@@ -120,17 +121,17 @@ public class CacheItem {
      * @param start -- the starting date for repository access
      * @return the number of bug fixes for file eid in repository pid between cdate and start
      */
-    private static int findNumber(String eid, int pid, String cdate, String sdate, Policy pol) {
+    private static int findNumber(String fileName, int pid, String cdate, String sdate, Policy pol) {
         int ret = 0;
         switch (pol) {
         case BUGS:
-            ret = findNumberOfBugs(eid, pid, cdate, sdate);
+            ret = findNumberOfBugs(fileName, pid, cdate, sdate);
             break;
         case CHANGES:
-            ret = findNumberOfChanges(eid, pid, cdate, sdate);
+            ret = findNumberOfChanges(fileName, pid, cdate, sdate);
             break;
         case AUTHORS:
-            ret = findNumberOfAuthors(eid, pid, cdate, sdate);
+            ret = findNumberOfAuthors(fileName, pid, cdate, sdate);
             break;
         case LRU: // do nothing
         }
@@ -146,14 +147,14 @@ public class CacheItem {
      * @param start -- the starting date for repository access
      * @return the number of distinct authors for file eid in repository pid between cdate and start
      */
-    private static int findNumberOfAuthors(String eid, int pid, String cdate, String start) {
+    private static int findNumberOfAuthors(String fileName, int pid, String cdate, String start) {
         int ret = 0;
         try {
             if (findNumberOfAuthorsQuery == null)
                 findNumberOfAuthorsQuery = conn.prepareStatement(findNumberOfAuthors);
             findNumberOfAuthorsQuery.setString(1, start);
             findNumberOfAuthorsQuery.setString(2, cdate);
-            findNumberOfAuthorsQuery.setInt(3, eid);  // XXX fix query to use file_name
+            findNumberOfAuthorsQuery.setString(3, fileName);  // XXX fix query to use file_name
             ret = Util.Database.getIntResult(findNumberOfAuthorsQuery);
         } catch (SQLException e1) {
             e1.printStackTrace();
@@ -170,14 +171,14 @@ public class CacheItem {
      * @param start -- the starting date for repository access
      * @return the number of commits for file eid in repository pid between cdate and start
      */
-    private static int findNumberOfChanges(String eid, int pid, String cdate, String start) {
+    private static int findNumberOfChanges(String fileName, int pid, String cdate, String start) {
         int ret = 0;
         try {
             if (findNumberOfChangesQuery == null)
                 findNumberOfChangesQuery = conn.prepareStatement(findNumberOfChanges);
             findNumberOfChangesQuery.setString(1, start);
             findNumberOfChangesQuery.setString(2, cdate);
-            findNumberOfChangesQuery.setInt(3, eid); // XXX fix query to use file_name
+            findNumberOfChangesQuery.setString(3, fileName); // XXX fix query to use file_name
             ret = Util.Database.getIntResult(findNumberOfChangesQuery);
         } catch (SQLException e1) {
             e1.printStackTrace();
@@ -193,13 +194,13 @@ public class CacheItem {
      * @param start -- the starting date for repository access
      * @return the number of bug fixes for file eid in repository pid between cdate and start
      */
-    private static int findNumberOfBugs(String eid, int pid, String cdate, String start) {
+    private static int findNumberOfBugs(String fileName, int pid, String cdate, String start) {
         int ret = 0;
         try {
             if (findNumberOfBugsQuery == null)
                 findNumberOfBugsQuery = conn.prepareStatement(findNumberOfBugs);
 
-            findNumberOfBugsQuery.setInt(1, eid); // XXX fix query to use file_name
+            findNumberOfBugsQuery.setString(1, fileName); // XXX fix query to use file_name
             findNumberOfBugsQuery.setString(2, start);
             findNumberOfBugsQuery.setString(3, cdate);
             ret = Util.Database.getIntResult(findNumberOfBugsQuery);
@@ -215,12 +216,12 @@ public class CacheItem {
      * @param cid -- commit id
      * @return the lines of code for eid at cid
      */
-    private static int findLoc(String eid, int cid) {
+    private static int findLoc(String fileName, int cid) {
         int ret = 0;
         try {
             if (findLocQuery == null)
                 findLocQuery = conn.prepareStatement(findLoc);
-            findLocQuery.setInt(1, eid); // XXX fix query to use file_name
+            findLocQuery.setString(1, fileName); // XXX fix query to use file_name
             findLocQuery.setInt(2, cid);
             ret = Util.Database.getIntResult(findLocQuery);
         } catch (SQLException e1) {
@@ -232,8 +233,8 @@ public class CacheItem {
     /**
      * @return Returns the entityId.
      */
-    public String getEntityId() {
-        return entityId;
+    public String getFileName() {
+        return fileName;
     }
 
     /**
