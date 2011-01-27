@@ -64,6 +64,7 @@ public class Simulator {
     int hit;
     int miss;
     private int commits;
+    private int totalcommits;
 
     // For output
     // XXX separate class to manage output
@@ -216,7 +217,7 @@ public class Simulator {
             allCommits = findCommitQuery.executeQuery();
 
             while (allCommits.next()) {
-                commits++;
+                incCommits();
                 cid = allCommits.getInt(1);
                 cdate = allCommits.getString(2);
                 isBugFix = allCommits.getBoolean(3);
@@ -246,6 +247,11 @@ public class Simulator {
         }
     }
 
+    private void incCommits() {
+        commits++;
+        totalcommits++;
+    }
+
     private void outputHitRate(String cdate) {
         // XXX what if commits are more than 3 months apart?
         //final String formerOutputDate = outputDate;
@@ -260,7 +266,8 @@ public class Simulator {
             csvWriter.write(Integer.toString(month));
             //csvWriter.write(Util.Dates.getRange(formerOutputDate, outputDate));
             csvWriter.write(Double.toString(getHitRate()));
-            csvWriter.write(Integer.toString(getCommitCount()));
+            csvWriter.write(Integer.toString(resetCommitCount()));
+            csvWriter.write(Integer.toString(cache.resetAddCount()));
             csvWriter.endRecord();
         } catch (IOException e) {
             e.printStackTrace();
@@ -620,7 +627,7 @@ public class Simulator {
         System.out.println(sim.getHitRate());
 
         System.out.print("Num commits processed...");
-        System.out.println(sim.getCommitCount());
+        System.out.println(sim.getTotalCommitCount());
 
         System.out.print("Num bug fixes...");
         System.out.println(sim.getHit() + sim.getMiss());
@@ -725,8 +732,14 @@ public class Simulator {
 
     }
 
-    private int getCommitCount() {
-        return commits;
+    private int resetCommitCount() {
+        int oldcommits = commits;
+        commits = 0;
+        return oldcommits;
+    }
+
+    private int getTotalCommitCount() {
+        return totalcommits;
     }
 
     public CsvWriter getCsvWriter() {

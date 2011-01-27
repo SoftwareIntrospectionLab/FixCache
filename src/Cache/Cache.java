@@ -28,6 +28,8 @@ public class Cache implements Iterable<CacheItem>{
     // counter, used to decide which cacheitem is LRU
     private int time = 0;
 
+    private int addCount = 0;
+    
     public Cache(int cacheSize, CacheReplacement pol, String start, String end, int rep) {
         assert(start !=null);
         assert(end != null);
@@ -90,6 +92,7 @@ public class Cache implements Iterable<CacheItem>{
             CacheItem ci = cacheTable.get(fileName);
             if (!ci.isInCache()){
                 load(ci, cdate);
+                addCount++;
             }
             ci.update(cid, cdate, startDate, reason); // updates inCache status
         } else { // need to create a new CacheItem
@@ -177,6 +180,12 @@ public class Cache implements Iterable<CacheItem>{
             return false;
         else // in cacheTable
             return ci.isInCache();
+    }
+
+    public int resetAddCount() {
+        int oldAdds = addCount;
+        addCount = 0;
+        return oldAdds;
     }
 
 
