@@ -29,6 +29,7 @@ public class Cache implements Iterable<CacheItem>{
     private int time = 0;
 
     private int addCount = 0;
+    private int numNewItems = 0;
     
     public Cache(int cacheSize, CacheReplacement pol, String start, String end, int rep) {
         assert(start !=null);
@@ -98,6 +99,7 @@ public class Cache implements Iterable<CacheItem>{
         } else { // need to create a new CacheItem
             load(new CacheItem(fileName, cid, cdate, reason, this), cdate);
             addCount++;
+            numNewItems++;
         }
     }
 
@@ -189,6 +191,11 @@ public class Cache implements Iterable<CacheItem>{
         return oldAdds;
     }
 
+    public int resetCICount() {
+        int oldcis = numNewItems;
+        numNewItems = 0;
+        return oldcis;
+    }
 
     /**
      *  Methods for debugging

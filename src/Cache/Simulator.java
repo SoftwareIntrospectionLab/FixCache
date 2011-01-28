@@ -33,12 +33,24 @@ public class Simulator {
     static final String findFileCount = "select count(distinct(file_name)) " +
     		"from files, file_types "
         + "where files.id = file_types.file_id and type = 'code' and repository_id=?";
+    static final String findFileCountTime =  "select(" +
+            "(select count(distinct(file_name)) from files, actions, scmlog, " +
+                    "file_types where files.id=file_types.file_id and actions.commit_id = " +
+                    "scmlog.id and actions.file_id = " +
+                    " file_types.file_id and file_types.type = 'code' and scmlog.repository_id = " +
+                    "? and scmlog.date < ?) - (" +
+                    "select count(distinct(file_name)) from files, actions, scmlog, " +
+                    "file_types where files.id=file_types.file_id and actions.commit_id = " +
+                    "scmlog.id and actions.file_id = " +
+                    " file_types.file_id and file_types.type = 'code' and scmlog.repository_id = " +
+                    "? and scmlog.date < ? and actions.type = 'D')) as total_files";
     private static PreparedStatement findCommitQuery;
     private static PreparedStatement findFileQuery;
     private static PreparedStatement findHunkIdQuery;
     static PreparedStatement findBugIntroCdateQuery;
     static PreparedStatement findPidQuery;
     static PreparedStatement findFileCountQuery;
+    static PreparedStatement findFileCountTimeQuery;
 
     /**
      * From the actions table. See the cvsanaly manual
@@ -65,6 +77,7 @@ public class Simulator {
     int miss;
     private int commits;
     private int totalcommits;
+    private int bugcount;
 
     // For output
     // XXX separate class to manage output
@@ -125,6 +138,9 @@ public class Simulator {
                 csvWriter.write("HitRate");
                 csvWriter.write("NumCommits");
                 csvWriter.write("NumAdds");
+                csvWriter.write("NumNewCacheItems");
+                csvWriter.write("NumFiles");
+                csvWriter.write("NumBugFixes");
                 csvWriter.endRecord();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -136,6 +152,7 @@ public class Simulator {
             findCommitQuery = conn.prepareStatement(findCommit);
             findHunkIdQuery = conn.prepareStatement(findHunkId);
             findBugIntroCdateQuery = conn.prepareStatement(findBugIntroCdate);
+            findFileCountTimeQuery = conn.prepareStatement(findFileCountTime);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -147,6 +164,20 @@ public class Simulator {
             findFileCountQuery = conn.prepareStatement(findFileCount);
             findFileCountQuery.setInt(1, projid);
             ret = Util.Database.getIntResult(findFileCountQuery);
+        } catch (SQLException e1) {
+            e1.printStackTrace();
+        }
+        return ret;
+    }
+
+    private static int getFileCount(int projid, String date) {
+        int ret = 0;
+        try {
+            findFileCountTimeQuery.setInt(1, projid);
+            findFileCountTimeQuery.setString(2, date);
+            findFileCountTimeQuery.setInt(3, projid);
+            findFileCountTimeQuery.setString(4, date);
+            ret = Util.Database.getIntResult(findFileCountTimeQuery);
         } catch (SQLException e1) {
             e1.printStackTrace();
         }
@@ -179,6 +210,7 @@ public class Simulator {
     // could add if (reas == BugEntity) logic to add() code
     public void loadBuggyEntity(String fileId, int cid, String commitDate, String intro_cdate) {
 
+        bugcount++;
         if (cache.contains(fileId))
             hit++; 
         else
@@ -269,6 +301,9 @@ public class Simulator {
             csvWriter.write(Double.toString(getHitRate()));
             csvWriter.write(Integer.toString(resetCommitCount()));
             csvWriter.write(Integer.toString(cache.resetAddCount()));
+            csvWriter.write(Integer.toString(cache.resetCICount()));
+            csvWriter.write(Integer.toString(getFileCount(pid,cdate)));
+            csvWriter.write(Integer.toString(resetBugCount()));
             csvWriter.endRecord();
         } catch (IOException e) {
             e.printStackTrace();
@@ -737,6 +772,12 @@ public class Simulator {
         int oldcommits = commits;
         commits = 0;
         return oldcommits;
+    }
+
+    private int resetBugCount() {
+        int oldbugs = bugcount;
+        bugcount = 0;
+        return oldbugs;
     }
 
     private int getTotalCommitCount() {
