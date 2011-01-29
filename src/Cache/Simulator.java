@@ -695,33 +695,45 @@ public class Simulator {
         Simulator maxsim = null;
         double maxhitrate = 0;
         int blksz;
-        int pfsz;
-        int onepercent = getPercentOfFiles(pid);
+        int pfsz = 0;
+        int onepercent = 15; // change 
         System.out.println("One percent of files: " + onepercent);
         
         final int UPPER = 10*onepercent;
         CacheReplacement.Policy crp = CacheReplacement.REPDEFAULT;
 
-        for(blksz=onepercent;blksz<UPPER;blksz+=onepercent*2){
-            for(pfsz=onepercent;pfsz<UPPER;pfsz+=onepercent*2){
-                final Simulator sim = new Simulator(blksz, pfsz,-1, pid, crp, null, null, false);
-                sim.initialPreLoad();
-                sim.simulate();
-                System.out.println(sim.getHitRate());
-                if(sim.getHitRate()>maxhitrate)
-                {
-                    maxhitrate = sim.getHitRate();
-                    maxsim = sim;
-                }
-
+        for(blksz=onepercent;blksz<UPPER/2;blksz+=onepercent){
+            final Simulator sim = new Simulator(blksz, pfsz, UPPER, pid, crp, null, null, false);
+            sim.initialPreLoad();
+            sim.simulate();
+            System.out.println(sim.getHitRate());
+            if(sim.getHitRate()>maxhitrate)
+            {
+                maxhitrate = sim.getHitRate();
+                maxsim = sim;
             }
         }
+
+        blksz = maxsim.blocksize;
         
+        for(pfsz=onepercent;pfsz<UPPER/5;pfsz+=(onepercent/2)){
+            final Simulator sim = new Simulator(blksz, pfsz, UPPER, pid, crp, null, null, false);
+            sim.initialPreLoad();
+            sim.simulate();
+            System.out.println(sim.getHitRate());
+            if(sim.getHitRate()>maxhitrate)
+            {
+                maxhitrate = sim.getHitRate();
+                maxsim = sim;
+            }
+
+        }
+
         System.out.println("Trying out different cache replacment policies...");
         for(CacheReplacement.Policy crtst :CacheReplacement.Policy.values()){
             final Simulator sim = 
                 new Simulator(maxsim.blocksize, maxsim.prefetchsize,
-                        -1, pid, crtst, null, null, false);
+                        UPPER, pid, crtst, null, null, false);
             sim.initialPreLoad();
             sim.simulate();
             System.out.println(sim.getHitRate());
