@@ -17,7 +17,7 @@ public class Simulator {
     /**
      * Database prepared sql statements.
      */
-
+    
     static final String findCommit = "select id, date, is_bug_fix from scmlog "
         + "where repository_id =? and date between ? and ? order by date ASC";
     static final String findFile = "select file_name, type from actions, content_loc, files "
@@ -139,7 +139,7 @@ public class Simulator {
                 csvWriter.write("NumCommits");
                 csvWriter.write("NumAdds");
                 csvWriter.write("NumNewCacheItems");
-                csvWriter.write("NumFiles");
+                // csvWriter.write("NumFiles"); // uncomment if using findfilecountquery
                 csvWriter.write("NumBugFixes");
                 csvWriter.endRecord();
             } catch (IOException e) {
@@ -152,7 +152,7 @@ public class Simulator {
             findCommitQuery = conn.prepareStatement(findCommit);
             findHunkIdQuery = conn.prepareStatement(findHunkId);
             findBugIntroCdateQuery = conn.prepareStatement(findBugIntroCdate);
-            findFileCountTimeQuery = conn.prepareStatement(findFileCountTime);
+            //findFileCountTimeQuery = conn.prepareStatement(findFileCountTime);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -170,6 +170,8 @@ public class Simulator {
         return ret;
     }
 
+    @SuppressWarnings("unused")
+    @Deprecated
     private static int getFileCount(int projid, String date) {
         int ret = 0;
         try {
@@ -302,7 +304,8 @@ public class Simulator {
             csvWriter.write(Integer.toString(resetCommitCount()));
             csvWriter.write(Integer.toString(cache.resetAddCount()));
             csvWriter.write(Integer.toString(cache.resetCICount()));
-            csvWriter.write(Integer.toString(getFileCount(pid,cdate)));
+            //also prints filecount at time slice, but query is not accurate
+            //csvWriter.write(Integer.toString(getFileCount(pid,cdate))); 
             csvWriter.write(Integer.toString(resetBugCount()));
             csvWriter.endRecord();
         } catch (IOException e) {
