@@ -69,6 +69,7 @@ public class Simulator {
     final int cachesize; // size of cache
     final int pid; // project (repository) id
     final boolean saveToFile; // whether there should be csv output
+    boolean filedistPrintMultiple = false; // whether the filedist output should happen once or more
     final CacheReplacement.Policy cacheRep; // cache replacement policy
     final Cache cache; // the cache
     final static Connection conn = DatabaseManager.getConnection(); // for database
@@ -158,6 +159,10 @@ public class Simulator {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+    
+    void outputMultiple(){
+        filedistPrintMultiple = true;
     }
 
     private static int getFileCount(int projid) {
@@ -292,6 +297,9 @@ public class Simulator {
     private void outputHitRate(String cdate) {
         // XXX what if commits are more than 3 months apart?
         //final String formerOutputDate = outputDate;
+        
+        if (filedistPrintMultiple) 
+            outputFileDist();
 
         if (!cdate.equals(cache.endDate)) {
             outputDate = Util.Dates.monthsLater(outputDate, outputSpacing);
@@ -318,6 +326,7 @@ public class Simulator {
         if (Util.Dates.getMonthDuration(outputDate, cdate) > outputSpacing){
             outputHitRate(cdate);
         }
+        
     }
 
     private int processOneFile(int cid, String cdate, boolean isBugFix,
@@ -576,6 +585,7 @@ public class Simulator {
         CmdLineParser.Option sd_opt = parser.addStringOption('s', "start");
         CmdLineParser.Option ed_opt = parser.addStringOption('e', "end");
         CmdLineParser.Option save_opt = parser.addBooleanOption('o',"save");
+        CmdLineParser.Option month_opt = parser.addBooleanOption('m',"multiple");
         CmdLineParser.Option tune_opt = parser.addBooleanOption('u', "tune");
         // CmdLineParser.Option sCId_opt = parser.addIntegerOption('s',"start");
         // CmdLineParser.Option eCId_opt = parser.addIntegerOption('e',"end");
@@ -597,6 +607,7 @@ public class Simulator {
         String end = (String) parser.getOptionValue(ed_opt, null);
         Boolean saveToFile = (Boolean) parser.getOptionValue(save_opt, false);
         Boolean tune = (Boolean)parser.getOptionValue(tune_opt, false);
+        Boolean monthly = (Boolean)parser.getOptionValue(month_opt, false);
         CacheReplacement.Policy crp;
         try {
             crp = CacheReplacement.Policy.valueOf(crp_string);
@@ -628,6 +639,7 @@ public class Simulator {
         else
         {
             sim = new Simulator(blksz, pfsz, csz, pid, crp, start, end, saveToFile);
+            if (monthly) sim.outputMultiple();
             sim.initialPreLoad();
             sim.simulate();
 
@@ -732,48 +744,51 @@ public class Simulator {
             return ret;
     }
 
-    public void outputFileDist() {
-
-        csvWriter = new CsvWriter("Results/" + filename + "_filedist.csv");
-        csvWriter.setComment('#');
+    private void outputFileDist() {
+        String pathname;
+        if (filedistPrintMultiple)
+            pathname = "Results/" + month + "-" + filename + "_filedist.csv";
+        else
+            pathname = "Results/" + filename + "_filedist.csv";
+        CsvWriter csv = new CsvWriter(pathname);
+        csv.setComment('#');
         try {
             // csvWriter.write("# number of hit, misses and time stayed in Cache for every file");
-            csvWriter.writeComment("number of hit, misses and time stayed in Cache for every file");
-            csvWriter.writeComment("project: " + pid + ", cachesize: " + cachesize
+            csv.writeComment("number of hit, misses and time stayed in Cache for every file");
+            csv.writeComment("project: " + pid + ", cachesize: " + cachesize
                     + ", blocksize: " + cachesize + ", prefetchsize: "
                     + prefetchsize + ", cache replacement policy: " + cacheRep);
-            csvWriter.write("file_id");
-            csvWriter.write("loc");
-            csvWriter.write("num_load");
-            csvWriter.write("num_hits");
-            csvWriter.write("num_misses");
-            csvWriter.write("duration");
-            csvWriter.endRecord();
-            csvWriter.write("0");
-            csvWriter.write("0");
-            csvWriter.write("0");
-            csvWriter.write("0");
-            csvWriter.write("0");
-            csvWriter.write(Integer.toString(cache.getTotalDuration()));
-            csvWriter.endRecord();
+            csv.write("file_id");
+            csv.write("loc");
+            csv.write("num_load");
+            csv.write("num_hits");
+            csv.write("num_misses");
+            csv.write("duration");
+            csv.endRecord();
+            csv.write("0");
+            csv.write("0");
+            csv.write("0");
+            csv.write("0");
+            csv.write("0");
+            csv.write(Integer.toString(cache.getTotalDuration()));
+            csv.endRecord();
             // else assume that the file already has the correct header line
             // write out record
             //XXX rewrite with built in iteratable
             for (CacheItem ci : cache){
-                csvWriter.write((ci.getFileName()));
-                csvWriter.write(Integer.toString(ci.getLOC())); // LOC at time of last update
-                csvWriter.write(Integer.toString(ci.getLoadCount()));
-                csvWriter.write(Integer.toString(ci.getHitCount()));
-                csvWriter.write(Integer.toString(ci.getMissCount()));
-                csvWriter.write(Integer.toString(ci.getDuration()));
-                csvWriter.endRecord();
+                csv.write((ci.getFileName()));
+                csv.write(Integer.toString(ci.getLOC())); // LOC at time of last update
+                csv.write(Integer.toString(ci.getLoadCount()));
+                csv.write(Integer.toString(ci.getHitCount()));
+                csv.write(Integer.toString(ci.getMissCount()));
+                csv.write(Integer.toString(ci.getDuration()));
+                csv.endRecord();
             }
 
-            csvWriter.close();
+            csv.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     private int resetCommitCount() {
