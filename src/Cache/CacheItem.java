@@ -44,7 +44,7 @@ public class CacheItem {
     
     // this enum tracks reason for cache entry and is used by other classes
     public enum CacheReason {
-        Prefetch, CoChange, NewEntity, ModifiedEntity, BugEntity
+        Preload, CoChange, NewEntity, ModifiedEntity, BugEntity
     }
 
     private final String fileName; // id of file
@@ -59,7 +59,7 @@ public class CacheItem {
     private int hitCount = 0;
     private int missCount = 0;
 
-    @SuppressWarnings("unused") // may be useful output
+    //@SuppressWarnings("unused") // may be useful output
     private CacheReason reason; 
 
     /**
@@ -295,6 +295,10 @@ public class CacheItem {
      */
     protected int getNumber() {
         return number;
+    }
+    
+    public CacheReason getReason(){
+        return reason;
     }
 
 	/**

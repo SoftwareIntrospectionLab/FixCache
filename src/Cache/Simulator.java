@@ -341,7 +341,7 @@ public class Simulator {
         case A:
             if (numprefetch < prefetchsize) {
                 numprefetch++;
-                cache.add(file_id, cid, cdate, CacheItem.CacheReason.Prefetch);
+                cache.add(file_id, cid, cdate, CacheItem.CacheReason.NewEntity);
             }
             break;
         case D:
@@ -355,7 +355,7 @@ public class Simulator {
                 this.loadBuggyEntity(file_id, cid, cdate, intro_cdate);
             } else if (numprefetch < prefetchsize) {
                 numprefetch++;
-                cache.add(file_id, cid, cdate, CacheItem.CacheReason.Prefetch);
+                cache.add(file_id, cid, cdate, CacheItem.CacheReason.ModifiedEntity);
             }
         }
         return numprefetch;
@@ -410,7 +410,7 @@ public class Simulator {
                     fileName = r.getString(1); //XXX fix query
                     commitId = r.getInt(2);
                     cache.add(fileName, commitId, cache.startDate,
-                            CacheItem.CacheReason.Prefetch);
+                            CacheItem.CacheReason.Preload);
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -764,6 +764,7 @@ public class Simulator {
             csv.write("num_hits");
             csv.write("num_misses");
             csv.write("duration");
+            csv.write("reason");
             csv.endRecord();
             csv.write("0");
             csv.write("0");
@@ -771,6 +772,7 @@ public class Simulator {
             csv.write("0");
             csv.write("0");
             csv.write(Integer.toString(cache.getTotalDuration()));
+            csv.write("0");
             csv.endRecord();
             // else assume that the file already has the correct header line
             // write out record
@@ -782,6 +784,7 @@ public class Simulator {
                 csv.write(Integer.toString(ci.getHitCount()));
                 csv.write(Integer.toString(ci.getMissCount()));
                 csv.write(Integer.toString(ci.getDuration()));
+                csv.write(ci.getReason().toString());
                 csv.endRecord();
             }
 
