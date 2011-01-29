@@ -78,6 +78,7 @@ public class Simulator {
     private int commits;
     private int totalcommits;
     private int bugcount;
+    private int filesProcessed;
 
     // For output
     // XXX separate class to manage output
@@ -141,6 +142,7 @@ public class Simulator {
                 csvWriter.write("NumNewCacheItems");
                 // csvWriter.write("NumFiles"); // uncomment if using findfilecountquery
                 csvWriter.write("NumBugFixes");
+                csvWriter.write("FilesProcessed");
                 csvWriter.endRecord();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -307,6 +309,7 @@ public class Simulator {
             //also prints filecount at time slice, but query is not accurate
             //csvWriter.write(Integer.toString(getFileCount(pid,cdate))); 
             csvWriter.write(Integer.toString(resetBugCount()));
+            csvWriter.write(Integer.toString(resetFilesProcessedCount()));
             csvWriter.endRecord();
         } catch (IOException e) {
             e.printStackTrace();
@@ -319,6 +322,8 @@ public class Simulator {
 
     private int processOneFile(int cid, String cdate, boolean isBugFix,
             String file_id, FileType type, int numprefetch) {
+        filesProcessed++;
+        
         switch (type) {
         case V:
             break;
@@ -781,6 +786,12 @@ public class Simulator {
         int oldbugs = bugcount;
         bugcount = 0;
         return oldbugs;
+    }
+
+    private int resetFilesProcessedCount() {
+        int oldfiles = filesProcessed;
+        filesProcessed = 0;
+        return oldfiles;
     }
 
     private int getTotalCommitCount() {
