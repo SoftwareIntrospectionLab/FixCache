@@ -632,7 +632,7 @@ public class Simulator {
         if(tune)
         {
             System.out.println("tuning...");
-            sim = tune(pid);
+            sim = tune(pid, blksz, pfsz, csz);
             System.out.println(".... finished tuning!");
             System.out.println("highest hitrate:"+sim.getHitRate());
         }
@@ -690,52 +690,96 @@ public class Simulator {
     }
 
 
-    private static Simulator tune(int pid)
+    private static Simulator tune(int pid, int blksz, int pfsz, int csz)
     {
         Simulator maxsim = null;
         double maxhitrate = 0;
-        int blksz;
-        int pfsz = 0;
-        int onepercent = 15; // change 
-        System.out.println("One percent of files: " + onepercent);
         
-        final int UPPER = 10*onepercent;
+        boolean testblks = blksz < 0; 
+        boolean testpfs = pfsz < 0; 
+        
+        if (testblks) blksz = 0;
+        if (testpfs) pfsz = 0;
+        
+        if (csz < 0){
+            System.out.println("Must specify a cache size to tune with");
+            System.exit(1);
+        }
+        
+        int onepercent = Math.round(csz/10);
+        if (onepercent == 0) onepercent = 1; 
+        int halfpercent = Math.round(onepercent/2);
+        if (halfpercent == 0) halfpercent = 1; 
+        int limit = Math.round(csz/2);
+
+        System.out.print("Cache size: ");
+        System.out.println(csz);
+        System.out.println("One percent of files (assumed): " + onepercent);
+        System.out.println("Half percent of files (assumed): " + halfpercent);
+        System.out.println("Upper limit for blksize and pfsize: " + limit);
+        
         CacheReplacement.Policy crp = CacheReplacement.REPDEFAULT;
-
-        for(blksz=onepercent;blksz<UPPER/2;blksz+=onepercent){
-            final Simulator sim = new Simulator(blksz, pfsz, UPPER, pid, crp, null, null, false);
-            sim.initialPreLoad();
-            sim.simulate();
-            System.out.println(sim.getHitRate());
-            if(sim.getHitRate()>maxhitrate)
-            {
-                maxhitrate = sim.getHitRate();
-                maxsim = sim;
-            }
-        }
-
-        blksz = maxsim.blocksize;
         
-        for(pfsz=onepercent;pfsz<UPPER/5;pfsz+=(onepercent/2)){
-            final Simulator sim = new Simulator(blksz, pfsz, UPPER, pid, crp, null, null, false);
-            sim.initialPreLoad();
-            sim.simulate();
-            System.out.println(sim.getHitRate());
-            if(sim.getHitRate()>maxhitrate)
-            {
-                maxhitrate = sim.getHitRate();
-                maxsim = sim;
-            }
 
+        if (testblks){
+            System.out.println("Testing blocksizes....");
+            for(int b=onepercent;b<limit;b+=onepercent){
+                final Simulator sim = new Simulator(b, pfsz, csz, pid, crp, null, null, false);
+                sim.initialPreLoad();
+                sim.simulate();
+                System.out.print("blksize: ");
+                System.out.println(blksz);
+                System.out.print("hitrate: ");
+                System.out.println(sim.getHitRate());
+                if(sim.getHitRate()>maxhitrate)
+                {
+                    maxhitrate = sim.getHitRate();
+                    maxsim = sim;
+                    blksz = maxsim.blocksize;
+                }else if (sim.getHitRate() < maxhitrate){
+                    break; // hit rates decreasing
+                }
+            }
+        }
+        
+        System.out.print("Best blksize: ");
+        System.out.println(blksz);
+        
+        if (testpfs) {
+            System.out.println("Testing prefetchsizes....");
+            for(int p=halfpercent;p<limit;p+=halfpercent){
+                final Simulator sim = new Simulator(blksz, p, csz, pid, crp, null, null, false);
+                sim.initialPreLoad();
+                sim.simulate();
+                System.out.print("pfsz: ");
+                System.out.println(pfsz);
+                System.out.print("hitrate: ");
+                System.out.println(sim.getHitRate());
+                if(sim.getHitRate()>maxhitrate)
+                {
+                    maxhitrate = sim.getHitRate();
+                    maxsim = sim;
+                    pfsz = maxsim.prefetchsize;
+                }else if (sim.getHitRate() < maxhitrate){
+                    break;
+                }
+            }
         }
 
+        System.out.print("Best pfsize: ");
+        System.out.println(pfsz);
+
+        System.out.println("Testing cache replacements....");
         System.out.println("Trying out different cache replacment policies...");
         for(CacheReplacement.Policy crtst :CacheReplacement.Policy.values()){
             final Simulator sim = 
-                new Simulator(maxsim.blocksize, maxsim.prefetchsize,
-                        UPPER, pid, crtst, null, null, false);
+                new Simulator(blksz, pfsz,
+                        csz, pid, crtst, null, null, false);
             sim.initialPreLoad();
             sim.simulate();
+            System.out.print("Cache Replacement: ");
+            System.out.println(crtst.toString());
+            System.out.print("hitrate: ");
             System.out.println(sim.getHitRate());
             if(sim.getHitRate()>maxhitrate)
             {
