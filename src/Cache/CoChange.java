@@ -33,7 +33,7 @@ public class CoChange {
         this.fileName = fName;
     }
 
-    public PreparedStatement getCommitIdStatement() {
+    public static PreparedStatement getCommitIdStatement() {
         if (findCommitIdQuery == null) {
             try {
                 findCommitIdQuery = conn.prepareStatement(findCommitId);
@@ -44,7 +44,7 @@ public class CoChange {
         return findCommitIdQuery;
     }
 
-    public PreparedStatement getCochangeFileNameStatement() {
+    public static PreparedStatement getCochangeFileNameStatement() {
         if (findCochangeFileNameQuery == null)
             try {
                 findCochangeFileNameQuery = conn
