@@ -44,13 +44,13 @@ public class Simulator {
                     "scmlog.id and actions.file_id = " +
                     " file_types.file_id and file_types.type = 'code' and scmlog.repository_id = " +
                     "? and scmlog.date < ? and actions.type = 'D')) as total_files";
-    private static PreparedStatement findCommitQuery;
-    private static PreparedStatement findFileQuery;
-    private static PreparedStatement findHunkIdQuery;
-    static PreparedStatement findBugIntroCdateQuery;
-    static PreparedStatement findPidQuery;
-    static PreparedStatement findFileCountQuery;
-    static PreparedStatement findFileCountTimeQuery;
+    private PreparedStatement findCommitQuery;
+    private PreparedStatement findFileQuery;
+    private PreparedStatement findHunkIdQuery;
+    private PreparedStatement findBugIntroCdateQuery;
+    private static PreparedStatement findPidQuery;
+    private static PreparedStatement findFileCountQuery;
+    private PreparedStatement findFileCountTimeQuery;
 
     /**
      * From the actions table. See the cvsanaly manual
@@ -179,7 +179,7 @@ public class Simulator {
 
     @SuppressWarnings("unused")
     @Deprecated
-    private static int getFileCount(int projid, String date) {
+    private int getFileCount(int projid, String date) {
         int ret = 0;
         try {
             findFileCountTimeQuery.setInt(1, projid);
@@ -728,7 +728,7 @@ public class Simulator {
                 sim.initialPreLoad();
                 sim.simulate();
                 System.out.print("blksize: ");
-                System.out.println(blksz);
+                System.out.println(b);
                 System.out.print("hitrate: ");
                 System.out.println(sim.getHitRate());
                 if(sim.getHitRate()>maxhitrate)
@@ -752,7 +752,7 @@ public class Simulator {
                 sim.initialPreLoad();
                 sim.simulate();
                 System.out.print("pfsz: ");
-                System.out.println(pfsz);
+                System.out.println(p);
                 System.out.print("hitrate: ");
                 System.out.println(sim.getHitRate());
                 if(sim.getHitRate()>maxhitrate)
