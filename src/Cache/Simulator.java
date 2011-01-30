@@ -87,7 +87,7 @@ public class Simulator {
     int outputSpacing = 3; // output the hit rate every 3 months
     int month = outputSpacing;
     CsvWriter csvWriter;
-    int fileCount; // XXX where is this set? why static?
+    int fileCount; // XXX where is this set? why static?---This is no longer used now
     String filename;
 
     public Simulator(int bsize, int psize, int csize, int projid,
@@ -176,7 +176,7 @@ public class Simulator {
         }
         return ret;
     }
-
+/*---This is not used now
     @SuppressWarnings("unused")
     @Deprecated
     private static int getFileCount(int projid, String date) {
@@ -192,7 +192,7 @@ public class Simulator {
         }
         return ret;
     }
-
+*/
     /**
      * Prints out the command line options
      */
