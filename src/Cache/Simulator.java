@@ -404,7 +404,7 @@ public class Simulator {
             e1.printStackTrace();
         }
 
-        for (int size = 0; size < prefetchsize; size++) {
+        for (int num = 0; num < cache.getCacheSize(); num++) { // XXX should fill the cache completely
             try {
                 if (r.next()) {
                     fileName = r.getString(1); //XXX fix query
