@@ -97,7 +97,7 @@ public class CacheItem {
                 hitCount++;
         }
         loadDate = parent.getTime(); 
-        LOC = findLoc(fileName, cid);
+        LOC = Math.max(LOC, findLoc(fileName, cid));
         number = findNumber(fileName, parent.repID, cdate, sdate, parent.getPolicy());
     }
     
