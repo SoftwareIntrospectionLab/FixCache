@@ -54,6 +54,10 @@ Once you have an empty test database and a testdatabase.properties file set up, 
 
 All tests should pass. 
 
-To run FixCache on a larger database, set up a database.properties file and then use the run script.
+To run FixCache on a larger database, set up a database.properties file, check that the project id matches the one specified by the RUN script -p flag, and then use the RUN script. 
 
 ./RUN
+
+If you want to collect file output, you will also need to make an empty directory in the FixCache folder called "Results":
+
+mkdir Results

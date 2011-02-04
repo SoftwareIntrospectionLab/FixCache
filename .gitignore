@@ -3,6 +3,7 @@ database.properties
 testdatabase.properties
 soedatabase.properties
 mydatabase.properties
+localdatabase.properties
 .project
 Results/
 Jar/extra.jar
