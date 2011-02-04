@@ -229,7 +229,7 @@ public class Simulator {
 
         // add the co-changed files as well
         ArrayList<String> cochanges = CoChange.getCoChangeFileList(fileId,
-                cache.startDate, intro_cdate, blocksize);
+                cache.startDate, intro_cdate, blocksize, pid);
         cache.add(cochanges, cid, commitDate, CacheItem.CacheReason.CoChange);
     }
 

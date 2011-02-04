@@ -20,7 +20,7 @@ public class CoChange {
     final static Connection conn = DatabaseManager.getConnection();
     static final String findCommitId = "SELECT commit_id from actions, scmlog, files " +
             "where file_name=? and actions.file_id=files.id and actions.commit_id=scmlog.id and " +
-            "date between ? and ?";
+            "date between ? and ? and scmlog.repository_id=?";
     static final String findCochangeFileName = "SELECT file_name from files, actions, file_types " +
     		"where files.id=actions.file_id and commit_id =? and " +
     		"files.id=file_types.file_id and file_types.type='code'";
@@ -56,9 +56,9 @@ public class CoChange {
     }
 
     public static ArrayList<String> getCoChangeFileList(String fileName, String startDate,
-            String commitDate, int blocksize) {
+            String commitDate, int blocksize, int pid) {
         CoChange co = new CoChange(fileName);
-        return co.getCoChangeList(co.buildCoChangeMap(startDate, commitDate), blocksize);
+        return co.getCoChangeList(co.buildCoChangeMap(startDate, commitDate, pid), blocksize);
     }
 
     /**
@@ -67,7 +67,7 @@ public class CoChange {
      * @return
      */
     // commitDate
-    private CoChangeFileMap buildCoChangeMap(String startDate, String commitDate) {
+    private CoChangeFileMap buildCoChangeMap(String startDate, String commitDate, int pid) {
         CoChangeFileMap coChangeCounts = new CoChangeFileMap();
 
         // get a list of all prior commits for fileID before commitID:
@@ -78,6 +78,7 @@ public class CoChange {
             commitIdQuery.setString(1, fileName); //XXX fix query to use file_name
             commitIdQuery.setString(2, startDate);
             commitIdQuery.setString(3, commitDate);
+            commitIdQuery.setInt(4, pid);
             commitList = Util.Database.getIntArrayResult(commitIdQuery);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -169,7 +170,7 @@ public class CoChange {
      */
     public static void main(String args[]) {
         CoChange coChange = new CoChange("3679");
-        CoChangeFileMap countTable = coChange.buildCoChangeMap("","");
+        CoChangeFileMap countTable = coChange.buildCoChangeMap("","",1);
         List<String> coChangeList = countTable.getTopFiles(100);
         for (int i = 0; i < coChangeList.size(); i++) {
             System.out.println(coChangeList.get(i));
