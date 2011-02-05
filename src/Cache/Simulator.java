@@ -20,11 +20,11 @@ public class Simulator {
     
     static final String findCommit = "select id, date, is_bug_fix from scmlog "
         + "where repository_id =? and date between ? and ? order by date ASC";
-    static final String findFile = "select file_name, type from actions, content_loc, files "
+    static final String findFile = "select file_name, actions.type " +
+    		"from actions, content_loc, files, file_types "
         + "where actions.file_id=content_loc.file_id and actions.file_id=files.id "
         + "and actions.commit_id=? and content_loc.commit_id=? "
-        + "and actions.file_id in( "
-        + "select file_id from file_types where type='code') order by loc DESC";
+        + "and actions.file_id=file_types.file_id and file_types.type='code' order by loc DESC";
     static final String findHunkId = "select hunks.id from hunks, files where hunks.file_id=files.id and " +
     		"file_name =? and commit_id =?";
     static final String findBugIntroCdate = "select date from hunk_blames, scmlog "
