@@ -14,21 +14,21 @@ public class CacheItem {
      */
 
     static Connection conn = DatabaseManager.getConnection();
-    static final String findNumberOfAuthors = "select count(distinct(author_id)) "
-            + "from scmlog, actions, files, file_types " +
-            		"where scmlog.id=actions_cache.commit_id and actions.file_id=files.id " +
-            		"and files.id=file_types.file_id and file_types.type='code' " +
-            		"and date between ? and ? and file_name = ? and repository_id=?";
-    static final String findNumberOfChanges = "select count(actions.file_id) "
-            + "from scmlog, actions, files, file_types where scmlog.id=actions_cache.commit_id " +
-            		"and actions.file_id=files.id and files.id=file_types.file_id and " +
-            		"file_types.type='code' and date between ? and ? and file_name = ? " +
-            		"";
-    static final String findNumberOfBugs = "select count(actions.file_id) "
-            + "from scmlog, actions, files,file_types where scmlog.id = actions_cache.commit_id "
-            + "and actions.file_id=files.id and files.id=file_types.file_id and " 
-            + "file_types.type='code' file_name=? and date between ? and ? " 
-            + "and scmlog.repository_id=? and is_bug_fix=1";
+    static final String findNumberOfAuthors = "select count(distinct(author_id)) " +
+    		"from scmlog, actions, files, file_types " +
+    		"where scmlog.id=actions.commit_id and actions.file_id=files.id " +
+    		"and files.id=file_types.file_id and file_types.type='code' " +
+    		"and date between ? and ? and file_name = ? and scmlog.repository_id=?";
+    static final String findNumberOfChanges = "select count(actions.file_id) " +
+    		"from scmlog, actions, files, file_types where scmlog.id=actions.commit_id " +
+    		"and actions.file_id=files.id and files.id=file_types.file_id and " +
+    		"file_types.type='code' and date between ? and ? and file_name = ? " +
+    		"and scmlog.repository_id=?";
+    static final String findNumberOfBugs = "select count(actions.file_id) " +
+    		"from scmlog, actions, files,file_types where scmlog.id = actions_cache.commit_id " +
+    		"and actions.file_id=files.id and files.id=file_types.file_id and " +
+    		"file_types.type='code' file_name=? and date between ? and ? " +
+    		"and scmlog.repository_id=? and is_bug_fix=1";
     // static final String findNumberOfAuthors =
     // "select count(id) from people " +
     // "where id in( " +
@@ -188,8 +188,8 @@ public class CacheItem {
                         .prepareStatement(findNumberOfAuthors);
             findNumberOfAuthorsQuery.setString(1, start);
             findNumberOfAuthorsQuery.setString(2, cdate);
-            findNumberOfAuthorsQuery.setString(3, fileName); // XXX fix query to
-                                                             // use file_name
+            findNumberOfAuthorsQuery.setString(3, fileName); // XXX fix query to use file_name
+            findNumberOfAuthorsQuery.setInt(4, pid);
             ret = Util.Database.getIntResult(findNumberOfAuthorsQuery);
         } catch (SQLException e1) {
             e1.printStackTrace();
@@ -220,8 +220,8 @@ public class CacheItem {
                         .prepareStatement(findNumberOfChanges);
             findNumberOfChangesQuery.setString(1, start);
             findNumberOfChangesQuery.setString(2, cdate);
-            findNumberOfChangesQuery.setString(3, fileName); // XXX fix query to
-                                                             // use file_name
+            findNumberOfChangesQuery.setString(3, fileName); // XXX fix query to use file_name
+            findNumberOfChangesQuery.setInt(4, pid);
             ret = Util.Database.getIntResult(findNumberOfChangesQuery);
         } catch (SQLException e1) {
             e1.printStackTrace();
@@ -249,10 +249,10 @@ public class CacheItem {
             if (findNumberOfBugsQuery == null)
                 findNumberOfBugsQuery = conn.prepareStatement(findNumberOfBugs);
 
-            findNumberOfBugsQuery.setString(1, fileName); // XXX fix query to
-                                                          // use file_name
+            findNumberOfBugsQuery.setString(1, fileName); // XXX fix query to use file_name
             findNumberOfBugsQuery.setString(2, start);
             findNumberOfBugsQuery.setString(3, cdate);
+            findNumberOfBugsQuery.setInt(4, pid);
             ret = Util.Database.getIntResult(findNumberOfBugsQuery);
         } catch (SQLException e1) {
             e1.printStackTrace();

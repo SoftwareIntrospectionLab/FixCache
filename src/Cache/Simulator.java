@@ -33,24 +33,12 @@ public class Simulator {
     static final String findFileCount = "select count(distinct(file_name)) " +
     		"from files, file_types "
         + "where files.id = file_types.file_id and type = 'code' and repository_id=?";
-    static final String findFileCountTime =  "select(" +
-            "(select count(distinct(file_name)) from files, actions, scmlog, " +
-                    "file_types where files.id=file_types.file_id and actions.commit_id = " +
-                    "scmlog.id and actions.file_id = " +
-                    " file_types.file_id and file_types.type = 'code' and scmlog.repository_id = " +
-                    "? and scmlog.date < ?) - (" +
-                    "select count(distinct(file_name)) from files, actions, scmlog, " +
-                    "file_types where files.id=file_types.file_id and actions.commit_id = " +
-                    "scmlog.id and actions.file_id = " +
-                    " file_types.file_id and file_types.type = 'code' and scmlog.repository_id = " +
-                    "? and scmlog.date < ? and actions.type = 'D')) as total_files";
     private static PreparedStatement findCommitQuery;
     private static PreparedStatement findFileQuery;
     private static PreparedStatement findHunkIdQuery;
     static PreparedStatement findBugIntroCdateQuery;
     static PreparedStatement findPidQuery;
     static PreparedStatement findFileCountQuery;
-    static PreparedStatement findFileCountTimeQuery;
 
     /**
      * From the actions table. See the cvsanaly manual
@@ -177,21 +165,6 @@ public class Simulator {
         return ret;
     }
 
-    @SuppressWarnings("unused")
-    @Deprecated
-    private static int getFileCount(int projid, String date) {
-        int ret = 0;
-        try {
-            findFileCountTimeQuery.setInt(1, projid);
-            findFileCountTimeQuery.setString(2, date);
-            findFileCountTimeQuery.setInt(3, projid);
-            findFileCountTimeQuery.setString(4, date);
-            ret = Util.Database.getIntResult(findFileCountTimeQuery);
-        } catch (SQLException e1) {
-            e1.printStackTrace();
-        }
-        return ret;
-    }
 
     /**
      * Prints out the command line options
