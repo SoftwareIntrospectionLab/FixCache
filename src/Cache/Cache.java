@@ -14,7 +14,7 @@ public class Cache implements Iterable<CacheItem>{
     /**
      * Fields 
      */
-    private final int maxsize; 
+    final int maxsize; 
     private int size = 0; // current size of cache
 
     // keeps every cacheitem that was ever in the cache

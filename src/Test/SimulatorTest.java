@@ -54,19 +54,19 @@ public class SimulatorTest {
         Simulator sim1 = new Simulator(2, 2, 5, 1,
                 CacheReplacement.Policy.BUGS, "2009-10-20 01:32:19.0", null, false);
         sim1.initialPreLoad();
-        assertEquals(sim1.getCache().getCacheSize(), 2);
+        assertEquals(3, sim1.getCache().getCacheSize()); // only 3 files in inital commit
         assertTrue(sim1.getCache().contains("d.java"));
         assertTrue(sim1.getCache().contains("c.java"));
         Simulator sim2 = new Simulator(2, 2, 5, 1,
                 CacheReplacement.Policy.BUGS, "2009-10-20 14:37:47.0", null, false);
         sim2.initialPreLoad();
-        assertEquals(sim2.getCache().getCacheSize(), 2);
+        assertEquals(4, sim2.getCache().getCacheSize());
         assertTrue(sim2.getCache().contains("a.java"));
         assertTrue(sim2.getCache().contains("e.java"));
         Simulator sim3 = new Simulator(2, 2, 5, 1,
                 CacheReplacement.Policy.BUGS, "2009-10-23 09:50:25.0", null, false);
         sim3.initialPreLoad();
-        assertEquals(sim3.getCache().getCacheSize(), 1);
+        assertEquals(4, sim3.getCache().getCacheSize());
         assertTrue(sim3.getCache().contains("a.java"));
 //        Simulator sim4 = new Simulator(2, 2, 5, 1,
 //                CacheReplacement.Policy.BUGS, "2010-10-21 09:50:25.0", null);
@@ -85,7 +85,7 @@ public class SimulatorTest {
                 "2009-10-20 01:32:19.0", null, false);
         Cache cache = sim.getCache();
         sim.initialPreLoad();
-        assertEquals(cache.getCacheSize(), 2);
+        assertEquals(cache.getCacheSize(), 3);
         sim.add("a.java", 1, "2009-10-20 01:32:19.0", CacheItem.CacheReason.NewEntity);
         assertEquals(cache.getCacheSize(), 3);
         sim.add("c.java", 1, "2009-10-20 01:32:19.0", CacheItem.CacheReason.NewEntity);
@@ -121,26 +121,26 @@ public class SimulatorTest {
                 CacheReplacement.Policy.BUGS, "2009-10-24 14:30:53.0", null, false);
         sim1.initialPreLoad();
         sim1.simulate();
-        int rat = (int) (sim1.getHitRate()*100);
-        assertEquals(10000, rat);
+        int rat = (int) (sim1.getHitRate());
+        assertEquals(100, rat);
         Simulator sim2 = new Simulator(3, 2, 5, 1,
                 CacheReplacement.Policy.BUGS, "2009-10-24 09:50:26.0", null, false);
         sim2.initialPreLoad();
         sim2.simulate();
-        rat = (int) (sim2.getHitRate()*100);
-        assertEquals(10000, rat);
+        rat = (int) (sim2.getHitRate());
+        assertEquals(100, rat);
         Simulator sim3 = new Simulator(3, 2, 5, 1,
                 CacheReplacement.Policy.BUGS, "2009-10-24 07:51:22.0", null, false);
         sim3.initialPreLoad();
         sim3.simulate();
-        rat = (int) (sim3.getHitRate()*100);
-        assertEquals(5000, rat);
+        rat = (int) (sim3.getHitRate());
+        assertEquals(100, rat);
         Simulator sim4 = new Simulator(3, 2, 5, 1,
                 CacheReplacement.Policy.BUGS, "2009-10-20 01:32:19.0", null, false);
         sim4.initialPreLoad();
         sim4.simulate();
-        rat = (int) (sim4.getHitRate()*100);
-        assertEquals(6000, rat);
+        rat = (int) (sim4.getHitRate());
+        assertEquals(60, rat);
     }
     
 

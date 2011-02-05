@@ -385,7 +385,7 @@ public class Simulator {
 
         final String findInitialPreload = "select files.file_name, content_loc.commit_id "
             + "from content_loc, scmlog, actions, file_types, files "
-            + "where files.repository_id=? and content_loc.commit_id = scmlog.id and date =? "
+            + "where files.repository_id=? and content_loc.commit_id = scmlog.id and date <=? "
             + "and content_loc.file_id=actions.file_id and files.id=actions.file_id "
             + "and content_loc.commit_id=actions.commit_id and actions.type!='D' "
             + "and file_types.file_id=content_loc.file_id and file_types.type='code' " +
@@ -404,17 +404,19 @@ public class Simulator {
             e1.printStackTrace();
         }
 
-        for (int num = 0; num < cache.getCacheSize(); num++) { // XXX should fill the cache completely
-            try {
-                if (r.next()) {
-                    fileName = r.getString(1); //XXX fix query
-                    commitId = r.getInt(2);
-                    cache.add(fileName, commitId, cache.startDate,
-                            CacheItem.CacheReason.Preload);
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+        // Note: preload may not fill the cache completely if there are 
+        // not enough code files before the starting date
+        try {
+        	while (r.next()) {
+        		fileName = r.getString(1); //XXX fix query
+        		commitId = r.getInt(2);
+        		cache.add(fileName, commitId, cache.startDate,
+        				CacheItem.CacheReason.Preload);
+        		if (cache.isFull())
+        			break;
+        	}
+        } catch (SQLException e) {
+        	e.printStackTrace();
         }
     }
 
@@ -875,4 +877,9 @@ public class Simulator {
     public CsvWriter getCsvWriter() {
         return csvWriter;
     }
+    
+    public int getCacheSize(){
+    	return cachesize;
+    }
 }
+
