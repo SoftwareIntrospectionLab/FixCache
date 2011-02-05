@@ -25,13 +25,12 @@ public class Simulator {
         + "where actions.file_id=content_loc.file_id and actions.file_id=files.id "
         + "and actions.commit_id=? and content_loc.commit_id=? "
         + "and actions.file_id=file_types.file_id and file_types.type='code' order by loc DESC";
-    static final String findHunkId = "select hunks.id from hunks, files where hunks.file_id=files.id and " +
-    		"file_name =? and commit_id =?";
+    static final String findHunkId = "select hunks.id from hunks, files " +
+    		"where hunks.file_id=files.id and file_name =? and commit_id =?";
     static final String findBugIntroCdate = "select date from hunk_blames, scmlog "
         + "where hunk_id =? and hunk_blames.bug_commit_id=scmlog.id";
     static final String findPid = "select id from repositories where id=?";
-    static final String findFileCount = "select count(distinct(file_name)) " +
-    		"from files, file_types "
+    static final String findFileCount = "select count(distinct(file_name)) from files, file_types "
         + "where files.id = file_types.file_id and type = 'code' and repository_id=?";
     private PreparedStatement findCommitQuery;
     private PreparedStatement findFileQuery;
