@@ -14,21 +14,17 @@ public class CacheItem {
      */
 
     static Connection conn = DatabaseManager.getConnection();
-    static final String findNumberOfAuthors = "select count(people.id) " +
-    		"from scmlog, actions, files, file_types, people " +
+    static final String findNumberOfAuthors = "select count(distinct(scmlog.author_id)) " +
+    		"from scmlog, actions, files " +
     		"where scmlog.id=actions.commit_id and actions.file_id=files.id " +
-    		"and files.id=file_types.file_id and file_types.type='code' " +
-    		"and people.id=scmlog.author_id and date between ? and ? " +
-    		"and file_name = ? and scmlog.repository_id=?";
+    		"and date between ? and ? and file_name = ? and scmlog.repository_id=?";
     static final String findNumberOfChanges = "select count(actions.file_id) " +
-    		"from scmlog, actions, files, file_types where scmlog.id=actions.commit_id " +
-    		"and actions.file_id=files.id and files.id=file_types.file_id and " +
-    		"file_types.type='code' and date between ? and ? and file_name = ? " +
+    		"from scmlog, actions, files where scmlog.id=actions.commit_id " +
+    		"and actions.file_id=files.id and date between ? and ? and file_name = ? " +
     		"and scmlog.repository_id=?";
     static final String findNumberOfBugs = "select count(actions.file_id) " +
-    		"from scmlog, actions, files,file_types where scmlog.id = actions_cache.commit_id " +
-    		"and actions.file_id=files.id and files.id=file_types.file_id and " +
-    		"file_types.type='code' file_name=? and date between ? and ? " +
+    		"from scmlog, actions, files where scmlog.id = actions.commit_id " +
+    		"and actions.file_id=files.id and file_name=? and date between ? and ? " +
     		"and scmlog.repository_id=? and is_bug_fix=1";
     // static final String findNumberOfAuthors =
     // "select count(id) from people " +
