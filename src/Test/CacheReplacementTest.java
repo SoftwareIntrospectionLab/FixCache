@@ -47,28 +47,23 @@ public class CacheReplacementTest {
     public void testCacheReplacementAuthors() {
         Cache cache = new Cache(5, new CacheReplacement(
                 CacheReplacement.Policy.AUTHORS), "2009-10-20 01:32:19.0", "2010-01-01 01:01:01.0",1);
-        cache.add("a.java", 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
-        cache.add("b", 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
-        cache.add("c.java", 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
         cache.add("d.java", 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
-        cache.add("a.java", 2, "2009-10-20 14:37:38.0", CacheReason.BugEntity);
+        cache.add("c.java", 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
+        cache.add("a.java", 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
         cache.add("d.java", 2, "2009-10-20 14:37:38.0", CacheReason.BugEntity);
-        cache.add("b", 3, "2009-10-20 14:37:47.0", CacheReason.BugEntity);
-        cache.add("e.java", 3, "2009-10-20 14:37:47.0", CacheReason.NewEntity);
-        cache.add("a.java", 3, "2009-10-20 14:37:47.0", CacheReason.BugEntity);
+        cache.add("a.java", 2, "2009-10-20 14:37:38.0", CacheReason.BugEntity);
+        cache.add("a.java", 3, "2009-10-20 14:37:47.0", CacheReason.NewEntity);
+        cache.add("e.java", 3, "2009-10-20 14:37:47.0", CacheReason.BugEntity);
         cache.remove("d.java", "2009-10-20 14:37:47.0");
         cache.add("a.java", 5, "2009-10-23 14:10:37.0", CacheReason.BugEntity);
-        cache.add("b", 6, "2009-10-23 14:29:05.0", CacheReason.BugEntity);
         cache.add("f.java", 6, "2009-10-23 14:29:05.0", CacheReason.NewEntity);
         cache.add("g.java", 6, "2009-10-23 14:29:05.0", CacheReason.NewEntity);
-        assertNull(cache.getCacheItem("c.java") );
         cache.add("c.java", 7, "2009-10-23 20:01:52.0", CacheReason.BugEntity);
-        assertNull(cache.getCacheItem("e.java") );
         cache.add("h.java", 8, "2009-10-24 07:51:22.0", CacheReason.NewEntity);
-        assertNull(cache.getCacheItem("f.java") );
+        assertNull(cache.getCacheItem("e.java") );
         cache.add("a.java", 8, "2009-10-24 07:51:22.0", CacheReason.ModifiedEntity);
         cache.add("e.java", 9, "2009-10-24 09:50:26.0", CacheReason.ModifiedEntity);
-        assertNull(cache.getCacheItem("g.java") );
+        assertNull(cache.getCacheItem("f.java") );
     }
 
     @Test
@@ -116,28 +111,23 @@ public class CacheReplacementTest {
     public void testCacheReplacementChanges() {
         Cache cache = new Cache(5, new CacheReplacement(
                 CacheReplacement.Policy.CHANGES), "2009-10-20 01:32:19.0", "2010-01-01 01:01:01.0",1);
-        cache.add("a.java", 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
-        cache.add("b", 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
-        cache.add("c.java", 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
         cache.add("d.java", 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
-        cache.add("a.java", 2, "2009-10-20 14:37:38.0", CacheReason.BugEntity);
+        cache.add("c.java", 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
+        cache.add("a.java", 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
         cache.add("d.java", 2, "2009-10-20 14:37:38.0", CacheReason.BugEntity);
-        cache.add("b", 3, "2009-10-20 14:37:47.0", CacheReason.BugEntity);
-        cache.add("e.java", 3, "2009-10-20 14:37:47.0", CacheReason.NewEntity);
-        cache.add("a.java", 3, "2009-10-20 14:37:47.0", CacheReason.BugEntity);
+        cache.add("a.java", 2, "2009-10-20 14:37:38.0", CacheReason.BugEntity);
+        cache.add("a.java", 3, "2009-10-20 14:37:47.0", CacheReason.NewEntity);
+        cache.add("e.java", 3, "2009-10-20 14:37:47.0", CacheReason.BugEntity);
         cache.remove("d.java", "2009-10-20 14:37:47.0");
         cache.add("a.java", 5, "2009-10-23 14:10:37.0", CacheReason.BugEntity);
-        cache.add("b", 6, "2009-10-23 14:29:05.0", CacheReason.BugEntity);
         cache.add("f.java", 6, "2009-10-23 14:29:05.0", CacheReason.NewEntity);
         cache.add("g.java", 6, "2009-10-23 14:29:05.0", CacheReason.NewEntity);
-        assertNull(cache.getCacheItem("c.java") );
         cache.add("c.java", 7, "2009-10-23 20:01:52.0", CacheReason.BugEntity);
-        assertNull(cache.getCacheItem("e.java") );
         cache.add("h.java", 8, "2009-10-24 07:51:22.0", CacheReason.NewEntity);
-        assertNull(cache.getCacheItem("f.java") );
+        assertNull(cache.getCacheItem("e.java") );
         cache.add("a.java", 8, "2009-10-24 07:51:22.0", CacheReason.ModifiedEntity);
         cache.add("e.java", 9, "2009-10-24 09:50:26.0", CacheReason.ModifiedEntity);
-        assertNull(cache.getCacheItem("g.java") );
+        assertNull(cache.getCacheItem("f.java") );
     }
 
     @Test
@@ -145,25 +135,20 @@ public class CacheReplacementTest {
         Cache cache = new Cache(5, new CacheReplacement(
                 CacheReplacement.Policy.BUGS), "2009-10-20 01:32:19.0", "2010-01-01 01:01:01.0",1);
 
-        cache.add("a.java", 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
-        cache.add("b", 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
-        cache.add("c.java", 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
         cache.add("d.java", 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
-        cache.add("a.java", 2, "2009-10-20 14:37:38.0", CacheReason.BugEntity);
+        cache.add("c.java", 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
+        cache.add("a.java", 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
         cache.add("d.java", 2, "2009-10-20 14:37:38.0", CacheReason.BugEntity);
-        cache.add("b", 3, "2009-10-20 14:37:47.0", CacheReason.BugEntity);
-        cache.add("e.java", 3, "2009-10-20 14:37:47.0", CacheReason.NewEntity);
-        cache.add("a.java", 3, "2009-10-20 14:37:47.0", CacheReason.BugEntity);
+        cache.add("a.java", 2, "2009-10-20 14:37:38.0", CacheReason.BugEntity);
+        cache.add("a.java", 3, "2009-10-20 14:37:47.0", CacheReason.NewEntity);
+        cache.add("e.java", 3, "2009-10-20 14:37:47.0", CacheReason.BugEntity);
         cache.remove("d.java", "2009-10-20 14:37:47.0");
         cache.add("a.java", 5, "2009-10-23 14:10:37.0", CacheReason.BugEntity);
-        cache.add("b", 6, "2009-10-23 14:29:05.0", CacheReason.BugEntity);
         cache.add("f.java", 6, "2009-10-23 14:29:05.0", CacheReason.NewEntity);
         cache.add("g.java", 6, "2009-10-23 14:29:05.0", CacheReason.NewEntity);
-        assertNull(cache.getCacheItem("c.java") );
         cache.add("c.java", 7, "2009-10-23 20:01:52.0", CacheReason.BugEntity);
-        assertNull(cache.getCacheItem("e.java") );
         cache.add("h.java", 8, "2009-10-24 07:51:22.0", CacheReason.NewEntity);
-        assertNull(cache.getCacheItem("f.java") );
+        assertNull(cache.getCacheItem("e.java") );
         cache.add("a.java", 8, "2009-10-24 07:51:22.0", CacheReason.ModifiedEntity);
         cache.add("e.java", 9, "2009-10-24 09:50:26.0", CacheReason.ModifiedEntity);
         assertNull(cache.getCacheItem("h.java") );
