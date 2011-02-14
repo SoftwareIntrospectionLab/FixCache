@@ -51,7 +51,7 @@ public class CacheTest {
                 CacheReplacement.Policy.AUTHORS), "2009-10-20 01:32:19.0", "2010-01-01 01:01:01.0",1);
         cache.add("a.java", 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
         assertEquals(cache.getCacheSize(), 1);
-        cache.add("b", 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
+        cache.add("g.java", 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
         assertEquals(cache.getCacheSize(), 2);
         cache.add("c.java", 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
         assertEquals(cache.getCacheSize(), 3);
@@ -61,7 +61,7 @@ public class CacheTest {
         assertEquals(cache.getCacheSize(), 4);
         cache.add("d.java", 2, "2009-10-20 14:37:38.0", CacheReason.ModifiedEntity);
         assertEquals(cache.getCacheSize(), 4);
-        cache.add("b", 3, "2009-10-20 14:37:47.0", CacheReason.BugEntity);
+        cache.add("g.java", 3, "2009-10-20 14:37:47.0", CacheReason.BugEntity);
         assertEquals(cache.getCacheSize(), 4);
         cache.add("e.java", 3, "2009-10-20 14:37:47.0", CacheReason.BugEntity);
         assertTrue(cache.isFull());

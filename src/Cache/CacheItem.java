@@ -26,18 +26,32 @@ public class CacheItem {
     		"from scmlog, actions, files where scmlog.id = actions.commit_id " +
     		"and actions.file_id=files.id and file_name=? and date between ? and ? " +
     		"and scmlog.repository_id=? and is_bug_fix=1";
-    static final String findLoc = "select loc from content_loc, files where content_loc.file_id=files.id and"
+    static final String findLoc = "select loc from content_loc, files " +
+    		"where content_loc.file_id=files.id and"
             + " file_name=? and commit_id =?";
     private static PreparedStatement findNumberOfAuthorsQuery;
     private static PreparedStatement findNumberOfChangesQuery;
     private static PreparedStatement findNumberOfBugsQuery;
     private static PreparedStatement findLocQuery;
+    
+    /**
+     * Fields for Debugging
+     */
+    
+    private static final String checkRepo = "select id from scmlog where " +
+    		"repository_id = ? and id = ?";
+    private static PreparedStatement checkRepoQuery;
+    
+    private static final String checkFileType = "select file_id from " +
+    		"file_types, files where file_name = ? and " +
+    		"file_id = files.id and type='code'";
+    private static PreparedStatement checkFileTypeQuery;
 
     /**
      * Member fields
-     */
+     **/
 
-    // this enum tracks reason for cache entry and is used by other classes
+    // this enum tracks the reason for cache entry and is used by other classes
     public enum CacheReason {
         Preload, CoChange, NewEntity, ModifiedEntity, BugEntity
     }
@@ -45,21 +59,16 @@ public class CacheItem {
     private final String fileName; // id of file
     private int loadDate; // changed on cache hit
     private int LOC; // changed on cache hit
-    private int number; // represents either the number of bugs, changes, or
-                        // authors
+    private int number; // represents either the number of bugs, changes, or authors
     private int loadCount = 0; // count how many time a file is put into cache
-    private int loadDuration = 0; // represents how long in repo time a file
-                                  // stays in cache
-    private String timeAdded; // represents repo time when a file is added to
-                              // cache
+    private int loadDuration = 0; // represents how long in repo time a file stays in cache
+    private String timeAdded; // represents repo time when a file is added to cache
     private final Cache parent;
-    private boolean inCache = false; // stores whether the cacheitem is in the
-                                     // cache
+    private boolean inCache = false; // stores whether the cacheitem is in the cache
     private int hitCount = 0;
     private int missCount = 0;
 
-    // @SuppressWarnings("unused") // may be useful output
-    private CacheReason reason;
+    private CacheReason reason; 
 
     /**
      * Methods
@@ -72,7 +81,10 @@ public class CacheItem {
         update(cid, cdate, p.getStartDate(), r);
         assert (r != CacheReason.BugEntity || missCount != 0);
         assert (parent.neverInCache(fileName));
+        assert(checkFileType(fileName));
+        assert(checkRepo(p.repID, cid)); 
     }
+    
 
     /**
      * called every time entityId moved into the cache, or cache hit occurs
@@ -97,7 +109,7 @@ public class CacheItem {
             if (r == CacheReason.BugEntity)
                 hitCount++;
         }
-        loadDate = parent.getTime(); 
+        loadDate = parent.getTime(); // counter
         LOC = Math.max(LOC, findLoc(fileName, cid));
         number = findNumber(fileName, parent.repID, cdate, sdate, parent.getPolicy());
     }
@@ -113,7 +125,7 @@ public class CacheItem {
         return loadDuration;
     }
 
-    // XXX: Do we need pid? or is eid unique enough for the called methods?
+    // XXX: Maybe get rid of pid here once we switch back to eids.
     /**
      * 
      * @param eid
@@ -145,7 +157,6 @@ public class CacheItem {
         return ret;
     }
 
-    // XXX: Do we need pid? or is eid unique enough for this query?
     /**
      * 
      * @param eid
@@ -177,7 +188,6 @@ public class CacheItem {
         return ret;
     }
 
-    // XXX: Do we need pid? or is eid unique enough for this query?
     /**
      * 
      * @param eid
@@ -322,15 +332,11 @@ public class CacheItem {
         return hitCount;
     }
 
-    /**
-     * for debugging; used only for the DBUnit tests
-     * 
-     * @return number
-     */
-    protected int getNumber() {
-        return number;
-    }
 
+    /**
+     * 
+     * @return the reason this was added to cache
+     */
     public CacheReason getReason() {
         return reason;
     }
@@ -345,9 +351,64 @@ public class CacheItem {
                     parent.endDate);
         return loadDuration;
     }
-
+    
+    /**
+     * 
+     * @return number of times files was not in cache and had a bug fix
+     */
     public int getMissCount() {
         return missCount;
     }
+    
+    /**
+     * Methods for Debugging
+     */
+    
+    /**
+     * used only for the DBUnit tests
+     * 
+     * @return number
+     */
+    protected int getNumber() {
+        return number;
+    }
+
+    
+    /**
+     *  checks that the repo in pid matches that associated with commit cid
+     * @param pid -- project id
+     * @param cid -- commit id
+     * @return true if they match, false otherwise
+     */
+    private boolean checkRepo(int pid, int cid){
+        try {
+            if (checkRepoQuery == null)
+                checkRepoQuery = conn.prepareStatement(checkRepo);
+            checkRepoQuery.setInt(1, pid);
+            checkRepoQuery.setInt(2, cid);
+            return checkRepoQuery.executeQuery().first();
+        } catch (SQLException e1) {
+            e1.printStackTrace();
+            return false;
+        }
+    }
+    
+    /**
+     * checks that the filename is a code file
+     * @param fname -- filename
+     * @return true if it is a code file, false otherwise
+     */
+    private boolean checkFileType(String fname){
+        try{
+            if (checkFileTypeQuery == null)
+                checkFileTypeQuery = conn.prepareStatement(checkFileType);
+            checkFileTypeQuery.setString(1, fname);
+            return checkFileTypeQuery.executeQuery().first();
+        } catch (SQLException e1) {
+            e1.printStackTrace();
+            return false;
+        }
+    }
+
 
 }

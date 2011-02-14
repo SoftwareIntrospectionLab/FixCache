@@ -18,6 +18,7 @@ public class Database {
 		return res;
 	}
 	
+	
 	public static ArrayList<Integer> getIntArrayResult(PreparedStatement intArrayQuery) 
 	throws SQLException
 	{

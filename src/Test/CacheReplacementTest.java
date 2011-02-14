@@ -72,27 +72,26 @@ public class CacheReplacementTest {
         Cache cache = new Cache(5, new CacheReplacement(
                 CacheReplacement.Policy.LRU), "2009-10-20 01:32:19.0", "2010-01-01 01:01:01.0",1);
         cache.add("a.java", 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
-        cache.add("b", 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
         cache.add("c.java", 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
         cache.add("d.java", 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
         cache.add("a.java", 2, "2009-10-20 14:37:38.0", CacheReason.BugEntity); // LRU
         cache.add("d.java", 2, "2009-10-20 14:37:38.0", CacheReason.BugEntity); // LRU
-        cache.add("b", 3, "2009-10-20 14:37:47.0", CacheReason.BugEntity); // 2,
-        assertEquals(4, cache.getCacheSize());
+        assertEquals(3, cache.getCacheSize());
         cache.add("e.java", 3, "2009-10-20 14:37:47.0", CacheReason.NewEntity); // LRU 3, 5, 2, 4, 1, 3
         cache.add("a.java", 3, "2009-10-20 14:37:47.0", CacheReason.BugEntity); // 1,
-        assertEquals(5, cache.getCacheSize());
+        assertEquals(4, cache.getCacheSize());
         cache.remove("d.java", "2009-10-20 14:37:47.0"); // 1, 5, 2, 3
-        assertEquals(4, cache.getCacheSize());
+        assertEquals(3, cache.getCacheSize());
         cache.add("a.java", 5, "2009-10-23 14:10:37.0", CacheReason.BugEntity); // 1,
-        cache.add("b", 6, "2009-10-23 14:29:05.0", CacheReason.BugEntity); // 2,
-        assertEquals(4, cache.getCacheSize());
+        assertEquals(3, cache.getCacheSize());
         cache.add("f.java", 6, "2009-10-23 14:29:05.0", CacheReason.NewEntity); // 6,
-        assertEquals(5, cache.getCacheSize());
+        assertEquals(4, cache.getCacheSize());
         assertEquals(1, cache.getLoadCount("c.java"));
         
         assertEquals("c.java", cache.getMinimum());
         cache.add("g.java", 6, "2009-10-23 14:29:05.0", CacheReason.NewEntity); // 7,
+        assertEquals(5, cache.getCacheSize());
+        cache.add("d.java", 1, "2009-10-20 01:32:19.0", CacheReason.NewEntity);
         assertEquals(5, cache.getCacheSize());
         assertNull(cache.getCacheItem("c.java") );
 
