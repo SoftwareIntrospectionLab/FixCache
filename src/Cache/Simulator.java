@@ -20,37 +20,24 @@ public class Simulator {
     
     static final String findCommit = "select id, date, is_bug_fix from scmlog "
         + "where repository_id =? and date between ? and ? order by date ASC";
-    static final String findFile = "select file_name, type from actions, content_loc, files "
+    static final String findFile = "select file_name, actions.type " +
+    		"from actions, content_loc, files, file_types "
         + "where actions.file_id=content_loc.file_id and actions.file_id=files.id "
         + "and actions.commit_id=? and content_loc.commit_id=? "
-        + "and actions.file_id in( "
-        + "select file_id from file_types where type='code') order by loc DESC";
-    static final String findHunkId = "select hunks.id from hunks, files where hunks.file_id=files.id and " +
-    		"file_name =? and commit_id =?";
+        + "and actions.file_id=file_types.file_id and file_types.type='code' order by loc DESC";
+    static final String findHunkId = "select hunks.id from hunks, files " +
+    		"where hunks.file_id=files.id and file_name =? and commit_id =?";
     static final String findBugIntroCdate = "select date from hunk_blames, scmlog "
         + "where hunk_id =? and hunk_blames.bug_commit_id=scmlog.id";
     static final String findPid = "select id from repositories where id=?";
-    static final String findFileCount = "select count(distinct(file_name)) " +
-    		"from files, file_types "
+    static final String findFileCount = "select count(distinct(file_name)) from files, file_types "
         + "where files.id = file_types.file_id and type = 'code' and repository_id=?";
-    static final String findFileCountTime =  "select(" +
-            "(select count(distinct(file_name)) from files, actions, scmlog, " +
-                    "file_types where files.id=file_types.file_id and actions.commit_id = " +
-                    "scmlog.id and actions.file_id = " +
-                    " file_types.file_id and file_types.type = 'code' and scmlog.repository_id = " +
-                    "? and scmlog.date < ?) - (" +
-                    "select count(distinct(file_name)) from files, actions, scmlog, " +
-                    "file_types where files.id=file_types.file_id and actions.commit_id = " +
-                    "scmlog.id and actions.file_id = " +
-                    " file_types.file_id and file_types.type = 'code' and scmlog.repository_id = " +
-                    "? and scmlog.date < ? and actions.type = 'D')) as total_files";
     private PreparedStatement findCommitQuery;
     private PreparedStatement findFileQuery;
     private PreparedStatement findHunkIdQuery;
     private PreparedStatement findBugIntroCdateQuery;
     private static PreparedStatement findPidQuery;
     private static PreparedStatement findFileCountQuery;
-    private PreparedStatement findFileCountTimeQuery;
 
     /**
      * From the actions table. See the cvsanaly manual
@@ -87,7 +74,7 @@ public class Simulator {
     int outputSpacing = 3; // output the hit rate every 3 months
     int month = outputSpacing;
     CsvWriter csvWriter;
-    int fileCount; // XXX where is this set? why static?
+    int fileCount; // XXX where is this set? why static?---This is no longer used now
     String filename;
 
     public Simulator(int bsize, int psize, int csize, int projid,
@@ -176,23 +163,6 @@ public class Simulator {
         }
         return ret;
     }
-
-    @SuppressWarnings("unused")
-    @Deprecated
-    private int getFileCount(int projid, String date) {
-        int ret = 0;
-        try {
-            findFileCountTimeQuery.setInt(1, projid);
-            findFileCountTimeQuery.setString(2, date);
-            findFileCountTimeQuery.setInt(3, projid);
-            findFileCountTimeQuery.setString(4, date);
-            ret = Util.Database.getIntResult(findFileCountTimeQuery);
-        } catch (SQLException e1) {
-            e1.printStackTrace();
-        }
-        return ret;
-    }
-
     /**
      * Prints out the command line options
      */
@@ -229,7 +199,7 @@ public class Simulator {
 
         // add the co-changed files as well
         ArrayList<String> cochanges = CoChange.getCoChangeFileList(fileId,
-                cache.startDate, intro_cdate, blocksize);
+                cache.startDate, intro_cdate, blocksize, pid);
         cache.add(cochanges, cid, commitDate, CacheItem.CacheReason.CoChange);
     }
 
