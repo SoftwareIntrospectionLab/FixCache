@@ -21,7 +21,7 @@ public class Cache implements Iterable<CacheItem>{
     private Hashtable<String, CacheItem> cacheTable = new Hashtable<String, CacheItem>();
 
     private CacheReplacement policy;
-    String startDate; // XXX should be a real time in the version control system
+    String startDate; 
     String endDate;
     int repID;
 
@@ -44,6 +44,11 @@ public class Cache implements Iterable<CacheItem>{
     /**
      * Methods
      */
+    
+    @Override
+    public Iterator<CacheItem> iterator() {
+        return cacheTable.values().iterator();
+    }
 
     /**
      * Compares the current cache size with the maximum allowable
@@ -172,6 +177,15 @@ public class Cache implements Iterable<CacheItem>{
         return size;
     }
 
+    public int getTime() {
+        return time++;
+    }
+    
+    public int getTotalDuration(){
+        return Util.Dates.getMinuteDuration(startDate, endDate);
+    }
+
+    
     /**
      * Checks the cache table for whether a particular entity is in the cache
      * @param eid -- entity id
@@ -185,18 +199,23 @@ public class Cache implements Iterable<CacheItem>{
             return ci.isInCache();
     }
 
+    /**
+     * These two methods reset within-slice counts at slice boundaries
+     * @return the in-slice count
+     */
     public int resetAddCount() {
         int oldAdds = addCount;
         addCount = 0;
         return oldAdds;
     }
-
     public int resetCICount() {
         int oldcis = numNewItems;
         numNewItems = 0;
         return oldcis;
     }
+    
 
+    
     /**
      *  Methods for debugging
      */
@@ -215,9 +234,6 @@ public class Cache implements Iterable<CacheItem>{
         return ci;
     }
     
-    public CacheItem getCacheItem(int eid){
-        return getCacheItem(Integer.toString(eid));
-    }
     
     public boolean neverInCache(String entityId){
         return (cacheTable.get(entityId) == null);
@@ -233,16 +249,4 @@ public class Cache implements Iterable<CacheItem>{
         return ci.getLoadCount();
     }
 
-    public int getTime() {
-        return time++;
-    }
-    
-    public int getTotalDuration(){
-        return Util.Dates.getMinuteDuration(startDate, endDate);
-    }
-
-    @Override
-    public Iterator<CacheItem> iterator() {
-        return cacheTable.values().iterator();
-    }
 }
