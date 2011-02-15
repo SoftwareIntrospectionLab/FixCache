@@ -1,8 +1,8 @@
 package Cache;
 
-import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
+
 import Cache.CacheItem.CacheReason;
 
 public class Cache implements Iterable<CacheItem>{
@@ -106,18 +106,6 @@ public class Cache implements Iterable<CacheItem>{
             addCount++;
             numNewItems++;
         }
-    }
-
-    /**
-     * Wrapper for add to add in bulk
-     * @param eids -- entityid list
-     * @param cid -- commitid
-     * @param cdate -- commit date
-     * @param reason -- reason for adding to the cache
-     */
-    public void add(ArrayList<String> fileNames, int cid, String cdate, CacheReason reas) {
-        for (String fName : fileNames)
-            add(fName, cid, cdate, reas);
     }
 
 

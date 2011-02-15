@@ -8,8 +8,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+
 import Database.DatabaseManager;
 
 public class CoChange {
@@ -33,10 +34,11 @@ public class CoChange {
         this.fileName = fName;
     }
 
-    public static ArrayList<String> getCoChangeFileList(String fileName, String startDate,
-            String commitDate, int blocksize, int pid) {
+    public static ArrayList<Entry<String, Integer>> getCoChangeFileList(
+            String fileName, String startDate,
+            String commitDate, int pid) {
         CoChange co = new CoChange(fileName);
-        return co.getCoChangeList(co.buildCoChangeMap(startDate, commitDate, pid), blocksize);
+        return co.buildCoChangeMap(startDate, commitDate, pid).getSortedFiles();
     }
 
     /**
@@ -101,17 +103,6 @@ public class CoChange {
             return commitIdQuery.executeQuery();
     }
 
-    /**
-     * 
-     * @param countTable
-     * @param blocksize
-     * @return
-     */
-    private ArrayList<String> getCoChangeList(CoChangeFileMap countTable,
-            int blocksize) {
-        return countTable.getTopFiles(blocksize);
-    }
-
 
     /**
      * 
@@ -125,7 +116,7 @@ public class CoChange {
         // int []fileIds;
         // int []counts;
         // int index;
-        HashMap<String, Integer> map;
+        private HashMap<String, Integer> map;
 
         CoChangeFileMap() {
             map = new HashMap<String, Integer>();
@@ -144,10 +135,10 @@ public class CoChange {
         }
 
         // TODO: when two files have the same cochange count, use loc to break ties
-        ArrayList<String> getTopFiles(int blocksize) {
+        ArrayList<Map.Entry<String, Integer>> getSortedFiles() {
+
             ArrayList<Map.Entry<String, Integer>> list = 
                 new ArrayList<Map.Entry<String, Integer>>(map.entrySet());
-            ArrayList<String> topFiles = new ArrayList<String>();
             Collections.sort(list,
                     new Comparator<Map.Entry<String, Integer>>() {
                         public int compare(Map.Entry<String, Integer> o1,
@@ -155,16 +146,41 @@ public class CoChange {
                             return (o2.getValue().compareTo(o1.getValue())); // DESCENDING order
                         }
                     });
-            // a block size b indicates that we load b-1 closest entities.
-            for (int i = 0; i < blocksize - 1; i++)
-            {
-                if (list.size() > i) {
-                    Map.Entry<String, Integer> curr = list.get(i);
-                    topFiles.add(curr.getKey());
-                }
-            }
-            return topFiles;
+            
+            return list;
         }
+
     }
+
+    /**
+     * For Debugging
+     * 
+     */
+
+
+    private static ArrayList<String> getList(int blksize, 
+            ArrayList<Map.Entry<String, Integer>> entries){
+
+        ArrayList<String> topFiles = new ArrayList<String>();
+
+        for (int i = 0; i < blksize - 1; i++)
+        {
+            if (entries.size() > i) {
+                Map.Entry<String, Integer> curr = entries.get(i);
+                topFiles.add(curr.getKey());
+            }
+        }
+        return topFiles;
+    }
+
+    public static ArrayList<String> getCoChangeFileList(String fname,
+            String start, String cdate, int blksz, int pid) {
+        return getList(blksz, getCoChangeFileList(fname, start, cdate, pid));
+    }
+
     
 }
+
+
+
+

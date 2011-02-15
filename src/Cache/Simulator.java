@@ -6,6 +6,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Map.Entry;
+
 import com.csvreader.CsvWriter;
 
 import Util.CmdLineParser;
@@ -198,9 +200,16 @@ public class Simulator {
         cache.add(fileId, cid, commitDate, CacheItem.CacheReason.BugEntity);
 
         // add the co-changed files as well
-        ArrayList<String> cochanges = CoChange.getCoChangeFileList(fileId,
-                cache.startDate, intro_cdate, blocksize, pid);
-        cache.add(cochanges, cid, commitDate, CacheItem.CacheReason.CoChange);
+        ArrayList<Entry<String, Integer>> cochanges = 
+            CoChange.getCoChangeFileList(fileId, cache.startDate, intro_cdate, pid);
+
+        for (int i = 0; i < blocksize - 1; i++)
+        {
+            if (cochanges.size() > i) {
+                cache.add(cochanges.get(i).getKey(), 
+                        cid, commitDate, CacheItem.CacheReason.CoChange);
+            }
+        }
     }
 
     /**
