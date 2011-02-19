@@ -109,7 +109,7 @@ public class CacheItem {
             if (r == CacheReason.BugEntity)
                 hitCount++;
         }
-        loadDate = parent.getTime(); // counter
+        loadDate = parent.getTime(cid); // counter
         LOC = Math.max(LOC, findLoc(fileName, cid));
         number = findNumber(fileName, parent.repID, cdate, sdate, parent.getPolicy());
     }
@@ -251,14 +251,14 @@ public class CacheItem {
     }
 
     /**
-     * 
+     * This method is also used in CoChange.java
      * @param eid
      *            -- entity id
      * @param cid
      *            -- commit id
      * @return the lines of code for eid at cid
      */
-    private static int findLoc(String fileName, int cid) {
+    protected static int findLoc(String fileName, int cid) {
         int ret = 0;
         try {
             if (findLocQuery == null)

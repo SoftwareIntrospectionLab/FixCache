@@ -14,23 +14,32 @@ public class Cache implements Iterable<CacheItem>{
     /**
      * Fields 
      */
-    final int maxsize; 
+    final int maxsize; // cache size parameter
     private int size = 0; // current size of cache
 
     // keeps every cacheitem that was ever in the cache
     private Hashtable<String, CacheItem> cacheTable = new Hashtable<String, CacheItem>();
 
-    private CacheReplacement policy;
-    String startDate; 
-    String endDate;
-    int repID;
+    final private CacheReplacement policy;
+    final String startDate; 
+    final String endDate;
+    final int repID;
 
     // counter, used to decide which cacheitem is LRU
     private int time = 0;
+    private int currcommit = -1;
 
     private int addCount = 0;
     private int numNewItems = 0;
     
+    /**
+     * 
+     * @param cacheSize
+     * @param pol
+     * @param start
+     * @param end
+     * @param rep
+     */
     public Cache(int cacheSize, CacheReplacement pol, String start, String end, int rep) {
         assert(start !=null);
         assert(end != null);
@@ -165,7 +174,9 @@ public class Cache implements Iterable<CacheItem>{
         return size;
     }
 
-    public int getTime() {
+    public int getTime(int cid) {
+        if (cid == currcommit) return time;
+        currcommit = cid;
         return time++;
     }
     
@@ -203,6 +214,12 @@ public class Cache implements Iterable<CacheItem>{
     }
     
 
+    int getLoc(String fileid){
+        CacheItem ci = cacheTable.get(fileid);
+        if (ci == null)
+            return -1;
+        return ci.getLOC();
+    }
     
     /**
      *  Methods for debugging

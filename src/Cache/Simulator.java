@@ -1,6 +1,5 @@
 package Cache;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -8,9 +7,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Map.Entry;
 
-import com.csvreader.CsvWriter;
-
-import Util.CmdLineParser;
 import Cache.CacheItem.CacheReason;
 import Database.DatabaseManager;
 
@@ -25,27 +21,22 @@ public class Simulator {
     static final String findFile = "select file_name, actions.type " +
     		"from actions, content_loc, files, file_types "
         + "where actions.file_id=content_loc.file_id and actions.file_id=files.id "
-        + "and actions.commit_id=? and content_loc.commit_id=? "
+        + "and actions.commit_id=? and content_loc.commit_id=? " //XXX why two '?'
         + "and actions.file_id=file_types.file_id and file_types.type='code' order by loc DESC";
     static final String findHunkId = "select hunks.id from hunks, files " +
     		"where hunks.file_id=files.id and file_name =? and commit_id =?";
     static final String findBugIntroCdate = "select date from hunk_blames, scmlog "
         + "where hunk_id =? and hunk_blames.bug_commit_id=scmlog.id";
-    static final String findPid = "select id from repositories where id=?";
-    static final String findFileCount = "select count(distinct(file_name)) from files, file_types "
-        + "where files.id = file_types.file_id and type = 'code' and repository_id=?";
     private PreparedStatement findCommitQuery;
     private PreparedStatement findFileQuery;
     private PreparedStatement findHunkIdQuery;
     private PreparedStatement findBugIntroCdateQuery;
-    private static PreparedStatement findPidQuery;
-    private static PreparedStatement findFileCountQuery;
 
     /**
      * From the actions table. See the cvsanaly manual
      * (http://gsyc.es/~carlosgc/files/cvsanaly.pdf), pg 11
      */
-    public enum FileType {
+    public enum ActionType {
         A, M, D, V, C, R
     }
 
@@ -54,127 +45,46 @@ public class Simulator {
      */
     final int blocksize; // number of co-change files to import
     final int prefetchsize; // number of (new or modified but not buggy) files
-    // to import
-    final int cachesize; // size of cache
     final int pid; // project (repository) id
-    final boolean saveToFile; // whether there should be csv output
-    boolean filedistPrintMultiple = false; // whether the filedist output should happen once or more
     final CacheReplacement.Policy cacheRep; // cache replacement policy
     final Cache cache; // the cache
     final static Connection conn = DatabaseManager.getConnection(); // for database
+    final OutputManager output; // handles output
 
+    // all initialized to 0 by default
     int hit;
     int miss;
     private int commits;
     private int totalcommits;
     private int bugcount;
     private int filesProcessed;
+    
+    /**
+     * Create a new simulator, with input parameters designated by "in"
+     * @param in
+     */
+    public Simulator(InputManager in) {
+        // initialize final fields
+        this.pid = in.pid;
+        this.blocksize = in.blksize;
+        this.prefetchsize = in.prefetchsize;
+        this.cacheRep = in.crp;
 
-    // For output
-    // XXX separate class to manage output
-    String outputDate;
-    int outputSpacing = 3; // output the hit rate every 3 months
-    int month = outputSpacing;
-    CsvWriter csvWriter;
-    int fileCount; // XXX where is this set? why static?---This is no longer used now
-    String filename;
-
-    public Simulator(int bsize, int psize, int csize, int projid,
-            CacheReplacement.Policy rep, String start, String end, Boolean save) {
-
-        pid = projid;        
-        int onepercent = getPercentOfFiles(pid);
-
-        if (bsize == -1)
-            blocksize = onepercent*5;
-        else
-            blocksize = bsize;
-        if (csize == -1)
-            cachesize = onepercent*10; 
-        else
-            cachesize = csize;
-        if (psize == -1)
-            prefetchsize = onepercent;
-        else
-            prefetchsize = psize;
-
-        cacheRep = rep;
-
-        start = findFirstDate(start, pid);
-        end = findLastDate(end, pid);
-
-
-        cache = new Cache(cachesize, new CacheReplacement(rep), start, end,
-                projid);
-        outputDate = cache.startDate;
-
-        hit = 0;
-        miss = 0;
-        this.saveToFile = save;
-
-        if (saveToFile == true) {
-            filename = pid + "_" + cachesize + "_" + blocksize + "_"
-            + prefetchsize + "_" + cacheRep;
-            csvWriter = new CsvWriter("Results/" + filename + "_hitrate.csv");
-            csvWriter.setComment('#');
-            try {
-                csvWriter.writeComment("hitrate for every 3 months, "
-                        + "used to describe the variation of hit rate with time");
-                csvWriter.writeComment("project: " + pid + ", cachesize: "
-                        + cachesize + ", blocksize: " + cachesize
-                        + ", prefetchsize: " + prefetchsize
-                        + ", cache replacement policy: " + cacheRep);
-                csvWriter.write("Month");
-                //csvWriter.write("Range");
-                csvWriter.write("HitRate");
-                csvWriter.write("NumCommits");
-                csvWriter.write("NumAdds");
-                csvWriter.write("NumNewCacheItems");
-                // csvWriter.write("NumFiles"); // uncomment if using findfilecountquery
-                csvWriter.write("NumBugFixes");
-                csvWriter.write("FilesProcessed");
-                csvWriter.endRecord();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
+        cache = new Cache(in.cachesize, new CacheReplacement(in.crp), in.start, in.end,
+                in.pid);
+        
+        output= new OutputManager(cache.startDate, in.saveToFile, in.monthly);
+  
         try {
             findFileQuery = conn.prepareStatement(findFile);
             findCommitQuery = conn.prepareStatement(findCommit);
             findHunkIdQuery = conn.prepareStatement(findHunkId);
             findBugIntroCdateQuery = conn.prepareStatement(findBugIntroCdate);
-            //findFileCountTimeQuery = conn.prepareStatement(findFileCountTime);
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
     
-    void outputMultiple(){
-        filedistPrintMultiple = true;
-    }
-
-    private static int getFileCount(int projid) {
-        int ret = 0;
-        try {
-            findFileCountQuery = conn.prepareStatement(findFileCount);
-            findFileCountQuery.setInt(1, projid);
-            ret = Util.Database.getIntResult(findFileCountQuery);
-        } catch (SQLException e1) {
-            e1.printStackTrace();
-        }
-        return ret;
-    }
-    /**
-     * Prints out the command line options
-     */
-    private static void printUsage() {
-        System.err
-        .println("Example Usage: FixCache -b=10000 -c=500 -f=600 -r=\"LRU\" -p=1");
-        System.err.println("Example Usage: FixCache --blksize=10000 "
-                + "--csize=500 --pfsize=600 --cacherep=\"LRU\" --pid=1");
-        System.err.println("-p/--pid option is required");
-    }
 
     /**
      * Loads an entity containing a bug into the cache.
@@ -201,11 +111,13 @@ public class Simulator {
 
         // add the co-changed files as well
         ArrayList<Entry<String, Integer>> cochanges = 
-            CoChange.getCoChangeFileList(fileId, cache.startDate, intro_cdate, pid);
+                        CoChange.getCoChangeFileList(fileId, cache.startDate, 
+                                intro_cdate, pid, cache);
 
         for (int i = 0; i < blocksize - 1; i++)
         {
             if (cochanges.size() > i) {
+                // XXX sometimes this will add files which were not modified in cid
                 cache.add(cochanges.get(i).getKey(), 
                         cid, commitDate, CacheItem.CacheReason.CoChange);
             }
@@ -225,7 +137,7 @@ public class Simulator {
 
         boolean isBugFix;
         String fileName;
-        FileType type;
+        ActionType type;
         int numprefetch = 0;
 
         // iterate over the selection
@@ -238,7 +150,9 @@ public class Simulator {
             allCommits = findCommitQuery.executeQuery();
 
             while (allCommits.next()) {
-                incCommits();
+                // inc commit counters
+                commits++;
+                totalcommits++;
                 cid = allCommits.getInt(1);
                 cdate = allCommits.getString(2);
                 isBugFix = allCommits.getBoolean(3);
@@ -250,17 +164,12 @@ public class Simulator {
                 // loop through those file ids
                 while (files.next()) {
                     fileName = files.getString(1); //XXX fix query
-                    type = FileType.valueOf(files.getString(2));
+                    type = ActionType.valueOf(files.getString(2));
                     numprefetch = processOneFile(cid, cdate, isBugFix, fileName,
                             type, numprefetch);
                 }
                 numprefetch = 0;
-                if (saveToFile == true) {
-                    if (Util.Dates.getMonthDuration(outputDate, cdate) > outputSpacing
-                            || cdate.equals(cache.endDate)) {
-                        outputHitRate(cdate);
-                    }
-                }                   
+                output.manage(cdate, this);
             }      
         } catch (Exception e) {
             System.out.println(e);
@@ -268,50 +177,21 @@ public class Simulator {
         }
     }
 
-    private void incCommits() {
-        commits++;
-        totalcommits++;
-    }
-
-    private void outputHitRate(String cdate) {
-        // XXX what if commits are more than 3 months apart?
-        //final String formerOutputDate = outputDate;
-        
-        if (filedistPrintMultiple) 
-            outputFileDist();
-
-        if (!cdate.equals(cache.endDate)) {
-            outputDate = Util.Dates.monthsLater(outputDate, outputSpacing);
-        } else {
-            outputDate = cdate; // = cache.endDate
-        }
-
-        try {
-            csvWriter.write(Integer.toString(month));
-            //csvWriter.write(Util.Dates.getRange(formerOutputDate, outputDate));
-            csvWriter.write(Double.toString(getHitRate()));
-            csvWriter.write(Integer.toString(resetCommitCount()));
-            csvWriter.write(Integer.toString(cache.resetAddCount()));
-            csvWriter.write(Integer.toString(cache.resetCICount()));
-            //also prints filecount at time slice, but query is not accurate
-            //csvWriter.write(Integer.toString(getFileCount(pid,cdate))); 
-            csvWriter.write(Integer.toString(resetBugCount()));
-            csvWriter.write(Integer.toString(resetFilesProcessedCount()));
-            csvWriter.endRecord();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        month += outputSpacing;
-        if (Util.Dates.getMonthDuration(outputDate, cdate) > outputSpacing){
-            outputHitRate(cdate);
-        }
-        
-    }
-
+    
+    /**
+     * Processes one file action from a particular commit
+     * @param cid -- the commit id
+     * @param cdate -- the commit date
+     * @param isBugFix -- whether the commit is bug fixing
+     * @param file_id -- the file id/name
+     * @param type -- the type of action performed on the file in this commit
+     * @param numprefetch -- the number of files prefetched so far
+     * @return the number of files prefetched, inc. this one if needed
+     */
     private int processOneFile(int cid, String cdate, boolean isBugFix,
-            String file_id, FileType type, int numprefetch) {
+            String file_id, ActionType type, int numprefetch) {
         filesProcessed++;
-        
+
         switch (type) {
         case V:
             break;
@@ -350,9 +230,6 @@ public class Simulator {
         return (double) Math.round(hitrate * 10000) / 100;
     }
 
-    /**
-     * Database accessors
-     */
 
     /**
      * Fills cache with pre-fetch size number of top-LOC files from initial
@@ -370,7 +247,7 @@ public class Simulator {
             + "and file_types.file_id=content_loc.file_id and file_types.type='code' " +
             		"order by loc DESC";
         final PreparedStatement findInitialPreloadQuery;
-        ResultSet r = null;
+        ResultSet preloadFiles = null;
         String fileName = null;
         int commitId = 0;
 
@@ -378,7 +255,7 @@ public class Simulator {
             findInitialPreloadQuery = conn.prepareStatement(findInitialPreload);
             findInitialPreloadQuery.setInt(1, pid);
             findInitialPreloadQuery.setString(2, cache.startDate);
-            r = findInitialPreloadQuery.executeQuery();
+            preloadFiles = findInitialPreloadQuery.executeQuery();
         } catch (SQLException e1) {
             e1.printStackTrace();
         }
@@ -386,9 +263,9 @@ public class Simulator {
         // Note: preload may not fill the cache completely if there are 
         // not enough code files before the starting date
         try {
-        	while (r.next()) {
-        		fileName = r.getString(1); //XXX fix query
-        		commitId = r.getInt(2);
+        	while (preloadFiles.next()) {
+        		fileName = preloadFiles.getString(1);
+        		commitId = preloadFiles.getInt(2);
         		cache.add(fileName, commitId, cache.startDate,
         				CacheItem.CacheReason.Preload);
         		if (cache.isFull())
@@ -399,71 +276,6 @@ public class Simulator {
         }
     }
 
-    /**
-     * Finds the first date after the startDate with repository entries. Only
-     * called once per simulation.
-     * 
-     * @return The date for the prefetch.
-     */
-    private static String findFirstDate(String start, int pid) {
-        String findFirstDate = "";
-        final PreparedStatement findFirstDateQuery;
-        String firstDate = "";
-        try {
-            if (start == null) {
-                findFirstDate = "select min(date) from scmlog where repository_id=?";
-                findFirstDateQuery = conn.prepareStatement(findFirstDate);
-                findFirstDateQuery.setInt(1, pid);
-            } else {
-                findFirstDate = "select min(date) from scmlog where repository_id=? and date >=?";
-                findFirstDateQuery = conn.prepareStatement(findFirstDate);
-                findFirstDateQuery.setInt(1, pid);
-                findFirstDateQuery.setString(2, start);
-            }
-            firstDate = Util.Database.getStringResult(findFirstDateQuery);
-            if (firstDate == null) {
-                System.out.println("Can not find any commit after "
-                        + start);
-                System.exit(2);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return firstDate;
-    }
-
-    /**
-     * Finds the last date before the endDate with repository entries. Only
-     * called once per simulation.
-     * 
-     * @return The date for the the simulator.
-     */
-    private static String findLastDate(String end, int pid) {
-        String findLastDate = null;
-        final PreparedStatement findLastDateQuery;
-        String lastDate = null;
-        try {
-            if (end == null) {
-                findLastDate = "select max(date) from scmlog where repository_id=?";
-                findLastDateQuery = conn.prepareStatement(findLastDate);
-                findLastDateQuery.setInt(1, pid);
-            } else {
-                findLastDate = "select max(date) from scmlog where repository_id=? and date <=?";
-                findLastDateQuery = conn.prepareStatement(findLastDate);
-                findLastDateQuery.setInt(1, pid);
-                findLastDateQuery.setString(2, end);
-            }
-            lastDate = Util.Database.getStringResult(findLastDateQuery);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        if (lastDate == null) {
-            System.out.println("Can not find any commit before "
-                    + end);
-            System.exit(2);
-        }
-        return lastDate;
-    }
 
     /**
      * use the fileId and commitId to get a list of changed hunks from the hunk
@@ -473,25 +285,27 @@ public class Simulator {
      * */
 
     public String getBugIntroCdate(String fileName, int commitId) {
+        // XXX right now we just pick one 
 
-        // XXX optimize this code?
         String bugIntroCdate = "";
         int hunkId;
         ResultSet r = null;
         ResultSet r1 = null;
         try {
-            findHunkIdQuery.setString(1, fileName); // XXX fix query 
+            findHunkIdQuery.setString(1, fileName); 
             findHunkIdQuery.setInt(2, commitId);
             r = findHunkIdQuery.executeQuery();
-            while (r.next()) {
+            if (r.next()){
+            //while (r.next()) {
                 hunkId = r.getInt(1);
 
                 findBugIntroCdateQuery.setInt(1, hunkId);
                 r1 = findBugIntroCdateQuery.executeQuery();
-                while (r1.next()) {
-                    if (r1.getString(1).compareTo(bugIntroCdate) > 0) {
+                if (r1.next()) {
+//                while(r1.next()){
+//                    if (r1.getString(1).compareTo(bugIntroCdate) > 0) {
                         bugIntroCdate = r1.getString(1);
-                    }
+//                    }
                 }
             }
         } catch (Exception e) {
@@ -509,10 +323,6 @@ public class Simulator {
         DatabaseManager.close();
     }
 
-    /**
-     * For Debugging
-     */
-
     public int getHit() {
         return hit;
     }
@@ -529,147 +339,35 @@ public class Simulator {
         cache.add(eid, cid, cdate, reas);
     }
 
-    // XXX move to a different part of the file
-    public static void checkParameter(String start, String end, int pid) {
-        if (start != null && end != null) {
-            if (start.compareTo(end) > 0) {
-                System.err
-                .println("Error:Start date must be earlier than end date");
-                printUsage();
-                System.exit(2);
-            }
-        }
-        try {
-            findPidQuery = conn.prepareStatement(findPid);
-            findPidQuery.setInt(1, pid);
-            if (Util.Database.getIntResult(findPidQuery) == -1) {
-                System.out.println("There is no project whose id is " + pid);
-                System.exit(2);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-    }
 
     public static void main(String args[]) {
 
-        /**
-         * Command line parsing
-         */
-        CmdLineParser parser = new CmdLineParser();
-        CmdLineParser.Option blksz_opt = parser.addIntegerOption('b', "blksize");
-        CmdLineParser.Option csz_opt = parser.addIntegerOption('c', "csize");
-        CmdLineParser.Option pfsz_opt = parser.addIntegerOption('f', "pfsize");
-        CmdLineParser.Option crp_opt = parser.addStringOption('r', "cacherep");
-        CmdLineParser.Option pid_opt = parser.addIntegerOption('p', "pid");
-        CmdLineParser.Option sd_opt = parser.addStringOption('s', "start");
-        CmdLineParser.Option ed_opt = parser.addStringOption('e', "end");
-        CmdLineParser.Option save_opt = parser.addBooleanOption('o',"save");
-        CmdLineParser.Option month_opt = parser.addBooleanOption('m',"multiple");
-        CmdLineParser.Option tune_opt = parser.addBooleanOption('u', "tune");
-        // CmdLineParser.Option sCId_opt = parser.addIntegerOption('s',"start");
-        // CmdLineParser.Option eCId_opt = parser.addIntegerOption('e',"end");
-        try {
-            parser.parse(args);
-        } catch (CmdLineParser.OptionException e) {
-            System.err.println(e.getMessage());
-            printUsage();
-            System.exit(2);
-        }
-
-        Integer blksz = (Integer) parser.getOptionValue(blksz_opt, -1);
-        Integer csz = (Integer) parser.getOptionValue(csz_opt, -1);
-        Integer pfsz = (Integer) parser.getOptionValue(pfsz_opt, -1);
-        String crp_string = (String) parser.getOptionValue(crp_opt,
-                CacheReplacement.REPDEFAULT.toString());
-        Integer pid = (Integer) parser.getOptionValue(pid_opt);
-        String start = (String) parser.getOptionValue(sd_opt, null);
-        String end = (String) parser.getOptionValue(ed_opt, null);
-        Boolean saveToFile = (Boolean) parser.getOptionValue(save_opt, false);
-        Boolean tune = (Boolean)parser.getOptionValue(tune_opt, false);
-        Boolean monthly = (Boolean)parser.getOptionValue(month_opt, false);
-        CacheReplacement.Policy crp;
-        try {
-            crp = CacheReplacement.Policy.valueOf(crp_string);
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
-            System.err.println("Must specify a valid cache replacement policy");
-            printUsage();
-            crp = CacheReplacement.REPDEFAULT;
-        }
-        if (pid == null) {
-            System.err.println("Error: must specify a Project Id");
-            printUsage();
-            System.exit(2);
-        }
-
-        checkParameter(start, end, pid);
+        InputManager in = new InputManager(args, conn);
         /**
          * Create a new simulator and run simulation.
          */
         Simulator sim;
 
-        if(tune)
+        if(in.tune)
         {
             System.out.println("tuning...");
-            sim = tune(pid, blksz, pfsz, csz);
+            sim = tune(in.pid, in.blksize, in.prefetchsize, in.cachesize);
             System.out.println(".... finished tuning!");
             System.out.println("highest hitrate:"+sim.getHitRate());
         }
         else
         {
-            sim = new Simulator(blksz, pfsz, csz, pid, crp, start, end, saveToFile);
-            if (monthly) sim.outputMultiple();
+            sim = new Simulator(in);
             sim.initialPreLoad();
             sim.simulate();
-
-            if(sim.saveToFile==true)
-            {
-                sim.csvWriter.close();
-                sim.outputFileDist();
-            }
+            sim.output.finish(sim);
 
         }
 
         // should always happen
         sim.close();
-        printSummary(sim);
+        OutputManager.printSummary(sim);
     }
-
-
-    private static void printSummary(Simulator sim) {
-        System.out.println("Simulator specs:");
-        System.out.print("Project....");
-        System.out.println(sim.pid);
-        System.out.print("Cache size....");
-        System.out.println(sim.cachesize);
-        System.out.print("Blk size....");
-        System.out.println(sim.blocksize);
-        System.out.print("Prefetch size....");
-        System.out.println(sim.prefetchsize);
-        System.out.print("Start date....");
-        System.out.println(sim.cache.startDate);
-        System.out.print("End date....");
-        System.out.println(sim.cache.endDate);
-        System.out.print("Cache Replacement Policy ....");
-        System.out.println(sim.cacheRep.toString());
-        System.out.print("saving to file....");
-        System.out.println(sim.saveToFile);
-
-
-        System.out.println("\nResults:");
-
-        System.out.print("Hit rate...");
-        System.out.println(sim.getHitRate());
-
-        System.out.print("Num commits processed...");
-        System.out.println(sim.getTotalCommitCount());
-
-        System.out.print("Num bug fixes...");
-        System.out.println(sim.getHit() + sim.getMiss());
-    }
-
 
     private static Simulator tune(int pid, int blksz, int pfsz, int csz)
     {
@@ -705,7 +403,7 @@ public class Simulator {
         if (testblks){
             System.out.println("Testing blocksizes....");
             for(int b=onepercent;b<limit;b+=onepercent){
-                final Simulator sim = new Simulator(b, pfsz, csz, pid, crp, null, null, false);
+                final Simulator sim = new Simulator(new InputManager(b, pfsz, csz, pid, crp, conn));
                 sim.initialPreLoad();
                 sim.simulate();
                 System.out.print("blksize: ");
@@ -729,7 +427,7 @@ public class Simulator {
         if (testpfs) {
             System.out.println("Testing prefetchsizes....");
             for(int p=halfpercent;p<limit;p+=halfpercent){
-                final Simulator sim = new Simulator(blksz, p, csz, pid, crp, null, null, false);
+                final Simulator sim = new Simulator(new InputManager(blksz, p, csz, pid, crp, conn));
                 sim.initialPreLoad();
                 sim.simulate();
                 System.out.print("pfsz: ");
@@ -754,8 +452,8 @@ public class Simulator {
         System.out.println("Trying out different cache replacment policies...");
         for(CacheReplacement.Policy crtst :CacheReplacement.Policy.values()){
             final Simulator sim = 
-                new Simulator(blksz, pfsz,
-                        csz, pid, crtst, null, null, false);
+                new Simulator(new InputManager(blksz, pfsz,
+                        csz, pid, crtst, conn));
             sim.initialPreLoad();
             sim.simulate();
             System.out.print("Cache Replacement: ");
@@ -773,92 +471,34 @@ public class Simulator {
         return maxsim;
     }
 
-    private static int getPercentOfFiles(int pid) {
-        int ret =  (int) Math.round(getFileCount(pid)*0.01);
-        if (ret == 0)
-            return 1;
-        else
-            return ret;
-    }
 
-    private void outputFileDist() {
-        String pathname;
-        if (filedistPrintMultiple)
-            pathname = "Results/" + month + "-" + filename + "_filedist.csv";
-        else
-            pathname = "Results/" + filename + "_filedist.csv";
-        CsvWriter csv = new CsvWriter(pathname);
-        csv.setComment('#');
-        try {
-            // csvWriter.write("# number of hit, misses and time stayed in Cache for every file");
-            csv.writeComment("number of hit, misses and time stayed in Cache for every file");
-            csv.writeComment("project: " + pid + ", cachesize: " + cachesize
-                    + ", blocksize: " + cachesize + ", prefetchsize: "
-                    + prefetchsize + ", cache replacement policy: " + cacheRep);
-            csv.write("file_id");
-            csv.write("loc");
-            csv.write("num_load");
-            csv.write("num_hits");
-            csv.write("num_misses");
-            csv.write("duration");
-            csv.write("reason");
-            csv.endRecord();
-            csv.write("0");
-            csv.write("0");
-            csv.write("0");
-            csv.write("0");
-            csv.write("0");
-            csv.write(Integer.toString(cache.getTotalDuration()));
-            csv.write("0");
-            csv.endRecord();
-            // else assume that the file already has the correct header line
-            // write out record
-            //XXX rewrite with built in iteratable
-            for (CacheItem ci : cache){
-                csv.write((ci.getFileName()));
-                csv.write(Integer.toString(ci.getLOC())); // LOC at time of last update
-                csv.write(Integer.toString(ci.getLoadCount()));
-                csv.write(Integer.toString(ci.getHitCount()));
-                csv.write(Integer.toString(ci.getMissCount()));
-                csv.write(Integer.toString(ci.getDuration()));
-                csv.write(ci.getReason().toString());
-                csv.endRecord();
-            }
-
-            csv.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private int resetCommitCount() {
+    protected int resetCommitCount() {
         int oldcommits = commits;
         commits = 0;
         return oldcommits;
     }
 
-    private int resetBugCount() {
+    protected int resetBugCount() {
         int oldbugs = bugcount;
         bugcount = 0;
         return oldbugs;
     }
 
-    private int resetFilesProcessedCount() {
+    protected int resetFilesProcessedCount() {
         int oldfiles = filesProcessed;
         filesProcessed = 0;
         return oldfiles;
     }
 
-    private int getTotalCommitCount() {
+    int getTotalCommitCount() {
         return totalcommits;
     }
 
-    public CsvWriter getCsvWriter() {
-        return csvWriter;
-    }
     
     public int getCacheSize(){
-    	return cachesize;
+    	return cache.maxsize;
     }
+
+
 }
 
