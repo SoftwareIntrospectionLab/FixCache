@@ -117,7 +117,7 @@ public class Simulator {
         for (int i = 0; i < blocksize - 1; i++)
         {
             if (cochanges.size() > i) {
-                // XXX sometimes this will add files which were not modified in cid
+                // XXX this may add files which were not modified in cid
                 cache.add(cochanges.get(i).getKey(), 
                         cid, commitDate, CacheItem.CacheReason.CoChange);
             }
@@ -316,28 +316,6 @@ public class Simulator {
         return bugIntroCdate;
     }
 
-    /**
-     * Closes the database connection
-     */
-    private void close() {
-        DatabaseManager.close();
-    }
-
-    public int getHit() {
-        return hit;
-    }
-
-    public int getMiss() {
-        return miss;
-    }
-
-    public Cache getCache() {
-        return cache;
-    }
-
-    public void add(String eid, int cid, String cdate, CacheReason reas) {
-        cache.add(eid, cid, cdate, reas);
-    }
 
 
     public static void main(String args[]) {
@@ -497,6 +475,29 @@ public class Simulator {
     
     public int getCacheSize(){
     	return cache.maxsize;
+    }
+
+    /**
+     * Closes the database connection
+     */
+    private void close() {
+        DatabaseManager.close();
+    }
+
+    public int getHit() {
+        return hit;
+    }
+
+    public int getMiss() {
+        return miss;
+    }
+
+    public Cache getCache() {
+        return cache;
+    }
+
+    public void add(String eid, int cid, String cdate, CacheReason reas) {
+        cache.add(eid, cid, cdate, reas);
     }
 
 
