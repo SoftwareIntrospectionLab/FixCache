@@ -253,5 +253,16 @@ public class Cache implements Iterable<CacheItem>{
         CacheItem ci = cacheTable.get(fileName);
         return ci.getLoadCount();
     }
+    
+    @Override
+    public String toString(){
+        String s = "[";
+        for (CacheItem ci: this){
+            if (ci.isInCache())
+                s += ci.getFileName() + ",";
+        }
+        s += "]";
+        return s;
+    }
 
 }
