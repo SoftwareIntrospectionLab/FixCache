@@ -320,7 +320,7 @@ public class Simulator {
 
     public static void main(String args[]) {
 
-        InputManager in = new InputManager(args, conn);
+        InputManager in = new InputManager(args);
         /**
          * Create a new simulator and run simulation.
          */
@@ -381,7 +381,7 @@ public class Simulator {
         if (testblks){
             System.out.println("Testing blocksizes....");
             for(int b=onepercent;b<limit;b+=onepercent){
-                final Simulator sim = new Simulator(new InputManager(b, pfsz, csz, pid, crp, conn));
+                final Simulator sim = new Simulator(new InputManager(b, pfsz, csz, pid, crp));
                 sim.initialPreLoad();
                 sim.simulate();
                 System.out.print("blksize: ");
@@ -405,7 +405,7 @@ public class Simulator {
         if (testpfs) {
             System.out.println("Testing prefetchsizes....");
             for(int p=halfpercent;p<limit;p+=halfpercent){
-                final Simulator sim = new Simulator(new InputManager(blksz, p, csz, pid, crp, conn));
+                final Simulator sim = new Simulator(new InputManager(blksz, p, csz, pid, crp));
                 sim.initialPreLoad();
                 sim.simulate();
                 System.out.print("pfsz: ");
@@ -431,7 +431,7 @@ public class Simulator {
         for(CacheReplacement.Policy crtst :CacheReplacement.Policy.values()){
             final Simulator sim = 
                 new Simulator(new InputManager(blksz, pfsz,
-                        csz, pid, crtst, conn));
+                        csz, pid, crtst));
             sim.initialPreLoad();
             sim.simulate();
             System.out.print("Cache Replacement: ");

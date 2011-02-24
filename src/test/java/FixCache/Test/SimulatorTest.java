@@ -40,7 +40,7 @@ public class SimulatorTest {
     @Test
     public void testInitialPreLoad() {
 
-        InputManager in = new InputManager(2,2,5,1, CacheReplacement.Policy.BUGS,conn);
+        InputManager in = new InputManager(2,2,5,1, CacheReplacement.Policy.BUGS);
         in.setStartDate("2009-10-20 01:32:19.0");
         
         Simulator sim1 = new Simulator(in);
@@ -65,7 +65,7 @@ public class SimulatorTest {
 
     @Test
     public void testVersionPreLoad() {
-        InputManager in = new InputManager(2,2,5,1, CacheReplacement.Policy.BUGS,conn);
+        InputManager in = new InputManager(2,2,5,1, CacheReplacement.Policy.BUGS);
         
         in.setStartDate("2009-10-20 01:32:19.0");
         Simulator sim = new Simulator(in);
@@ -80,7 +80,7 @@ public class SimulatorTest {
 
     @Test
     public void testGetBugIntroCdate() {
-        InputManager in = new InputManager(2,2,5,1, CacheReplacement.Policy.BUGS,conn);
+        InputManager in = new InputManager(2,2,5,1, CacheReplacement.Policy.BUGS);
 
         in.setStartDate("2009-10-20 01:32:19.0");
         Simulator sim = new Simulator(in);
@@ -91,7 +91,7 @@ public class SimulatorTest {
 
     @Test
     public void testLoadBuggyEntity() {
-        InputManager in = new InputManager(3,2,5,1, CacheReplacement.Policy.CHANGES,conn);
+        InputManager in = new InputManager(3,2,5,1, CacheReplacement.Policy.CHANGES);
         in.setStartDate("2009-10-20 01:32:19.0");
         Simulator sim = new Simulator(in);
         Cache cache = sim.getCache();
@@ -106,7 +106,7 @@ public class SimulatorTest {
 
     @Test
     public void testSimulate() {
-        InputManager in = new InputManager(3,2,5,1, CacheReplacement.Policy.BUGS,conn);
+        InputManager in = new InputManager(3,2,5,1, CacheReplacement.Policy.BUGS);
 
         in.setStartDate("2009-10-24 14:30:53.0");
         Simulator sim1 = new Simulator(in);

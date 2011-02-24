@@ -4,9 +4,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import Database.DatabaseManager;
 import Util.CmdLineParser;
 
 public class InputManager {
+	
+	static Connection conn = DatabaseManager.getConnection();
 
     static final String findFileCount = "select count(distinct(file_name)) " +
     "from files, file_types "
@@ -35,7 +38,7 @@ public class InputManager {
      * @param conn -- database connection (to check params are valid)
      */
     public InputManager(int blksz, int pfsz, int csz, int projid, 
-            CacheReplacement.Policy cr, Connection conn){
+            CacheReplacement.Policy cr){
         this.blksize = blksz;
         this.prefetchsize = pfsz;
         this.cachesize = csz;
@@ -45,7 +48,7 @@ public class InputManager {
         this.end = null;
         this.saveToFile = false;
         this.monthly = false;
-        this.checkParameter(conn);
+        this.checkParameter();
     }        
 
     /**
@@ -61,7 +64,7 @@ public class InputManager {
      * @param args -- input arguement string
      * @param conn -- database connection; used to validate some params
      */
-    public InputManager(String[] args, Connection conn) {
+    public InputManager(String[] args) {
 
         /**
          * Command line parsing
@@ -123,7 +126,7 @@ public class InputManager {
         this.end = (String) parser.getOptionValue(ed_opt, null);
 
         // check invariants, and replace default parameters
-        this.checkParameter(conn);      
+        this.checkParameter();      
     }
 
 
@@ -131,7 +134,7 @@ public class InputManager {
      * checks to make sure all the fields are well-formed
      * @param conn -- database connection
      */
-    private void checkParameter(Connection conn) {
+    private void checkParameter() {
         // if start and end are specified, start should be first
         if (start != null && end != null) {
             if (start.compareTo(end) > 0) {
@@ -154,7 +157,7 @@ public class InputManager {
         }
 
         // set defaults for unspecified parameters
-        int onepercent = getPercentOfFiles(pid, conn);
+        int onepercent = getPercentOfFiles(pid);
         if (blksize == -1)
             blksize = onepercent*5;
         if (cachesize == -1)
@@ -163,8 +166,8 @@ public class InputManager {
             prefetchsize = onepercent;
 
         // set defaults for start and end dates
-        start = findFirstDate(start, pid, conn);
-        end = findLastDate(end, pid, conn);
+        start = findFirstDate(start, pid);
+        end = findLastDate(end, pid);
     }
 
     /**
@@ -177,8 +180,8 @@ public class InputManager {
      * @param conn -- database connection
      * @return one percent of the files
      */
-    private static int getPercentOfFiles(int pid, Connection conn) {
-        int ret =  (int) Math.round(getFileCount(pid, conn)*0.01);
+    private static int getPercentOfFiles(int pid) {
+        int ret =  (int) Math.round(getFileCount(pid)*0.01);
         if (ret == 0)
             return 1;
         else
@@ -191,7 +194,7 @@ public class InputManager {
      * @param conn -- database connection
      * @return number of files
      */
-    private static int getFileCount(int projid, Connection conn) {
+    private static int getFileCount(int projid) {
         int ret = 0;
         try {
             PreparedStatement findFileCountQuery = conn.prepareStatement(findFileCount);
@@ -209,7 +212,7 @@ public class InputManager {
      * 
      * @return The date for the prefetch.
      */
-    private static String findFirstDate(String start, int pid, Connection conn) {
+    private static String findFirstDate(String start, int pid) {
         String findFirstDate = "";
         final PreparedStatement findFirstDateQuery;
         String firstDate = "";
@@ -242,7 +245,7 @@ public class InputManager {
      * 
      * @return The end date for the the simulator.
      */
-    private static String findLastDate(String end, int pid, Connection conn) {
+    private static String findLastDate(String end, int pid) {
         String findLastDate = null;
         final PreparedStatement findLastDateQuery;
         String lastDate = null;
