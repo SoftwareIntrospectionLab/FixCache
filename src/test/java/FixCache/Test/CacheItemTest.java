@@ -24,32 +24,20 @@ public class CacheItemTest {
 
     private static Connection conn;
 
-    @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-        try {
-            conn = TestHelper.getJDBCConnection();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
+        TestHelper.cleanDatabase();
         if (conn != null) {
             conn.close();
         }
     }
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeClass
+    public static void setUp() throws Exception {
         TestHelper.handleSetUpOperation();
     }
-
-    @After
-    public void tearDown() throws Exception {
-        TestHelper.cleanDatabase();
-    }
-
+    
+    
     @Test
     public void testCacheItemGet() {
         Cache cache = new Cache(5, new CacheReplacement(
@@ -96,18 +84,18 @@ public class CacheItemTest {
 
     }
     
-    @Test
-    public void testFormatter(){
-        String sql = "select date from scmlog";
-        Statement stmt;
-        ResultSet dates;
-        try {
-            stmt = conn.createStatement();
-            dates = stmt.executeQuery(sql);
-            assertTrue(dates.next());
-            Util.Dates.toDateTime(dates.getString(1));
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
+//    @Test
+//    public void testFormatter(){
+//        String sql = "select date from scmlog";
+//        Statement stmt;
+//        ResultSet dates;
+//        try {
+//            stmt = conn.createStatement();
+//            dates = stmt.executeQuery(sql);
+//            assertTrue(dates.next());
+//            Util.Dates.toDateTime(dates.getString(1));
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//    }
 }

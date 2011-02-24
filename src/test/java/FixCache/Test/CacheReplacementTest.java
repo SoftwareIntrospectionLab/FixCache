@@ -18,30 +18,17 @@ public class CacheReplacementTest {
 
     private static Connection conn;
 
-    @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-        try {
-            conn = TestHelper.getJDBCConnection();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
+        TestHelper.cleanDatabase();
         if (conn != null) {
             conn.close();
         }
     }
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeClass
+    public static void setUp() throws Exception {
         TestHelper.handleSetUpOperation();
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        TestHelper.cleanDatabase();
     }
 
     @Test
