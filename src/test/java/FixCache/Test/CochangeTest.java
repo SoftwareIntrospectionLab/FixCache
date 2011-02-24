@@ -15,6 +15,7 @@ import org.junit.Test;
 import Cache.Cache;
 import Cache.CacheReplacement;
 import Cache.CoChange;
+import Util.TestHelper;
 
 public class CochangeTest {
 

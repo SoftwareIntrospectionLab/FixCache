@@ -18,6 +18,7 @@ import Cache.Cache;
 import Cache.CacheItem;
 import Cache.CacheReplacement;
 import Cache.CacheItem.CacheReason;
+import Util.TestHelper;
 
 public class CacheItemTest {
 

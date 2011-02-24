@@ -18,6 +18,7 @@ import Cache.CacheItem;
 import Cache.CacheReplacement;
 import Cache.InputManager;
 import Cache.Simulator;
+import Util.TestHelper;
 
 public class SimulatorTest {
 

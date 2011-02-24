@@ -14,6 +14,7 @@ import org.junit.Test;
 import Cache.Cache;
 import Cache.CacheReplacement;
 import Cache.CacheItem.CacheReason;
+import Util.TestHelper;
 
 public class CacheTest {
 
