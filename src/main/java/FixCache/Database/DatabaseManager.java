@@ -57,9 +57,7 @@ public class DatabaseManager {
     }
     
     public static Connection getTestConnection() {
-        if (dbManager == null) {
-            dbManager = new DatabaseManager("testdatabase.properties");
-        }
+        dbManager = new DatabaseManager("testdatabase.properties");
         return dbManager.conn;
     }
 
