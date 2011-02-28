@@ -3,6 +3,7 @@ package Util;
 import org.joda.time.DateTime;
 import org.joda.time.Minutes;
 import org.joda.time.Months;
+import org.joda.time.Weeks;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import java.lang.StringBuilder;
@@ -28,14 +29,27 @@ public class Dates {
 	}
 	
 	public static int getMonthDuration(String start, String end)
+	
 	{
-	    return Months.monthsBetween(toDateTime(start), toDateTime(end)).getMonths();
+	    int mo =  Months.monthsBetween(toDateTime(start), toDateTime(end)).getMonths();
+	    return mo;
 	}
 
+	public static int getWeekDuration(String start, String end)
+	{
+	    return Weeks.weeksBetween(toDateTime(start), toDateTime(end)).getWeeks();
+	}
+
+	
 	public static String monthsLater(String start, int numMonths)
 	{
 	    return toString(toDateTime(start).plusMonths(numMonths));
 	}
+	
+	   public static String weeksLater(String start, int numMonths)
+	    {
+	        return toString(toDateTime(start).plusWeeks(numMonths));
+	    }
 	
 	public static void main(String args[])
 	{

@@ -163,7 +163,7 @@ public class Simulator {
                 final ResultSet files = findFileQuery.executeQuery();
                 // loop through those file ids
                 while (files.next()) {
-                    fileName = files.getString(1); //XXX fix query
+                    fileName = files.getString(1); 
                     type = ActionType.valueOf(files.getString(2));
                     numprefetch = processOneFile(cid, cdate, isBugFix, fileName,
                             type, numprefetch);

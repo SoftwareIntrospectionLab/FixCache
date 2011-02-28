@@ -60,6 +60,7 @@ public class OutputManager {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        headerPrinted = true;
     }
     
     /**
@@ -69,7 +70,7 @@ public class OutputManager {
      */
     public void manage(String cdate, Simulator sim){
         if (!save) return;
-        if (Util.Dates.getMonthDuration(outputDate, cdate) > outputSpacing
+        if (Util.Dates.getMonthDuration(outputDate, cdate) >= outputSpacing
                 || cdate.equals(sim.cache.endDate)) {
             if (!headerPrinted) printHeader(sim);
             outputHitRate(cdate, sim);
