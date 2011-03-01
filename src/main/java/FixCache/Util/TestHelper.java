@@ -21,9 +21,7 @@ public class TestHelper {
 
     public static IDatabaseConnection getDBUnitConnection() throws Exception {
         IDatabaseConnection conn = new DatabaseConnection(getJDBCConnection());
-        DatabaseConfig config = conn.getConfig();
-        config.setProperty(DatabaseConfig.PROPERTY_DATATYPE_FACTORY,
-                new MySqlDataTypeFactory());
+
         return conn;
     }
 
