@@ -51,26 +51,26 @@
   <files id="6" file_name="f.java" repository_id="1"/>
   <files id="7" file_name="g.java" repository_id="1"/>
   <files id="8" file_name="h.java" repository_id="1"/>
-  <content id="1" commit_id="1" file_id="1" content="a;&#xA;b;"/>
-  <content id="2" commit_id="1" file_id="2" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;"/>
-  <content id="3" commit_id="1" file_id="3" content="a;&#xA;b;&#xA;c;"/>
-  <content id="4" commit_id="1" file_id="4" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;a&#xA;b&#xA;c;&#xA;d;&#xA;e;"/>
-  <content id="5" commit_id="2" file_id="1" content="a&#xA;b&#xA;c;"/>
-  <content id="6" commit_id="2" file_id="4" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;"/>
-  <content id="7" commit_id="3" file_id="2" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;a&#xA;b&#xA;c;&#xA;d;&#xA;e;a&#xA;b&#xA;c;&#xA;d;"/>
-  <content id="8" commit_id="3" file_id="5" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;"/>
-  <content id="9" commit_id="3" file_id="1" content="a&#xA;b&#xA;c;a&#xA;b&#xA;c;&#xA;d;"/>
-  <content id="10" commit_id="4" file_id="4" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;a&#xA;b&#xA;c;&#xA;d;&#xA;e;"/>
-  <content id="11" commit_id="5" file_id="1" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;a&#xA;b&#xA;c;&#xA;d;"/>
-  <content id="12" commit_id="6" file_id="2" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;a&#xA;b&#xA;c;&#xA;d;&#xA;e;a&#xA;b&#xA;c;"/>
-  <content id="13" commit_id="6" file_id="6" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;"/>
-  <content id="14" commit_id="6" file_id="7" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;"/>
-  <content id="15" commit_id="7" file_id="3" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;a&#xA;b&#xA;c;&#xA;d;&#xA;e;"/>
-  <content id="16" commit_id="8" file_id="8" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;a&#xA;b&#xA;c;&#xA;d;&#xA;e;a&#xA;b"/>
-  <content id="17" commit_id="8" file_id="1" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;"/>
-  <content id="18" commit_id="9" file_id="5" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;a&#xA;b&#xA;c;&#xA;d;&#xA;e;"/>
-  <content id="19" commit_id="10" file_id="8" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;a&#xA;b&#xA;c;&#xA;d;&#xA;e;a&#xA;b&#xA;c;&#xA;d;&#xA;e;"/>
-  <content id="20" commit_id="10" file_id="5" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;a&#xA;b&#xA;c;&#xA;d;&#xA;e;"/>
+  <content id="1" commit_id="1" file_id="1" content="a;&#xA;b;" loc="2"/>
+  <content id="2" commit_id="1" file_id="2" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;" loc="5"/>
+  <content id="3" commit_id="1" file_id="3" content="a;&#xA;b;&#xA;c;" loc="3"/>
+  <content id="4" commit_id="1" file_id="4" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;a&#xA;b&#xA;c;&#xA;d;&#xA;e;" loc="9"/>
+  <content id="5" commit_id="2" file_id="1" content="a&#xA;b&#xA;c;" loc="3"/>
+  <content id="6" commit_id="2" file_id="4" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;" loc="5"/>
+  <content id="7" commit_id="3" file_id="2" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;a&#xA;b&#xA;c;&#xA;d;&#xA;e;a&#xA;b&#xA;c;&#xA;d;" loc="12"/>
+  <content id="8" commit_id="3" file_id="5" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;" loc="5"/>
+  <content id="9" commit_id="3" file_id="1" content="a&#xA;b&#xA;c;a&#xA;b&#xA;c;&#xA;d;" loc="6"/>
+  <content id="10" commit_id="4" file_id="4" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;a&#xA;b&#xA;c;&#xA;d;&#xA;e;" loc="9"/>
+  <content id="11" commit_id="5" file_id="1" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;a&#xA;b&#xA;c;&#xA;d;" loc="8"/>
+  <content id="12" commit_id="6" file_id="2" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;a&#xA;b&#xA;c;&#xA;d;&#xA;e;a&#xA;b&#xA;c;" loc="11"/>
+  <content id="13" commit_id="6" file_id="6" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;" loc="5"/>
+  <content id="14" commit_id="6" file_id="7" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;" loc="5"/>
+  <content id="15" commit_id="7" file_id="3" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;a&#xA;b&#xA;c;&#xA;d;&#xA;e;" loc="9"/>
+  <content id="16" commit_id="8" file_id="8" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;a&#xA;b&#xA;c;&#xA;d;&#xA;e;a&#xA;b" loc="10"/>
+  <content id="17" commit_id="8" file_id="1" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;" loc="5"/>
+  <content id="18" commit_id="9" file_id="5" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;a&#xA;b&#xA;c;&#xA;d;&#xA;e;" loc="9"/>
+  <content id="19" commit_id="10" file_id="8" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;a&#xA;b&#xA;c;&#xA;d;&#xA;e;a&#xA;b&#xA;c;&#xA;d;&#xA;e;" loc="13"/>
+  <content id="20" commit_id="10" file_id="5" content="a&#xA;b&#xA;c;&#xA;d;&#xA;e;a&#xA;b&#xA;c;&#xA;d;&#xA;e;" loc="9"/>
   <hunks id="1"  file_id="1" commit_id="1" old_start_line="1" old_end_line="3" new_start_line="2" new_end_line="8" bug_introducing="0"/>
   <hunks id="2"  file_id="2" commit_id="1" old_start_line="7" old_end_line="8" new_start_line="2" new_end_line="8" bug_introducing="0"/>
   <hunks id="3"  file_id="2" commit_id="1" old_start_line="10" old_end_line="12" new_start_line="9" new_end_line="10" bug_introducing="0"/>
