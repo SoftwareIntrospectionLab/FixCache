@@ -17,9 +17,15 @@ public class DatabaseManager {
     private String drivername, databasename, username, password;
     private Connection conn = null;
     Statement stmt;
+    String datafile;
 
-    private DatabaseManager(String props) {
-        File file = new File(props);
+    private DatabaseManager(String file) {
+        datafile = file;
+    }
+    
+    public void createConnection(){
+    
+        File file = new File(datafile);
         FileInputStream fis = null;
         try {
             fis = new FileInputStream(file);
@@ -48,7 +54,7 @@ public class DatabaseManager {
             Class.forName(drivername).newInstance();
             conn = DriverManager
                     .getConnection(databasename, username, password);
-            stmt = conn.createStatement();
+//            stmt = conn.createStatement();
 
         } catch (Exception e) {
             System.out.println(e);
@@ -56,14 +62,54 @@ public class DatabaseManager {
         }
     }
     
+    public void createTestConnection(){
+        
+        File file = new File(datafile);
+        FileInputStream fis = null;
+        try {
+            fis = new FileInputStream(file);
+            Properties prop = new Properties();
+            prop.load(fis);
+            //Enumeration enums = prop.propertyNames(); 
+            drivername = (String) prop.get("Driver");
+            databasename = (String) prop.get("URL");
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (fis != null)
+                try {
+                    fis.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+        }
+
+        try {
+            Class.forName(drivername).newInstance();
+            conn = DriverManager
+                    .getConnection(databasename);
+//            stmt = conn.createStatement();
+
+        } catch (Exception e) {
+            System.out.println(e);
+            System.exit(0);
+        }
+    }
+    
+    
     public static Connection getTestConnection() {
         dbManager = new DatabaseManager("testdatabase.properties");
+        dbManager.createTestConnection();
         return dbManager.conn;
     }
 
     public static Connection getConnection() {
         if (dbManager == null) {
             dbManager = new DatabaseManager("database.properties");
+            dbManager.createConnection();
         }
         return dbManager.conn;
     }
