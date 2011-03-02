@@ -19,9 +19,9 @@ public class Simulator {
     static final String findCommit = "select id, date, is_bug_fix from scmlog "
         + "where repository_id =? and date between ? and ? order by date ASC";
     static final String findFile = "select file_name, actions.type " +
-    		"from actions, content_loc, files, file_types "
-        + "where actions.file_id=content_loc.file_id and actions.file_id=files.id "
-        + "and actions.commit_id=? and content_loc.commit_id=? " //XXX why two '?'
+    		"from actions, content, files, file_types "
+        + "where actions.file_id=content.file_id and actions.file_id=files.id "
+        + "and actions.commit_id=? and content.commit_id=? " //XXX why two '?'
         + "and actions.file_id=file_types.file_id and file_types.type='code' order by loc DESC";
     static final String findHunkId = "select hunks.id from hunks, files " +
     		"where hunks.file_id=files.id and file_name =? and commit_id =?";
@@ -239,12 +239,12 @@ public class Simulator {
      */
     public void initialPreLoad() {
 
-        final String findInitialPreload = "select files.file_name, content_loc.commit_id "
-            + "from content_loc, scmlog, actions, file_types, files "
-            + "where files.repository_id=? and content_loc.commit_id = scmlog.id and date <=? "
-            + "and content_loc.file_id=actions.file_id and files.id=actions.file_id "
-            + "and content_loc.commit_id=actions.commit_id and actions.type!='D' "
-            + "and file_types.file_id=content_loc.file_id and file_types.type='code' " +
+        final String findInitialPreload = "select files.file_name, content.commit_id "
+            + "from content, scmlog, actions, file_types, files "
+            + "where files.repository_id=? and content.commit_id = scmlog.id and date <=? "
+            + "and content.file_id=actions.file_id and files.id=actions.file_id "
+            + "and content.commit_id=actions.commit_id and actions.type!='D' "
+            + "and file_types.file_id=content.file_id and file_types.type='code' " +
             		"order by loc DESC";
         final PreparedStatement findInitialPreloadQuery;
         ResultSet preloadFiles = null;
