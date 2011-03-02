@@ -9,7 +9,7 @@ import java.lang.StringBuilder;
 
 public class Dates {
     
-    static final DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.S");
+    static final DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
     static StringBuilder range;
 
 	public static DateTime toDateTime(String date){
