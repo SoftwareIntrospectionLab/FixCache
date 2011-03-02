@@ -14,37 +14,37 @@ public class CacheItem {
      */
 
     static Connection conn = DatabaseManager.getConnection();
-    static final String findNumberOfAuthors = "select count(distinct(scmlog.author_id)) " +
-    		"from scmlog, actions, files " +
-    		"where scmlog.id=actions.commit_id and actions.file_id=files.id " +
-    		"and date between ? and ? and file_name = ? and scmlog.repository_id=?";
-    static final String findNumberOfChanges = "select count(actions.file_id) " +
-    		"from scmlog, actions, files where scmlog.id=actions.commit_id " +
-    		"and actions.file_id=files.id and date between ? and ? and file_name = ? " +
-    		"and scmlog.repository_id=?";
-    static final String findNumberOfBugs = "select count(actions.file_id) " +
-    		"from scmlog, actions, files where scmlog.id = actions.commit_id " +
-    		"and actions.file_id=files.id and file_name=? and date between ? and ? " +
-    		"and scmlog.repository_id=? and is_bug_fix=1";
-    static final String findLoc = "select loc from content_loc, files " +
-    		"where content_loc.file_id=files.id and"
+    static final String findNumberOfAuthors = "select count(distinct(scmlog.author_id)) "
+            + "from scmlog, actions, files "
+            + "where scmlog.id=actions.commit_id and actions.file_id=files.id "
+            + "and date between ? and ? and file_name = ? and scmlog.repository_id=?";
+    static final String findNumberOfChanges = "select count(actions.file_id) "
+            + "from scmlog, actions, files where scmlog.id=actions.commit_id "
+            + "and actions.file_id=files.id and date between ? and ? and file_name = ? "
+            + "and scmlog.repository_id=?";
+    static final String findNumberOfBugs = "select count(actions.file_id) "
+            + "from scmlog, actions, files where scmlog.id = actions.commit_id "
+            + "and actions.file_id=files.id and file_name=? and date between ? and ? "
+            + "and scmlog.repository_id=? and is_bug_fix=1";
+    static final String findLoc = "select loc from content, files "
+            + "where content.file_id=files.id and"
             + " file_name=? and commit_id =?";
     private static PreparedStatement findNumberOfAuthorsQuery;
     private static PreparedStatement findNumberOfChangesQuery;
     private static PreparedStatement findNumberOfBugsQuery;
     private static PreparedStatement findLocQuery;
-    
+
     /**
      * Fields for Debugging
      */
-    
-    private static final String checkRepo = "select id from scmlog where " +
-    		"repository_id = ? and id = ?";
+
+    private static final String checkRepo = "select id from scmlog where "
+            + "repository_id = ? and id = ?";
     private static PreparedStatement checkRepoQuery;
-    
-    private static final String checkFileType = "select file_id from " +
-    		"file_types, files where file_name = ? and " +
-    		"file_id = files.id and type='code'";
+
+    private static final String checkFileType = "select file_id from "
+            + "file_types, files where file_name = ? and "
+            + "file_id = files.id and type='code'";
     private static PreparedStatement checkFileTypeQuery;
 
     /**
@@ -59,16 +59,20 @@ public class CacheItem {
     private final String fileName; // id of file
     private int loadDate; // changed on cache hit
     private int LOC; // changed on cache hit
-    private int number; // represents either the number of bugs, changes, or authors
+    private int number; // represents either the number of bugs, changes, or
+                        // authors
     private int loadCount = 0; // count how many time a file is put into cache
-    private int loadDuration = 0; // represents how long in repo time a file stays in cache
-    private String timeAdded; // represents repo time when a file is added to cache
+    private int loadDuration = 0; // represents how long in repo time a file
+                                  // stays in cache
+    private String timeAdded; // represents repo time when a file is added to
+                              // cache
     private final Cache parent;
-    private boolean inCache = false; // stores whether the cacheitem is in the cache
+    private boolean inCache = false; // stores whether the cacheitem is in the
+                                     // cache
     private int hitCount = 0;
     private int missCount = 0;
 
-    private CacheReason reason; 
+    private CacheReason reason;
 
     /**
      * Methods
@@ -81,10 +85,9 @@ public class CacheItem {
         update(cid, cdate, p.getStartDate(), r);
         assert (r != CacheReason.BugEntity || missCount != 0);
         assert (parent.neverInCache(fileName));
-        assert(checkFileType(fileName));
-        assert(checkRepo(p.repID, cid)); 
+        assert (checkFileType(fileName));
+        assert (checkRepo(p.repID, cid));
     }
-    
 
     /**
      * called every time entityId moved into the cache, or cache hit occurs
@@ -111,7 +114,8 @@ public class CacheItem {
         }
         loadDate = parent.getTime(cid); // counter
         LOC = Math.max(LOC, findLoc(fileName, cid));
-        number = findNumber(fileName, parent.repID, cdate, sdate, parent.getPolicy());
+        number = findNumber(fileName, parent.repID, cdate, sdate,
+                parent.getPolicy());
     }
 
     public boolean isInCache() {
@@ -168,20 +172,23 @@ public class CacheItem {
      * @param start
      *            -- the starting date for repository access
      * @return the number of distinct authors for file eid in repository pid
-     *         between cdate and start
+     *         DatabaseTest dbTest = new DatabaseTest(); dbTest. between cdate
+     *         and start
      */
     private static int findNumberOfAuthors(String fileName, int pid,
             String cdate, String start) {
         int ret = 0;
         try {
-            if (findNumberOfAuthorsQuery == null)
-                findNumberOfAuthorsQuery = conn
-                        .prepareStatement(findNumberOfAuthors);
+            // if (findNumberOfAuthorsQuery == null)
+            findNumberOfAuthorsQuery = conn
+                    .prepareStatement(findNumberOfAuthors);
             findNumberOfAuthorsQuery.setString(1, start);
             findNumberOfAuthorsQuery.setString(2, cdate);
-            findNumberOfAuthorsQuery.setString(3, fileName); // XXX fix query to use file_name
+            findNumberOfAuthorsQuery.setString(3, fileName); // XXX fix query to
+                                                             // use file_name
             findNumberOfAuthorsQuery.setInt(4, pid);
             ret = Util.Database.getIntResult(findNumberOfAuthorsQuery);
+            findNumberOfAuthorsQuery.close();
         } catch (SQLException e1) {
             e1.printStackTrace();
         }
@@ -205,14 +212,16 @@ public class CacheItem {
             String cdate, String start) {
         int ret = 0;
         try {
-            if (findNumberOfChangesQuery == null)
-                findNumberOfChangesQuery = conn
-                        .prepareStatement(findNumberOfChanges);
+            // if (findNumberOfChangesQuery == null)
+            findNumberOfChangesQuery = conn
+                    .prepareStatement(findNumberOfChanges);
             findNumberOfChangesQuery.setString(1, start);
             findNumberOfChangesQuery.setString(2, cdate);
-            findNumberOfChangesQuery.setString(3, fileName); // XXX fix query to use file_name
+            findNumberOfChangesQuery.setString(3, fileName); // XXX fix query to
+                                                             // use file_name
             findNumberOfChangesQuery.setInt(4, pid);
             ret = Util.Database.getIntResult(findNumberOfChangesQuery);
+            findNumberOfChangesQuery.close();
         } catch (SQLException e1) {
             e1.printStackTrace();
         }
@@ -236,14 +245,16 @@ public class CacheItem {
             String start) {
         int ret = 0;
         try {
-            if (findNumberOfBugsQuery == null)
-                findNumberOfBugsQuery = conn.prepareStatement(findNumberOfBugs);
+            // if (findNumberOfBugsQuery == null)
+            findNumberOfBugsQuery = conn.prepareStatement(findNumberOfBugs);
 
-            findNumberOfBugsQuery.setString(1, fileName); // XXX fix query to use file_name
+            findNumberOfBugsQuery.setString(1, fileName); // XXX fix query to
+                                                          // use file_name
             findNumberOfBugsQuery.setString(2, start);
             findNumberOfBugsQuery.setString(3, cdate);
             findNumberOfBugsQuery.setInt(4, pid);
             ret = Util.Database.getIntResult(findNumberOfBugsQuery);
+            findNumberOfBugsQuery.close();
         } catch (SQLException e1) {
             e1.printStackTrace();
         }
@@ -252,6 +263,7 @@ public class CacheItem {
 
     /**
      * This method is also used in CoChange.java
+     * 
      * @param eid
      *            -- entity id
      * @param cid
@@ -261,12 +273,13 @@ public class CacheItem {
     protected static int findLoc(String fileName, int cid) {
         int ret = 0;
         try {
-            if (findLocQuery == null)
-                findLocQuery = conn.prepareStatement(findLoc);
+            // if (findLocQuery == null)
+            findLocQuery = conn.prepareStatement(findLoc);
             findLocQuery.setString(1, fileName); // XXX fix query to use
                                                  // file_name
             findLocQuery.setInt(2, cid);
             ret = Util.Database.getIntResult(findLocQuery);
+            findLocQuery.close();
         } catch (SQLException e1) {
             e1.printStackTrace();
         }
@@ -332,7 +345,6 @@ public class CacheItem {
         return hitCount;
     }
 
-
     /**
      * 
      * @return the reason this was added to cache
@@ -351,7 +363,7 @@ public class CacheItem {
                     parent.endDate);
         return loadDuration;
     }
-    
+
     /**
      * 
      * @return number of times files was not in cache and had a bug fix
@@ -359,11 +371,11 @@ public class CacheItem {
     public int getMissCount() {
         return missCount;
     }
-    
+
     /**
      * Methods for Debugging
      */
-    
+
     /**
      * used only for the DBUnit tests
      * 
@@ -373,14 +385,16 @@ public class CacheItem {
         return number;
     }
 
-    
     /**
-     *  checks that the repo in pid matches that associated with commit cid
-     * @param pid -- project id
-     * @param cid -- commit id
+     * checks that the repo in pid matches that associated with commit cid
+     * 
+     * @param pid
+     *            -- project id
+     * @param cid
+     *            -- commit id
      * @return true if they match, false otherwise
      */
-    private boolean checkRepo(int pid, int cid){
+    private boolean checkRepo(int pid, int cid) {
         try {
             if (checkRepoQuery == null)
                 checkRepoQuery = conn.prepareStatement(checkRepo);
@@ -392,14 +406,16 @@ public class CacheItem {
             return false;
         }
     }
-    
+
     /**
      * checks that the filename is a code file
-     * @param fname -- filename
+     * 
+     * @param fname
+     *            -- filename
      * @return true if it is a code file, false otherwise
      */
-    private boolean checkFileType(String fname){
-        try{
+    private boolean checkFileType(String fname) {
+        try {
             if (checkFileTypeQuery == null)
                 checkFileTypeQuery = conn.prepareStatement(checkFileType);
             checkFileTypeQuery.setString(1, fname);
@@ -409,6 +425,5 @@ public class CacheItem {
             return false;
         }
     }
-
 
 }
