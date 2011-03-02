@@ -152,6 +152,7 @@ public class InputManager {
                 System.out.println("There is no project whose id is " + pid);
                 System.exit(2);
             }
+            findPidQuery.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -200,6 +201,7 @@ public class InputManager {
             PreparedStatement findFileCountQuery = conn.prepareStatement(findFileCount);
             findFileCountQuery.setInt(1, projid);
             ret = Util.Database.getIntResult(findFileCountQuery);
+            findFileCountQuery.close();
         } catch (SQLException e1) {
             e1.printStackTrace();
         }
@@ -228,6 +230,7 @@ public class InputManager {
                 findFirstDateQuery.setString(2, start);
             }
             firstDate = Util.Database.getStringResult(findFirstDateQuery);
+            findFirstDateQuery.close();
             if (firstDate == null) {
                 System.out.println("Can not find any commit after "
                         + start);
@@ -261,6 +264,7 @@ public class InputManager {
                 findLastDateQuery.setString(2, end);
             }
             lastDate = Util.Database.getStringResult(findLastDateQuery);
+            findLastDateQuery.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
