@@ -203,7 +203,7 @@ public class CacheItem {
      *            -- repository id
      * @param cdate
      *            -- the commit date
-     * @param start
+     * @param startreturn 
      *            -- the starting date for repository access
      * @return the number of commits for file eid in repository pid between
      *         cdate and start
@@ -395,16 +395,18 @@ public class CacheItem {
      * @return true if they match, false otherwise
      */
     private boolean checkRepo(int pid, int cid) {
+        boolean isInRepo = false;
         try {
-            if (checkRepoQuery == null)
-                checkRepoQuery = conn.prepareStatement(checkRepo);
+            checkRepoQuery = conn.prepareStatement(checkRepo);
             checkRepoQuery.setInt(1, pid);
             checkRepoQuery.setInt(2, cid);
-            return checkRepoQuery.executeQuery().first();
+            isInRepo = checkRepoQuery.executeQuery().next();
+            checkRepoQuery.close();
         } catch (SQLException e1) {
             e1.printStackTrace();
             return false;
         }
+        return isInRepo;
     }
 
     /**
@@ -415,15 +417,17 @@ public class CacheItem {
      * @return true if it is a code file, false otherwise
      */
     private boolean checkFileType(String fname) {
+        boolean isCode = false;
         try {
-            if (checkFileTypeQuery == null)
-                checkFileTypeQuery = conn.prepareStatement(checkFileType);
+            checkFileTypeQuery = conn.prepareStatement(checkFileType);
             checkFileTypeQuery.setString(1, fname);
-            return checkFileTypeQuery.executeQuery().first();
+            isCode = checkFileTypeQuery.executeQuery().next();
+            checkFileTypeQuery.close();
         } catch (SQLException e1) {
             e1.printStackTrace();
             return false;
         }
+        return isCode;
     }
 
 }
