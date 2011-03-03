@@ -63,6 +63,14 @@ public class DatabaseManager {
     }
     
     public void createTestConnection(){
+        File dbFile = new File("fixcache.db");
+        if(!dbFile.exists()){
+            try {
+                dbFile.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         
         File file = new File(datafile);
         FileInputStream fis = null;
