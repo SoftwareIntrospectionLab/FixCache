@@ -64,17 +64,10 @@
       <artifactId>slf4j-simple</artifactId>
       <version>1.6.1</version>
     </dependency>
-<<<<<<< HEAD
      <dependency>
       <groupId>org.xerial</groupId>
       <artifactId>sqlite-jdbc</artifactId>
       <version>3.6.16</version>
-=======
-    <dependency>
-      <groupId>org.xerial</groupId>
-      <artifactId>sqlite-jdbc</artifactId>
-      <version>3.6.10</version>
->>>>>>> 6d88bc3c76a43cdf9ea3fad3f0dd0c8b638a0e61
     </dependency>
   </dependencies>
 </project>
