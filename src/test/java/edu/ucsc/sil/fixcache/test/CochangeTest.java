@@ -21,7 +21,7 @@ public class CochangeTest {
 
     private static Connection conn;
 
-    @AfterClass
+    @After
     public static void tearDownAfterClass() throws Exception {
         TestHelper.cleanDatabase();
         if (conn != null) {
@@ -29,7 +29,7 @@ public class CochangeTest {
         }
     }
 
-    @BeforeClass
+    @Before
     public static void setUp() throws Exception {
         TestHelper.handleSetUpOperation();
     }

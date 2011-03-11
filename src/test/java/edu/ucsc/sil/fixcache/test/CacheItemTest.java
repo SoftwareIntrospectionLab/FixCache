@@ -24,7 +24,7 @@ public class CacheItemTest {
 
     private static Connection conn;
 
-    @AfterClass
+    @After
     public static void tearDownAfterClass() throws Exception {
         TestHelper.cleanDatabase();
         if (conn != null) {
@@ -32,7 +32,7 @@ public class CacheItemTest {
         }
     }
 
-    @BeforeClass
+    @Before
     public static void setUp() throws Exception {
         TestHelper.handleSetUpOperation();
     }

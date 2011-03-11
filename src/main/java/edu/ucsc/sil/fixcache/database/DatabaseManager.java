@@ -62,13 +62,12 @@ public class DatabaseManager {
     public void createTestConnection() {
         String s = new String();
         StringBuffer sb = new StringBuffer();
-        File dbFile = new File("test.db");
 
-        if (!dbFile.exists()) {
+        if (conn == null) {
             try {
                 dbFile.createNewFile();
                 Class.forName("org.sqlite.JDBC").newInstance();
-                conn = DriverManager.getConnection("jdbc:sqlite:test.db");
+                conn = DriverManager.getConnection("jdbc:sqlite::memory:");
 
                 FileReader fr = new FileReader(new File("test.sql"));
                 BufferedReader br = new BufferedReader(fr);
@@ -109,7 +108,7 @@ public class DatabaseManager {
         } else {
             try {
                 Class.forName("org.sqlite.JDBC").newInstance();
-                conn = DriverManager.getConnection("jdbc:sqlite:test.db");
+                conn = DriverManager.getConnection("jdbc:sqlite::memory:");
             } catch (Exception e) {
                 e.printStackTrace();
             }
