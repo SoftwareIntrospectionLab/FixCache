@@ -12,6 +12,7 @@ import org.dbunit.ext.mysql.MySqlDataTypeFactory;
 import org.dbunit.operation.DatabaseOperation;
 
 import edu.ucsc.sil.fixcache.database.DatabaseManager;
+import edu.ucsc.sil.fixcache.database.SqliteDataTypeFactory;
 
 public class TestHelper {
 
@@ -41,6 +42,8 @@ public class TestHelper {
     public static void handleSetUpOperation() throws Exception {
 
         final IDatabaseConnection conn = getDBUnitConnection();
+        configureConnection(conn);
+
         final IDataSet data = getDataSet();
         try {
             DatabaseOperation.CLEAN_INSERT.execute(conn, data);
@@ -51,12 +54,19 @@ public class TestHelper {
 
     public static void cleanDatabase() throws Exception {
         final IDatabaseConnection conn = getDBUnitConnection();
+        configureConnection(conn);
+        
         final IDataSet data = getDataSet();
         try {
             DatabaseOperation.DELETE_ALL.execute(conn, data);
         } finally {
             // conn.close();
         }
-
+    }
+    
+    private static void configureConnection(IDatabaseConnection conn) {
+        DatabaseConfig config = conn.getConfig();
+        config.setProperty(DatabaseConfig.PROPERTY_DATATYPE_FACTORY, 
+            new SqliteDataTypeFactory());
     }
 }
