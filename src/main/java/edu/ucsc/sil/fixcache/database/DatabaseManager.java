@@ -90,7 +90,7 @@ public class DatabaseManager {
                     // in order to not execute empty statements
                     if (!inst[i].trim().equals("")) {
                         st.executeUpdate(inst[i]);
-                        System.out.println(">>" + inst[i]);
+                        // System.out.println(">>" + inst[i]);
                     }
                 }
                 st.close();
