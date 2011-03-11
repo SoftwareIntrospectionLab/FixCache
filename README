@@ -32,8 +32,8 @@ To build fixcache:
 ./BUILD
 
 Testing FixCache:
-Use 'mvn test' from the command line in the project path to run all the unit tests. All the tests should
-pass.
+./TEST
+All the tests should pass.
 
 Running FixCache
 ----------------
