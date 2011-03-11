@@ -65,7 +65,6 @@ public class DatabaseManager {
 
         if (conn == null) {
             try {
-                dbFile.createNewFile();
                 Class.forName("org.sqlite.JDBC").newInstance();
                 conn = DriverManager.getConnection("jdbc:sqlite::memory:");
 

@@ -20,16 +20,16 @@ public class CacheTest {
 
     private static Connection conn;
 
-    @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    @After
+    public void tearDownAfterClass() throws Exception {
         TestHelper.cleanDatabase();
         if (conn != null) {
             conn.close();
         }
     }
 
-    @BeforeClass
-    public static void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         TestHelper.handleSetUpOperation();
     }
 
