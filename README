@@ -4,12 +4,18 @@ FixCache is used to predict faulty files. It processes a database filled in from
 
 Dependencies
 ------------------
+
+Apache Maven 2.2.1
+Java version: 1.6
+Mysql Ver 14.14 Distrib 5.5.8
+SQLite version 3.6.20
+
 Database:
 
 FixCache has to read software repository data in mysql database. 
 So you have to install mysql for running FixCache.
 
-FixCache runs the unit tests on sqlite database. So you have to install sqlite for testing FixCache.
+FixCache runs the unit tests on a sqlite database; you have to install sqlite for testing FixCache.
 
 Maven:
 
@@ -19,13 +25,11 @@ http://maven.apache.org/download.html
 
 to download Maven, and follow instructions in the README file. 
 
-Using maven, you have to put the pom.xml file in the project path.
-
 
 Installing FixCache
 -------------------
 You need to create a database with tables from cvsanaly and create a database.properties file for the connection
-to that database. This database.properties file should be in the following format:
+to that database. This database.properties file should be in the following example format:
 
 Driver:com.mysql.jdbc.Driver
 URL:jdbc:mysql://localhost:3306/fixcache
