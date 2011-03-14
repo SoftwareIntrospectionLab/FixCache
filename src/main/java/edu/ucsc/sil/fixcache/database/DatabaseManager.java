@@ -13,6 +13,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
 
+import edu.ucsc.sil.fixcache.util.Dates;
+
 public class DatabaseManager {
 
     private static DatabaseManager dbManager;
@@ -22,6 +24,7 @@ public class DatabaseManager {
 
     public void createConnection(String propertyFile) {
 
+        Dates.initializeFormat(Dates.dbtype.mysql);
         File file = new File(propertyFile);
         FileInputStream fis = null;
         try {
@@ -60,6 +63,7 @@ public class DatabaseManager {
     }
 
     public void createTestConnection() {
+        Dates.initializeFormat(Dates.dbtype.sqlite);
         String s = new String();
         StringBuffer sb = new StringBuffer();
 
