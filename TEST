@@ -1,32 +1,3 @@
 #!/bin/bash
-# /bin/ls Jar/ | gawk '{print "Jar/"$1}' | tr -s '\n' ':'
- 
-JARS=bin:Jar/dbunit-2.4.8.jar:Jar/junit-4.8.1.jar:Jar/log4j-1.2.16.jar:Jar/mysql-connector-java-5.1.13-bin.jar:Jar/slf4j-api-1.6.1.jar:Jar/slf4j-simple-1.6.1.jar:Jar/joda-time-1.6.2/joda-time-1.6.2-sources.jar:Jar/joda-time-1.6.2/joda-time-1.6.2.jar:Jar/javacsv.jar
 
-echo using classpath:
-echo $JARS
-echo  
-
-java -version
-echo 
-
-echo Testing the CacheItem code.....
-java -ea -cp $JARS \
-org.junit.runner.JUnitCore Test.CacheItemTest 
-
-echo Testing the CacheReplacement policy .....
-java -ea -cp $JARS \
-org.junit.runner.JUnitCore Test.CacheReplacementTest 
-
-echo Testing the Cache.....
-java -ea -cp $JARS \
-org.junit.runner.JUnitCore Test.CacheTest 
-
-echo Testing the CoChange list.....
-java -ea -cp $JARS \
-org.junit.runner.JUnitCore Test.CochangeTest 
-
-echo Testing the Simulator .....
-java -ea -cp $JARS \
-org.junit.runner.JUnitCore Test.SimulatorTest 
-
+mvn test

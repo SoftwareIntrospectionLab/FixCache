@@ -1,7 +1,6 @@
 What is it?
 -----------
-FixCache is used to predict faulty files. 
-
+FixCache is used to predict faulty files. It processes a database filled in from a source control repository history to identify
 
 Dependencies
 ------------------
@@ -10,51 +9,39 @@ Database:
 FixCache has to read software repository data in mysql database. 
 So you have to install mysql for running FixCache.
 
+FixCache runs the unit tests on sqlite database. So you have to install sqlite for testing FixCache.
 
-FixCache needs the following jar files to run, all of which are located in the Jar directory.
+Maven:
 
-dbunit-2.4.8.jar
-junit-4.8.1.jar
-log4j-1.2.16.jar
-mysql-connector-java-5.1.13-bin.jar
-slf4j-api-1.6.1.jar
-slf4j-simple-1.6.1.jar
-joda-time-1.6.2-sources.jar
-joda-time-1.6.2.jar
+FixCache is managed by maven. You have to install maven for tesing, and running FixCache. Go to:
 
+http://maven.apache.org/download.html 
+
+to download Maven, and follow instructions in the README file. 
+
+Using maven, you have to put the pom.xml file in the project path.
 
 
 Installing FixCache
 -------------------
-You need to create a database with tables from cvsanaly. Run mysql as root (mysql -u root -p) and create a new database: 
-
-create database fixcache;
-use fixcache;
-source ~/path-to-FixCache/fixcache.sql;
-show tables;
-
-You need to create a testdatabase.properties file to run DBUnit tests. The database specified in this file will be wiped after running each test. This is the specification for a testdatabase.properties file:
+You need to create a database with tables from cvsanaly and create a database.properties file for the connection
+to that database. This database.properties file should be in the following format:
 
 Driver:com.mysql.jdbc.Driver
 URL:jdbc:mysql://localhost:3306/fixcache
-UserName:root
-UserPass:
-
-If you want to run fixcache on a larger project, you will need to create a database.properties file for that project.
-
+UserName:(the user name of your database)
+UserPass:(the password of your database)
+ 
 To build fixcache:
 ./BUILD
 
+Testing FixCache:
+./TEST
+All the tests should pass.
 
 Running FixCache
 ----------------
-Once you have an empty test database and a testdatabase.properties file set up, you can run the FixCache testing suite.
-
-./TEST
-
-All tests should pass. 
-
-To run FixCache on a larger database, set up a database.properties file, check that the project id matches the one specified by the RUN script -p flag, and then use the RUN script. 
+Once you have an all the data for a given project in the database and a database.properties file set up, you can run the FixCache.
 
 ./RUN
 
