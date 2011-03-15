@@ -20,16 +20,16 @@ public class CoChange {
      */
     final static Connection conn = DatabaseManager.getConnection();
     static final String findCommitId = "select commit_id from actions, scmlog, files "
-            + "where file_name=? and actions.file_id=files.id and actions.commit_id=scmlog.id and "
-            + "date between ? and ? and scmlog.repository_id=?";
+        + "where file_name=? and actions.file_id=files.id and actions.commit_id=scmlog.id and "
+        + "date between ? and ? and scmlog.repository_id=?";
     // XXX: don't add deleted files to map
     static final String findCochangeFileName = "select file_name from files, actions, file_types "
-            + "where files.id=actions.file_id and commit_id =? and "
-            + "files.id=file_types.file_id and file_types.type='code'"; // XXX
-                                                                        // and
-                                                                        // actions.type
-                                                                        // =
-                                                                        // 'M'?
+        + "where files.id=actions.file_id and commit_id =? and "
+        + "files.id=file_types.file_id and file_types.type='code'"; // XXX
+    // and
+    // actions.type
+    // =
+    // 'M'?
     private static PreparedStatement findCommitIdQuery;
     private static PreparedStatement findCochangeFileNameQuery;
 
@@ -77,8 +77,10 @@ public class CoChange {
                     }
                 }
             }
-            findCommitIdQuery.close();
-            findCochangeFileNameQuery.close();
+            if(findCommitIdQuery!=null)
+                findCommitIdQuery.close();
+            if(findCochangeFileNameQuery!=null)
+                findCochangeFileNameQuery.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -111,7 +113,7 @@ public class CoChange {
      * @throws SQLException
      */
     private ResultSet getCommits(String startDate, String commitDate, int pid)
-            throws SQLException {
+    throws SQLException {
         findCommitIdQuery = conn.prepareStatement(findCommitId);
         final PreparedStatement commitIdQuery = findCommitIdQuery;
         commitIdQuery.setString(1, fileName);
@@ -171,20 +173,20 @@ public class CoChange {
                     map.entrySet());
             Collections.sort(list,
                     new Comparator<Map.Entry<String, Integer>>() {
-                        public int compare(Map.Entry<String, Integer> f1,
-                                Map.Entry<String, Integer> f2) {
-                            // DESCENDING order; return <0 if o2 is smaller
-                            int comparison = (f2.getValue().compareTo(f1
-                                    .getValue()));
-                            if (comparison == 0) { // use LOC to break ties
-                                final int f2loc = locmap.get(f2.getKey());
-                                final int f1loc = locmap.get(f1.getKey());
-                                return (f2loc - f1loc);
-                            } else
-                                return comparison;
-                        }
-                        // TODO Auto-generated catch block
-                    });
+                public int compare(Map.Entry<String, Integer> f1,
+                        Map.Entry<String, Integer> f2) {
+                    // DESCENDING order; return <0 if o2 is smaller
+                    int comparison = (f2.getValue().compareTo(f1
+                            .getValue()));
+                    if (comparison == 0) { // use LOC to break ties
+                        final int f2loc = locmap.get(f2.getKey());
+                        final int f1loc = locmap.get(f1.getKey());
+                        return (f2loc - f1loc);
+                    } else
+                        return comparison;
+                }
+                // TODO Auto-generated catch block
+            });
 
             return list;
         }
