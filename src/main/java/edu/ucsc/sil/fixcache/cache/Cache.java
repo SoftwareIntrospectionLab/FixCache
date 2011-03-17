@@ -56,6 +56,7 @@ public class Cache implements Iterable<CacheItem>{
      * Methods
      */
     
+    // used in file distribution output
     @Override
     public Iterator<CacheItem> iterator() {
         return cacheTable.values().iterator();

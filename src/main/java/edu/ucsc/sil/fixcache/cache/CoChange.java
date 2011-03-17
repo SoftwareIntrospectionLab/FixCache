@@ -13,6 +13,7 @@ import java.util.Map.Entry;
 
 import edu.ucsc.sil.fixcache.database.DatabaseManager;
 
+// Spacial locality (Sec 2.2, #5)
 public class CoChange {
 
     /**

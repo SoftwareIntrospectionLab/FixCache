@@ -61,7 +61,7 @@ public class CacheItem {
 
     private final String fileName; // id of file
     private int loadDate; // changed on cache hit
-    private int LOC; // changed on cache hit
+    private int LOC; // changed on cache hit; max LOC
     private int number; // represents either the number of bugs, changes, or
                         // authors
     private int loadCount = 0; // count how many time a file is put into cache
@@ -108,15 +108,15 @@ public class CacheItem {
         if (!inCache) {
             inCache = true;
             loadCount++;
-            timeAdded = cdate;
+            timeAdded = cdate; // for tracking the duration
             if (r == CacheReason.BugEntity)
                 missCount++;
         } else { // is in cache
             if (r == CacheReason.BugEntity)
                 hitCount++;
         }
-        loadDate = parent.getTime(cid); // counter
-        LOC = Math.max(LOC, findLoc(fileName, cid));
+        loadDate = parent.getTime(cid); 
+        LOC = Math.max(LOC, findLoc(fileName, cid)); // max LOC
         number = findNumber(fileName, parent.repID, cdate, sdate,
                 parent.getPolicy());
     }
@@ -134,6 +134,9 @@ public class CacheItem {
 
     // XXX: Maybe get rid of pid here once we switch back to eids.
     /**
+     * 
+     * Finds a number used by the cache replacement policy to decide what to 
+     * kick out of the cache. Could be authors, changes, bugs, etc.
      * 
      * @param eid
      *            -- entity id
@@ -161,6 +164,7 @@ public class CacheItem {
             break;
         case LRU: // do nothing
         }
+        assert(ret >= 0);
         return ret;
     }
 
@@ -187,8 +191,7 @@ public class CacheItem {
                     .prepareStatement(findNumberOfAuthors);
             findNumberOfAuthorsQuery.setString(1, start);
             findNumberOfAuthorsQuery.setString(2, cdate);
-            findNumberOfAuthorsQuery.setString(3, fileName); // XXX fix query to
-                                                             // use file_name
+            findNumberOfAuthorsQuery.setString(3, fileName); 
             findNumberOfAuthorsQuery.setInt(4, pid);
             ret = Database.getIntResult(findNumberOfAuthorsQuery);
             findNumberOfAuthorsQuery.close();
@@ -220,8 +223,7 @@ public class CacheItem {
                     .prepareStatement(findNumberOfChanges);
             findNumberOfChangesQuery.setString(1, start);
             findNumberOfChangesQuery.setString(2, cdate);
-            findNumberOfChangesQuery.setString(3, fileName); // XXX fix query to
-                                                             // use file_name
+            findNumberOfChangesQuery.setString(3, fileName); 
             findNumberOfChangesQuery.setInt(4, pid);
             ret = Database.getIntResult(findNumberOfChangesQuery);
             findNumberOfChangesQuery.close();
@@ -251,8 +253,7 @@ public class CacheItem {
             // if (findNumberOfBugsQuery == null)
             findNumberOfBugsQuery = conn.prepareStatement(findNumberOfBugs);
 
-            findNumberOfBugsQuery.setString(1, fileName); // XXX fix query to
-                                                          // use file_name
+            findNumberOfBugsQuery.setString(1, fileName);
             findNumberOfBugsQuery.setString(2, start);
             findNumberOfBugsQuery.setString(3, cdate);
             findNumberOfBugsQuery.setInt(4, pid);

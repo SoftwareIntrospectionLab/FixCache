@@ -36,7 +36,6 @@ public class InputManager {
      * @param csz -- cachesize
      * @param projid -- project id
      * @param cr -- cache replacement policy
-     * @param conn -- database connection (to check params are valid)
      */
     public InputManager(int blksz, int pfsz, int csz, int projid, 
             CacheReplacement.Policy cr){
@@ -81,6 +80,9 @@ public class InputManager {
         CmdLineParser.Option save_opt = parser.addBooleanOption('o',"save");
         CmdLineParser.Option month_opt = parser.addBooleanOption('m',"multiple");
         CmdLineParser.Option tune_opt = parser.addBooleanOption('u', "tune");
+        CmdLineParser.Option help_opt = parser.addBooleanOption('h', "help");
+        
+        
 
         // first, parse the argument array
         try {
@@ -91,6 +93,11 @@ public class InputManager {
             System.exit(2);
         }
 
+        if ((Boolean) parser.getOptionValue(help_opt, false)){
+            printHelp();
+            System.exit(0);
+        }
+        
         // get boolean inputs
         this.saveToFile = (Boolean) parser.getOptionValue(save_opt, false);
         this.tune = (Boolean)parser.getOptionValue(tune_opt, false);
@@ -286,5 +293,42 @@ public class InputManager {
         System.err.println("Example Usage: FixCache --blksize=10000 "
                 + "--csize=500 --pfsize=600 --cacherep=\"LRU\" --pid=1");
         System.err.println("-p/--pid option is required");
+    }
+    
+    private static void printHelp() {
+        printOption("blocksize", 'b', "blocksize", "int", 
+                "the number of co-changed files to add to the cache for " +
+                "a given bug introducing file");
+        printOption("cachesize", 'c', "csize", "int",
+                "the size of the cache");
+        printOption("prefetchsize", 'f', "pfsize", "int", 
+                "the number of new or modified files to prefetch " +
+                "when processing a particular commit");
+        printOption("cache replacement policy", 'r', "cacherep", "Policy",
+                "the type of cache replacement policy to use " +
+                "(see CacheReplacement.java for a list)");
+        printOption("project id",'p',"pid", "int", "the repository id of the project to analyze");
+        printOption("start time", 's', "start", "String", 
+                "the date (in the repository) to start analysis");
+        printOption("end time", 'e', "end", "String", 
+            "the date (in the repository) to end analysis");
+        printOption("output", 'o', "save", null, "print output to files");
+        printOption("monthly file distribution", 'm', "multiple", null, 
+                "print file distribution " +
+                "output to a file every few months of repository time (default only once)");
+        printOption("tune", 'u', "tune", null, "run in tune mode, checking " +
+        		"many different permutations of parameters to find the best combination");
+        printOption("help", 'h', "help", null, "print this message");
+        System.err.println();
+        printUsage();
+    }
+    
+    private static void printOption(String name, char shortform, String longform, 
+            String type, String desc){
+        String typestring = type == null ? "" : "={"+ type+ "}";
+        System.err.println(name + ":");        
+        System.err.println("    "+ "-"+ shortform + typestring);
+        System.err.println("    "+ "--"+ longform + typestring);
+        System.err.println("    "+ desc);
     }
 }

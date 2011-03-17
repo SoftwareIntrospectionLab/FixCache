@@ -241,13 +241,16 @@ public class Simulator {
     }
 
     /**
-     * Fills cache with pre-fetch size number of top-LOC files from initial
-     * commit. Only called once per simulation // implicit input: initial commit
-     * ID // implicit input: LOC for every file in initial commit ID // implicit
-     * input: pre-fetch size
+     * Fills cache with cache size number of top-LOC files from start commit
+     * Only called once per simulation // implicit input: start commit for sim
+     * implicit input: LOC for every file in start commit for sim 
+     * Sec. 3.4 -- Initial Pre-fetch
      */
     public void initialPreLoad() {
 
+        // select files that are present at the start time
+        // in descending order of LOC 
+        
         final String findInitialPreload = "select files.file_name, content.commit_id "
                 + "from content, scmlog, actions, file_types, files "
                 + "where files.repository_id=? and content.commit_id = scmlog.id and date <=? "
