@@ -9,3 +9,13 @@ To generate the graphs, run:
 where * is any prefix. Test out with:
 
 ./makegraphs.bash rates.txt filedist.txt
+
+There are also a few scripts in here for making special graphs:
+
+* bug_spaghetti.R 
+
+This example script uses a directory of csv files with information about the distribution of files which have been in the cache at various points in time. These files must have number names, e.g. "3", representing the month checkpoint. To generate such files, run fixcache with the "-m" option and then use the rename_multi_filedist.sh script to rename the output. The bug_spaghetti.R script outputs a graph showing how the ranking of bugs changes over time. 
+
+* overlay.R 
+
+This example script displays an overlay of hitrate over time for multiple repositories. The hitrate over time csv file for each repository need to be manually renamed, and this script has repository names hardcoded in.
