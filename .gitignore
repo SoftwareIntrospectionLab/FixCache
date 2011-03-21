@@ -11,3 +11,5 @@ moresoedatabase.properties
 PLAY
 INTERP
 EXP
+test.db
+target/
