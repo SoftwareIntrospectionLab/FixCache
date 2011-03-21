@@ -45,7 +45,11 @@ All the tests should pass.
 
 Running FixCache
 ----------------
-Once you have an all the data for a given project in the database and a database.properties file set up, you can run the FixCache.
+Once you have an all the data for a given project in the database and a database.properties file set up, you can run FixCache directly on the command line.For an example of how to use command line inputs with maven, take a look at the RUN script:
+
+cat RUN
+
+running this script will output help information overviewing the various command line inputs:
 
 ./RUN
 

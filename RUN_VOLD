@@ -1,3 +1,0 @@
-#!/bin/bash
-
-mvn exec:java -Dexec.args="-p 2 -o -b 21 -f 15 -r LRU -c 75"
