@@ -446,11 +446,12 @@ public class CmdLineParser {
 
 	/**
 	 * @return the non-option arguments
-	 */
+	 
 	public final String[] getRemainingArgs() {
 		return this.remainingArgs;
 	}
-
+	 */
+	
 	/**
 	 * Extract the options and non-option arguments from the given
 	 * list of command-line arguments. The default locale is used for

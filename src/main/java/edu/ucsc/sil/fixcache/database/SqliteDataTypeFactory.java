@@ -12,8 +12,8 @@ public class SqliteDataTypeFactory extends DefaultDataTypeFactory {
     }
 
     @Override
-    public Collection getValidDbProducts() {
-        ArrayList products = new ArrayList();
+    public Collection<String> getValidDbProducts() {
+        ArrayList<String> products = new ArrayList<String>();
         products.add("SQLite");
         return products;
     }

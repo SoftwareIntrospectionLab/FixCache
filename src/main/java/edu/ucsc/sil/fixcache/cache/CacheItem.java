@@ -117,8 +117,9 @@ public class CacheItem {
         }
         loadDate = parent.getTime(cid); 
         LOC = Math.max(LOC, findLoc(fileName, cid)); // max LOC
-        number = findNumber(fileName, parent.repID, cdate, sdate,
+        int newnumber = findNumber(fileName, parent.repID, cdate, sdate,
                 parent.getPolicy());
+        number = newnumber < 0? number: newnumber;
     }
 
     public boolean isInCache() {
@@ -164,7 +165,7 @@ public class CacheItem {
             break;
         case LRU: // do nothing
         }
-        assert(ret >= 0);
+        assert(ret >= 0); // XXX may not hold if updated with incorrect commit id
         return ret;
     }
 

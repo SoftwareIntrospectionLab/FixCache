@@ -24,7 +24,7 @@ public class DatabaseManager {
 
     public void createConnection(String propertyFile) {
 
-        Dates.initializeFormat(Dates.dbtype.mysql);
+        Dates.initializeFormat(Dates.DBtype.mysql);
         File file = new File(propertyFile);
         FileInputStream fis = null;
         try {
@@ -63,8 +63,8 @@ public class DatabaseManager {
     }
 
     public void createTestConnection() {
-        Dates.initializeFormat(Dates.dbtype.sqlite);
-        String s = new String();
+        Dates.initializeFormat(Dates.DBtype.sqlite);
+        String s;
         StringBuffer sb = new StringBuffer();
 
         if (conn == null) {
@@ -99,13 +99,13 @@ public class DatabaseManager {
                 st.close();
 
             } catch (Exception e) {
-                System.out.println("*** Error : " + e.toString());
-                System.out.println("*** ");
-                System.out.println("*** Error : ");
+                System.err.println("*** Error : " + e.toString());
+                System.err.println("*** ");
+                System.err.println("*** Error : ");
                 e.printStackTrace();
-                System.out
+                System.err
                         .println("################################################");
-                System.out.println(sb.toString());
+                System.err.println(sb.toString());
             }
 
         } else {
@@ -134,16 +134,6 @@ public class DatabaseManager {
         return dbManager.conn;
     }
 
-    public ResultSet executeQuery(String sql) {
-        ResultSet rs = null;
-        try {
-            rs = stmt.executeQuery(sql);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return rs;
-    }
-
     public static void close() {
         try {
             dbManager.conn.close();
@@ -153,6 +143,7 @@ public class DatabaseManager {
         }
     }
 
+    /**
     public static void main(String[] args) {
         Connection conn = getConnection();
         int commitId;
@@ -174,6 +165,8 @@ public class DatabaseManager {
             System.exit(0);
         }
 
+		close();
     }
+    **/
 
 }

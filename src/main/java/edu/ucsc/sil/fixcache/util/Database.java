@@ -6,6 +6,8 @@ import java.sql.SQLException;
 
 public class Database {
 	
+	// returns -1 if result set is empty. This condition is checked for in
+	// various other places
 	public static int getIntResult (PreparedStatement intQuery) throws SQLException 
 	{
 		int res = -1;
@@ -25,6 +27,8 @@ public class Database {
 		if(r.next())
 		{
 			res = r.getString(1);
+		} else{
+			throw new SQLException();
 		}
 		return res;
 	}

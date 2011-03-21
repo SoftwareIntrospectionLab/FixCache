@@ -133,7 +133,7 @@ public class CoChange {
     // XXX maybe add to CacheItem along with date of current co-change map
     // then, only need to add to CoChangeMap from prev. stopping point
     // this would increase space usage, but make co-change calculations faster
-    public class CoChangeFileMap {
+    public static class CoChangeFileMap {
         // TODO: make more efficient:
         // HashSet<Integer> newFiles;
         // int []fileIds;

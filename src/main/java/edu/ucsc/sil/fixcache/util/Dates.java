@@ -11,14 +11,14 @@ import java.lang.StringBuilder;
 public class Dates {
 
     static StringBuilder range;
-    public enum dbtype{mysql, sqlite};
+    public enum DBtype{mysql, sqlite};
 
     static final DateTimeFormatter mysqlfmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.S");
     static final DateTimeFormatter sqlitefmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
     
     private static DateTimeFormatter fmt;
 
-    public static void initializeFormat(dbtype type){
+    public static void initializeFormat(DBtype type){
         if(fmt==null) {
             switch (type){
             case mysql: fmt = mysqlfmt;break;
@@ -69,12 +69,6 @@ public class Dates {
         return toString(toDateTime(start).plusWeeks(numMonths));
     }
 
-    public static void main(String args[])
-    {
-        DateTime d = new DateTime("2000-05-04T01:02:03");
-        System.out.print(toString(d));
-    }
-
     public static String getRange(String rangeStart, String rangeEnd) {
         DateTime start = toDateTime(rangeStart);
         DateTime end = toDateTime(rangeEnd);
@@ -92,4 +86,11 @@ public class Dates {
         range.append(end.getDayOfMonth());
         return range.toString();
     }
+
+//  public static void main(String args[])
+//  {
+//      DateTime d = new DateTime("2000-05-04T01:02:03");
+//      System.out.print(toString(d));
+//  }
+
 }

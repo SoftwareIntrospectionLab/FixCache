@@ -157,12 +157,15 @@ public class InputManager {
             PreparedStatement findPidQuery = conn.prepareStatement(findPid);
             findPidQuery.setInt(1, pid);
             if (Database.getIntResult(findPidQuery) == -1) {
+                findPidQuery.close();
                 System.out.println("There is no project whose id is " + pid);
                 System.exit(2);
             }
             findPidQuery.close();
         } catch (SQLException e) {
             e.printStackTrace();
+            System.out.println("There is no project whose id is " + pid);
+            System.exit(2);
         }
 
         // set defaults for unspecified parameters
@@ -209,9 +212,13 @@ public class InputManager {
             PreparedStatement findFileCountQuery = conn.prepareStatement(findFileCount);
             findFileCountQuery.setInt(1, projid);
             ret = Database.getIntResult(findFileCountQuery);
+            if (ret < 0){
+            	throw new SQLException();
+            }
             findFileCountQuery.close();
         } catch (SQLException e1) {
             e1.printStackTrace();
+        	System.exit(1);
         }
         return ret;
     }        

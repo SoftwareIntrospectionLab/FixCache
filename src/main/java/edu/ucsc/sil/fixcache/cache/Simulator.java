@@ -323,7 +323,6 @@ public class Simulator {
             }
         } catch (Exception e) {
             System.out.println(e);
-            System.exit(0);
         }
 
         return bugIntroCdate;
@@ -386,13 +385,13 @@ public class Simulator {
             System.exit(1);
         }
 
-        int onepercent = Math.round(csz / 10);
+        int onepercent = csz / 10;
         if (onepercent == 0)
             onepercent = 1;
-        int halfpercent = Math.round(onepercent / 2);
+        int halfpercent = onepercent / 2;
         if (halfpercent == 0)
             halfpercent = 1;
-        int limit = Math.round(csz / 2);
+        int limit = csz / 2;
 
         System.out.print("Cache size: ");
         System.out.println(csz);
