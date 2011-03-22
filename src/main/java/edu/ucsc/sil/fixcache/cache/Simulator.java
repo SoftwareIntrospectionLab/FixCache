@@ -269,13 +269,8 @@ public class Simulator {
             findInitialPreloadQuery.setString(2, cache.startDate);
             preloadFiles = findInitialPreloadQuery.executeQuery();
 
-        } catch (SQLException e1) {
-            e1.printStackTrace();
-        }
-
-        // Note: preload may not fill the cache completely if there are
-        // not enough code files before the starting date
-        try {
+            // Note: preload may not fill the cache completely if there are
+            // not enough code files before the starting date
             while (preloadFiles.next()) {
                 fileName = preloadFiles.getString(1);
                 commitId = preloadFiles.getInt(2);
