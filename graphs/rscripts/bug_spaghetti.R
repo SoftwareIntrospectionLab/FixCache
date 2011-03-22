@@ -18,6 +18,6 @@ for (x in a) {
 full = full[(full$rank != 0),]
 full = full[(order(full$month)),]
 #top = max(full[(full$month == max(full$month)),]$rank) * .05
-top = 15
+top = 30
 full = full[(full$rank <= top),]
-xyplot(rank~month, groups=file_id, data= full, type="o", ylim=c(max(full$rank), 0))
+xyplot(rank~month, groups=file_id, data= full, type="o", ylim=c(max(full$rank)+1, 0), xlim=c(min(full$month), max(full$month)))
