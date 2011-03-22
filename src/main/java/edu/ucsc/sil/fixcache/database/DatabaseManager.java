@@ -124,7 +124,7 @@ public class DatabaseManager {
         return dbManager.conn;
     }
 
-    public static Connection getConnection() {
+    public static synchronized Connection getConnection() {
         if (dbManager == null) {
             dbManager = new DatabaseManager();
             dbManager.createConnection("database.properties");
