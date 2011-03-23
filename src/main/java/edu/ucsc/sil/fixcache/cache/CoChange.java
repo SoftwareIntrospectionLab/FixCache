@@ -186,7 +186,6 @@ public class CoChange {
                     } else
                         return comparison;
                 }
-                // TODO Auto-generated catch block
             });
 
             return list;
