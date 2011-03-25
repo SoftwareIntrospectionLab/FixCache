@@ -110,6 +110,8 @@ public class Simulator {
         else
             miss++;
 
+        System.out.println(fileId);
+        
         cache.add(fileId, cid, commitDate, CacheItem.CacheReason.BugEntity);
 
         // add the co-changed files as well
@@ -165,6 +167,7 @@ public class Simulator {
                 final ResultSet files = findFileQuery.executeQuery();
                 // loop through those file ids
                 while (files.next()) {
+                    System.out.println(cache.toString());
                     fileName = files.getString(1); 
                     type = ActionType.valueOf(files.getString(2));
                     numprefetch = processOneFile(cid, cdate, isBugFix,

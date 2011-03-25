@@ -141,6 +141,7 @@ public class SimulatorTest {
         assertEquals(100, rat);
         sim3.closeStatement();
         
+        System.out.println("===========================================");
         in.setStartDate("2009-10-20 01:32:19");
         Simulator sim4 = new Simulator(in);
         sim4.initialPreLoad();
