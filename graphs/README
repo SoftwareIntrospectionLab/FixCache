@@ -4,11 +4,11 @@ Sample output files are shown with rates.txt and filedist.txt. All R scripts are
 
 To generate the graphs, run:
 
-./makegraphs.bash *rates.txt *filedist.txt
+./makegraphs.bash *hitrate.csv *filedist.csv
 
 where * is any prefix. Test out with:
 
-./makegraphs.bash rates.txt filedist.txt
+./makegraphs.bash hitrate.csv filedist.csv
 
 There are also a few scripts in here for making special graphs:
 

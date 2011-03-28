@@ -8,9 +8,7 @@ import static org.junit.Assert.assertTrue;
 import java.sql.Connection;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import edu.ucsc.sil.fixcache.cache.Cache;
@@ -141,7 +139,7 @@ public class SimulatorTest {
         assertEquals(100, rat);
         sim3.closeStatement();
         
-        System.out.println("===========================================");
+        //System.out.println("===========================================");
         in.setStartDate("2009-10-20 01:32:19");
         Simulator sim4 = new Simulator(in);
         sim4.initialPreLoad();
