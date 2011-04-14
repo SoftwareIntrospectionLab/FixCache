@@ -1,7 +1,8 @@
 package edu.ucsc.sil.fixcache.cache;
 
+import java.io.FileWriter;
 import java.io.IOException;
-import com.csvreader.CsvWriter;
+import au.com.bytecode.opencsv.CSVWriter;
 
 import edu.ucsc.sil.fixcache.util.Dates;
 
@@ -14,7 +15,7 @@ public class OutputManager {
     boolean filedistPrintMultiple; // whether the filedist output should happen once or more
     boolean headerPrinted;
 
-    CsvWriter hitrateOutput; 
+    CSVWriter hitrateOutput; 
     String filename;
    
 
@@ -31,6 +32,11 @@ public class OutputManager {
         filedistPrintMultiple = outputMulti;
         headerPrinted = false;
     }
+    
+    private void writeComment(CSVWriter writer, String comment) {
+        String[] line = {"# " + comment};
+        writer.writeNext(line);
+    }
 
     /**
      * Sets the filename and prints out header information
@@ -40,28 +46,28 @@ public class OutputManager {
         filename = sim.pid + "_" + sim.getCacheSize() + "_" + sim.blocksize + "_"
         + sim.prefetchsize + "_" + sim.cacheRep;
         
-        hitrateOutput = new CsvWriter("Results/" + filename + "_hitrate.csv");
-        hitrateOutput.setComment('#');
         try {
-            hitrateOutput.writeComment("hitrate for every " +outputSpacing+ " months, "
+            hitrateOutput = new CSVWriter(
+                new FileWriter("Results/" + filename + "_hitrate.csv"), '\t');
+
+            writeComment(hitrateOutput, "hitrate for every " +outputSpacing+ " months, "
                     + "used to describe the variation of hit rate with time");
-            hitrateOutput.writeComment("project: " + sim.pid + ", cachesize: "
+            writeComment(hitrateOutput, "project: " + sim.pid + ", cachesize: "
                     + sim.getCacheSize() + ", blocksize: " + sim.blocksize
                     + ", prefetchsize: " + sim.prefetchsize
                     + ", cache replacement policy: " + sim.cacheRep);
-            hitrateOutput.write("Month");
-            //csvWriter.write("Range");
-            hitrateOutput.write("HitRate");
-            hitrateOutput.write("NumCommits");
-            hitrateOutput.write("NumAdds");
-            hitrateOutput.write("NumNewCacheItems");
-            // csvWriter.write("NumFiles"); // uncomment if using findfilecountquery
-            hitrateOutput.write("NumBugFixes");
-            hitrateOutput.write("FilesProcessed");
-            hitrateOutput.endRecord();
+            
+            // Before refactoring, a column called "range" and one called
+            // "numFiles" were here, but commented out
+            String[] columns = {"Month", "HitRate", "NumCommits", "NumAdds", 
+                "NumNewCacheItems", "NumBugFixes", "FilesProcessed"
+            };
+            
+            hitrateOutput.writeNext(columns);
         } catch (IOException e) {
             e.printStackTrace();
         }
+        
         headerPrinted = true;
     }
     
@@ -85,8 +91,13 @@ public class OutputManager {
      */
     public void finish(Simulator sim) {
         if (!save) return;
-        outputFileDist(sim, true);
-        hitrateOutput.close();
+        outputFileDist(sim);
+        
+        try {
+            hitrateOutput.close();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
     }
 
     /**
@@ -97,7 +108,7 @@ public class OutputManager {
     private void outputHitRate(String cdate, Simulator sim) {
         // print out file distribution information at time slices
         if (filedistPrintMultiple) 
-            outputFileDist(sim, false);
+            outputFileDist(sim);
 
         // update the current outputDate
         if (!cdate.equals(sim.cache.endDate)) {
@@ -107,21 +118,18 @@ public class OutputManager {
         }
 
         // output!
-        try {
-            hitrateOutput.write(Integer.toString(month));
-            //csvWriter.write(Dates.getRange(formerOutputDate, outputDate));
-            hitrateOutput.write(Double.toString(sim.getHitRate()));
-            hitrateOutput.write(Integer.toString(sim.resetCommitCount()));
-            hitrateOutput.write(Integer.toString(sim.cache.resetAddCount()));
-            hitrateOutput.write(Integer.toString(sim.cache.resetCICount()));
-            //also prints filecount at time slice, but query is not accurate
-            //csvWriter.write(Integer.toString(getFileCount(pid,cdate))); 
-            hitrateOutput.write(Integer.toString(sim.resetBugCount()));
-            hitrateOutput.write(Integer.toString(sim.resetFilesProcessedCount()));
-            hitrateOutput.endRecord();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        String[] record = {Integer.toString(month),
+                           Double.toString(sim.getHitRate()),
+                           Integer.toString(sim.resetCommitCount()),
+                           Integer.toString(sim.cache.resetAddCount()),
+                           Integer.toString(sim.cache.resetCICount()),
+                           //also prints filecount at time slice, but query is not accurate
+                           //csvWriter.write(Integer.toString(getFileCount(pid,cdate))); 
+                           Integer.toString(sim.resetBugCount()),
+                           Integer.toString(sim.resetFilesProcessedCount())
+        };
+        
+        hitrateOutput.writeNext(record);
         
         //advance current month marker;
         month += outputSpacing;
@@ -137,57 +145,49 @@ public class OutputManager {
      * output info about each file that was ever in the cache. 
      * @param sim -- the simulator ran
      */
-    private void outputFileDist(Simulator sim, boolean last) {
+    private void outputFileDist(Simulator sim) {
         
         // set up a new csvWriter
         String pathname;
-        if (filedistPrintMultiple && !last)
+        if (filedistPrintMultiple)
             pathname = "Results/" + month + "-" + filename + "_filedist.csv";
         else
             pathname = "Results/" + filename + "_filedist.csv";        
-        CsvWriter csv = new CsvWriter(pathname);
-        
-        // character to proceed comment lines
-        csv.setComment('#');
         
         try {
+            CSVWriter csv = new CSVWriter(new FileWriter(pathname), '\t');
+
             // write comments explaining file and setup
-            csv.writeComment("number of hit, misses and time stayed in Cache for every file");
-            csv.writeComment("project: " + sim.pid + ", cachesize: " + sim.getCacheSize()
+            writeComment(csv, "number of hit, misses and time stayed in Cache for every file");
+            writeComment(csv, "project: " + sim.pid + ", cachesize: " + sim.getCacheSize()
                     + ", blocksize: " + sim.blocksize + ", prefetchsize: "
                     + sim.prefetchsize + ", cache replacement policy: " + sim.cacheRep);
             
-            // column titles
-            csv.write("file_id");
-            csv.write("loc");
-            csv.write("num_load");
-            csv.write("num_hits");
-            csv.write("num_misses");
-            csv.write("duration");
-            // csv.write("reason");
-            csv.endRecord();
+            // column titles. "reason" used to be here, but was commented out.
+            String columns[] = {"file_id", "loc", "num_load", "num_hits",
+                "num_misses", "duration"};
+            
+            csv.writeNext(columns);
             
             // initial row special to store total duration
-            csv.write("0");
-            csv.write("0");
-            csv.write("0");
-            csv.write("0");
-            csv.write("0");
-            csv.write(Integer.toString(sim.cache.getTotalDuration()));
-            // csv.write("0");
-            csv.endRecord();
+            String initialRecord[] = {"0", "0", "0", "0", "0", 
+                Integer.toString(sim.cache.getTotalDuration())};
+            
+            csv.writeNext(initialRecord);
             
             // the file already has the correct header line
             // write out each record
             for (CacheItem ci : sim.cache){
-                csv.write((ci.getFileName()));
-                csv.write(Integer.toString(ci.getLOC())); // max LOC
-                csv.write(Integer.toString(ci.getLoadCount()));
-                csv.write(Integer.toString(ci.getHitCount()));
-                csv.write(Integer.toString(ci.getMissCount()));
-                csv.write(Integer.toString(ci.getDuration()));
-                // csv.write(ci.getReason().toString());
-                csv.endRecord();
+                String[] record = {ci.getFileName(),
+                    Integer.toString(ci.getLOC()), // max LOC
+                    Integer.toString(ci.getLoadCount()),
+                    Integer.toString(ci.getHitCount()),
+                    Integer.toString(ci.getMissCount()),
+                    Integer.toString(ci.getDuration())
+                };
+                    // csv.write(ci.getReason().toString());
+                
+                csv.writeNext(record);
             }
 
             // cleanup

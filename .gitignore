@@ -13,3 +13,4 @@ INTERP
 EXP
 test.db
 target/
+.classpath
