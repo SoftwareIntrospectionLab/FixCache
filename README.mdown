@@ -1,0 +1,51 @@
+FixCache
+========
+
+What is it?
+-----------
+FixCache is used to predict faulty files. It processes a database filled in from a source control repository history to identify files which are likely to be buggy.
+
+Dependencies
+------------
+Versions tested are in parentheses
+
+* Apache Maven 2 (2.2.1)
+* Java 1.6
+* MySQL 5 (ver 14.14 distrib 5.5.8)
+* SQLite 3 (3.6.20)
+
+Database
+--------
+This distribution of FixCache operates on a MySQL database constructed by [our fork of CVSanalY2](http://github.com/SoftwareIntrospectionLab/cvsanaly) constructed with the following parameters:
+
+    ./cvsanaly2 -g -f config.sqlite --extensions=FileTypes,BugFixMessage,Content,FileCount,Patches,Hunks,HunkBlame --hard-order [repository path]
+
+To allow FixCache to run unit tests without instansiating a database, the unit tests on an in-memory SQLite database. As Java has no standard SQLite library (for shame!), a dependency is downloaded automatically by Maven.
+
+
+Building and Running with Maven
+-------------------------------
+FixCache is compiled and run using Maven 2. This allows all the dependencies to be managed for you. As long as you are connected to the Internet, a build should compile cleanly. If you don't have Maven, most *nix package repositories (including MacPorts) have it under `maven2`, otherwise you can download it from the [Maven web site](http://maven.apache.org/download.html).
+
+The standard Maven `mvn clean/build/test/run` goals work, and these are wrapped up in the `RUN` script. You shouldn't need to ever run the `test` goal, but if you do and all the tests don't pass, let us know!
+
+Configuring FixCache
+--------------------
+First off, you need a MySQL database populated with CVSanalY2 data, as previously described. Next, you'll need to create a file called `database.properties` in the root directory so FixCache knows how to connect to it.
+
+Here's an example `database.properties` file. You shouldn't need to change the Driver configuration, unless you want to use a non-standard MySQL dependency.
+
+    Driver:com.mysql.jdbc.Driver
+    URL:jdbc:mysql://localhost:3306/fixcache
+    UserName:[the user name of your database]
+    UserPass:[the password of your database]
+
+Running FixCache
+----------------
+Once you have an all the data for a given project in the database and a `database.properties` file set up, you can run FixCache directly from the command line.
+
+    Put the parameters here!
+
+If you want to collect file output, you will also need to make an empty directory in the FixCache folder called "Results":
+
+    mkdir Results
