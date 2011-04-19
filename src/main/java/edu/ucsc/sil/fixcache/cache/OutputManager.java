@@ -91,7 +91,7 @@ public class OutputManager {
      */
     public void finish(Simulator sim) {
         if (!save) return;
-        outputFileDist(sim);
+        outputFileDist(sim, true);
         
         try {
             hitrateOutput.close();
@@ -108,7 +108,7 @@ public class OutputManager {
     private void outputHitRate(String cdate, Simulator sim) {
         // print out file distribution information at time slices
         if (filedistPrintMultiple) 
-            outputFileDist(sim);
+            outputFileDist(sim, false);
 
         // update the current outputDate
         if (!cdate.equals(sim.cache.endDate)) {
@@ -145,11 +145,11 @@ public class OutputManager {
      * output info about each file that was ever in the cache. 
      * @param sim -- the simulator ran
      */
-    private void outputFileDist(Simulator sim) {
+    private void outputFileDist(Simulator sim, boolean last) {
         
         // set up a new csvWriter
         String pathname;
-        if (filedistPrintMultiple)
+        if (filedistPrintMultiple && !last)
             pathname = "Results/" + month + "-" + filename + "_filedist.csv";
         else
             pathname = "Results/" + filename + "_filedist.csv";        
