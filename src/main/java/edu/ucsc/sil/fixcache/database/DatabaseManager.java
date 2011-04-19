@@ -30,10 +30,11 @@ public class DatabaseManager {
             Properties prop = new Properties();
             prop.load(fis);
             // Enumeration enums = prop.propertyNames();
-            drivername = (String) prop.get("Driver");
-            databasename = (String) prop.get("URL");
-            username = (String) prop.get("UserName");
-            password = (String) prop.get("UserPass");
+            drivername = prop.getProperty("Driver", "com.mysql.jdbc.Driver");
+            databasename = prop.getProperty("URL", 
+                                      "jdbc:mysql://localhost:3306/fixcache");
+            username = prop.getProperty("UserName");
+            password = prop.getProperty("UserPass");
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();

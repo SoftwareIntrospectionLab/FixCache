@@ -25,7 +25,7 @@ To allow FixCache to run unit tests without instansiating a database, the unit t
 
 Building and Running with Maven
 -------------------------------
-FixCache is compiled and run using Maven 2. This allows all the dependencies to be managed for you. As long as you are connected to the Internet, a build should compile cleanly. If you don't have Maven, most *nix package repositories (including MacPorts) have it under `maven2`, otherwise you can download it from the [Maven web site](http://maven.apache.org/download.html).
+FixCache is compiled and run using Maven 2. This allows all the dependencies to be managed for you. As long as you are connected to the Internet, a build should compile cleanly. If you don't have Maven, most \*nix package repositories (including MacPorts) have it under `maven2`, otherwise you can download it from the [Maven web site](http://maven.apache.org/download.html).
 
 The standard Maven `mvn clean/build/test/run` goals work, and these are wrapped up in the `RUN` script. You shouldn't need to ever run the `test` goal, but if you do and all the tests don't pass, let us know!
 
@@ -33,12 +33,15 @@ Configuring FixCache
 --------------------
 First off, you need a MySQL database populated with CVSanalY2 data, as previously described. Next, you'll need to create a file called `database.properties` in the root directory so FixCache knows how to connect to it.
 
-Here's an example `database.properties` file. You shouldn't need to change the Driver configuration, unless you want to use a non-standard MySQL dependency.
+Here's an example `database.properties` file, which follows standard [Java Properties file](http://en.wikipedia.org/wiki/.properties) formatting. You'll need to provide at least your username and password:
 
-    Driver:com.mysql.jdbc.Driver
-    URL:jdbc:mysql://localhost:3306/fixcache
-    UserName:[the user name of your database]
-    UserPass:[the password of your database]
+    UserName:orson
+    UserPass:rosebud
+
+You might also want to provide the URL to your database, and if you are really adventerous, modify the database driver to something else. Only MySQL is tested, and there's no guarantees that some of the queries aren't MySQL-specific.
+
+    Driver:[com.mysql.jdbc.Driver]
+    URL:[jdbc:mysql://localhost:3306/fixcache]
 
 Running FixCache
 ----------------
