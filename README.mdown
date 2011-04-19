@@ -47,8 +47,85 @@ Running FixCache
 ----------------
 Once you have an all the data for a given project in the database and a `database.properties` file set up, you can run FixCache directly from the command line.
 
-    Put the parameters here!
+You can do this with the RUN script, with various parameters. It's important to understand what they do for the FixCache program to work correctly, it's not a "Fire and Forget" process.
+
+Only the project ID is required.
+
+* Block size
+        `-b={int}`
+        `--blocksize={int}`
+
+    Block size is the number of co-changed files to add to the cache for a given bug-introducing file.
+
+* Cache size
+        `-c={int}`
+        `--csize={int}`
+
+    The size of the cache.
+
+* Pre-fetch size
+        `-f={int}`
+        `--pfsize={int}`
+
+    The number of new or modified files to prefetch when processing a particular commit.
+
+* Cache replacement policy
+        `-r={Policy}`
+        `--cacherep={Policy}`
+
+    The type of cache replacement policy to use (see [CacheReplacement.java][CacheReplacement] for a list).
+
+* Project ID
+        `-p={int}`
+        `--pid={int}`
+
+    The repository ID of the project to analyze. This is the ID that CVSanalY2 creates for a given repository. Future releases of FixCache will find the ID itself given the same repository address that CVSanalY2 was given. Right now, you'll need to get that ID by manually looking in the database table.
+
+* Start time
+        `-s={String}`
+        `--start={String}`
+
+    The date (in the repository) to start analysis.
+
+* End time
+        `-e={String}`
+        `--end={String}`
+
+    The date (in the repository) to end analysis.
+
+* Output
+        `-o`
+        `--save`
+
+    Print output to files
+
+* Monthly file distribution
+        `-m`
+        `--multiple`
+
+    Print file distribution output to a file every few months of repository time (the default is to do this once)
+
+* Tune
+        `-u`
+        `--tune`
+
+    Run in tune mode, checking many different permutations of parameters to find the best combination.
+
+* Help
+        `-h`
+        `--help`
+
+    Print this message.
+
+Example Usage
+-------------
+
+        FixCache -b=10000 -c=500 -f=600 -r="LRU" -p=1
+
+        FixCache --blksize=10000 --csize=500 --pfsize=600 --cacherep="LRU" --pid=1
 
 If you want to collect file output, you will also need to make an empty directory in the FixCache folder called "Results":
 
     mkdir Results
+
+[CacheReplacement]: https://github.com/SoftwareIntrospectionLab/FixCache/blob/master/src/main/java/edu/ucsc/sil/fixcache/cache/CacheReplacement.java
