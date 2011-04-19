@@ -38,7 +38,7 @@ Here's an example `database.properties` file, which follows standard [Java Prope
     UserName:orson
     UserPass:rosebud
 
-You might also want to provide the URL to your database, and if you are really adventerous, modify the database driver to something else. Only MySQL is tested, and there's no guarantees that some of the queries aren't MySQL-specific.
+You might also want to provide the URL to your database, and if you are really adventerous, modify the database driver to something else. Only MySQL is tested, and there's no guarantees that some of the queries aren't MySQL-specific. The values in the square brackets are the defaults.
 
     Driver:[com.mysql.jdbc.Driver]
     URL:[jdbc:mysql://localhost:3306/fixcache]
