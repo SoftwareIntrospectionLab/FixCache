@@ -2,6 +2,7 @@ package edu.ucsc.sil.fixcache.util;
 
 /**
  *  * Taken from https://github.com/purcell/jargs/
+ *  Modified by cflewis to use generics and remove warnings.
  */
 
 /***
@@ -11,6 +12,7 @@ Copyright (c) 2001-2003 Steve Purcell.
 Copyright (c) 2002      Vidar Holen.
 Copyright (c) 2002      Michal Ceresna.
 Copyright (c) 2005      Ewan Mellor.
+Copyright (c) 2011      Chris Lewis.
 
 All rights reserved.
 
@@ -279,7 +281,7 @@ public class CmdLineParser {
 			 throws IllegalOptionValueException {
 				 try {
 					 NumberFormat format = NumberFormat.getNumberInstance(locale);
-					 Number num = (Number)format.parse(arg);
+					 Number num = format.parse(arg);
 					 return new Double(num.doubleValue());
 				 }
 				 catch (ParseException e) {
@@ -429,7 +431,7 @@ public class CmdLineParser {
 	 * given Option, or an empty Vector if the option was not set.
 	 */
 	public final Vector getOptionValues( Option option ) {
-		Vector result = new Vector();
+		Vector<Object> result = new Vector<Object>();
 
 		while (true) {
 			Object o = getOptionValue(option, null);
@@ -479,9 +481,9 @@ public class CmdLineParser {
 		// backwards compatibility with old user code we throw the two
 		// exceptions above instead.
 
-		Vector otherArgs = new Vector();
+		Vector<String> otherArgs = new Vector<String>();
 		int position = 0;
-		this.values = new Hashtable(10);
+		this.values = new Hashtable<String, Vector<Object>>(10);
 		while ( position < argv.length ) {
 			String curArg = argv[position];
 			if ( curArg.startsWith("-") ) {
@@ -498,7 +500,7 @@ public class CmdLineParser {
 					}
 				} else if(curArg.length() > 2) {  // handle -abcd
 					for(int i=1; i<curArg.length(); i++) {
-						Option opt=(Option)this.options.get
+						Option opt=this.options.get
 						("-"+curArg.charAt(i));
 						if(opt==null) throw new 
 						UnknownSuboptionException(curArg,curArg.charAt(i));
@@ -511,7 +513,7 @@ public class CmdLineParser {
 					continue;
 				}
 
-				Option opt = (Option)this.options.get(curArg);
+				Option opt = this.options.get(curArg);
 				if ( opt == null ) {
 					throw new UnknownOptionException(curArg);
 				}
@@ -550,10 +552,10 @@ public class CmdLineParser {
 	private void addValue(Option opt, Object value) {
 		String lf = opt.longForm();
 
-		Vector v = (Vector)values.get(lf);
+		Vector<Object> v = values.get(lf);
 
 		if (v == null) {
-			v = new Vector();
+			v = new Vector<Object>();
 			values.put(lf, v);
 		}
 
@@ -562,7 +564,7 @@ public class CmdLineParser {
 
 
 	private String[] remainingArgs = null;
-	private Hashtable options = new Hashtable(10);
-	private Hashtable values = new Hashtable(10);
+	private Hashtable<String, Option> options = new Hashtable<String, Option>(10);
+	private Hashtable<String, Vector<Object>> values = new Hashtable<String, Vector<Object>>(10);
 }
 
