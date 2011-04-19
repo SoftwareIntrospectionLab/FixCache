@@ -1,5 +1,6 @@
 package edu.ucsc.sil.fixcache.cache;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import au.com.bytecode.opencsv.CSVWriter;
@@ -31,6 +32,14 @@ public class OutputManager {
         outputDate = start;
         filedistPrintMultiple = outputMulti;
         headerPrinted = false;
+        
+        try {
+            boolean success = new File("results").mkdir();
+        } catch (SecurityException e) {
+            String msg = "Can't create results directory due to security.";
+            System.err.println(msg);
+            e.printStackTrace();
+        }
     }
     
     private void writeComment(CSVWriter writer, String comment) {
@@ -48,7 +57,7 @@ public class OutputManager {
         
         try {
             hitrateOutput = new CSVWriter(
-                new FileWriter("Results/" + filename + "_hitrate.csv"), '\t');
+                new FileWriter("results/" + filename + "_hitrate.csv"), '\t');
 
             writeComment(hitrateOutput, "hitrate for every " +outputSpacing+ " months, "
                     + "used to describe the variation of hit rate with time");
@@ -150,9 +159,9 @@ public class OutputManager {
         // set up a new csvWriter
         String pathname;
         if (filedistPrintMultiple && !last)
-            pathname = "Results/" + month + "-" + filename + "_filedist.csv";
+            pathname = "results/" + month + "-" + filename + "_filedist.csv";
         else
-            pathname = "Results/" + filename + "_filedist.csv";        
+            pathname = "results/" + filename + "_filedist.csv";        
         
         try {
             CSVWriter csv = new CSVWriter(new FileWriter(pathname), '\t');

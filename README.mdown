@@ -97,7 +97,7 @@ Only the project ID is required.
         `-o`
         `--save`
 
-    Print output to files
+    Print output to files. File output will be written to the `results/` directory.
 
 * Monthly file distribution
         `-m`
@@ -123,9 +123,5 @@ Example Usage
         FixCache -b=10000 -c=500 -f=600 -r="LRU" -p=1
 
         FixCache --blksize=10000 --csize=500 --pfsize=600 --cacherep="LRU" --pid=1
-
-If you want to collect file output, you will also need to make an empty directory in the FixCache folder called "Results":
-
-    mkdir Results
 
 [CacheReplacement]: https://github.com/SoftwareIntrospectionLab/FixCache/blob/master/src/main/java/edu/ucsc/sil/fixcache/cache/CacheReplacement.java
