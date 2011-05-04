@@ -7,7 +7,7 @@ import org.dbunit.database.DatabaseConfig;
 import org.dbunit.database.DatabaseConnection;
 import org.dbunit.database.IDatabaseConnection;
 import org.dbunit.dataset.IDataSet;
-import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
+import org.dbunit.dataset.xml.FlatXmlDataSet;
 import org.dbunit.operation.DatabaseOperation;
 
 import edu.ucsc.sil.fixcache.database.DatabaseManager;
@@ -26,7 +26,7 @@ public class TestHelper {
     }
 
     public static IDataSet getDataSet() throws Exception {
-        return new FlatXmlDataSetBuilder().build(new FileInputStream(
+        return new FlatXmlDataSet(new FileInputStream(
                 "fixcache.xml"));
     }
 
