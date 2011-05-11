@@ -6,12 +6,15 @@ import java.sql.Connection;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 import edu.ucsc.sil.fixcache.cache.Cache;
 import edu.ucsc.sil.fixcache.cache.CacheReplacement;
 import edu.ucsc.sil.fixcache.cache.CacheItem.CacheReason;
 import edu.ucsc.sil.fixcache.util.TestHelper;
 
+@RunWith(JUnit4.class)
 public class CacheReplacementTest {
 
     private static Connection conn;
@@ -73,7 +76,7 @@ public class CacheReplacementTest {
         cache.add("f.java", 6, "2009-10-23 14:29:05", CacheReason.NewEntity); // 6,
         assertEquals(4, cache.getCacheSize());
         assertEquals(1, cache.getLoadCount("c.java"));
-        
+
         assertEquals("c.java", cache.getMinimum());
         cache.add("g.java", 6, "2009-10-23 14:29:05", CacheReason.NewEntity); // 7,
         assertEquals(5, cache.getCacheSize());

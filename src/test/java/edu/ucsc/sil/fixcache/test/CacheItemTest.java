@@ -7,6 +7,8 @@ import java.sql.Connection;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 import edu.ucsc.sil.fixcache.cache.Cache;
 import edu.ucsc.sil.fixcache.cache.CacheItem;
@@ -14,6 +16,7 @@ import edu.ucsc.sil.fixcache.cache.CacheReplacement;
 import edu.ucsc.sil.fixcache.cache.CacheItem.CacheReason;
 import edu.ucsc.sil.fixcache.util.TestHelper;
 
+@RunWith(JUnit4.class)
 public class CacheItemTest {
 
     private static Connection conn;
@@ -30,8 +33,8 @@ public class CacheItemTest {
     public void setUp() throws Exception {
         TestHelper.handleSetUpOperation();
     }
-    
-    
+
+
     @Test
     public void testCacheItemGet() {
         Cache cache = new Cache(5, new CacheReplacement(
@@ -77,7 +80,7 @@ public class CacheItemTest {
         assertEquals(5, ci2.getNumberOfChanges());
 
     }
-    
+
 //    @Test
 //    public void testFormatter(){
 //        String sql = "select date from scmlog";
