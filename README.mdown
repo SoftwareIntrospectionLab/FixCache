@@ -18,7 +18,7 @@ Database
 --------
 This distribution of FixCache operates on a MySQL database constructed by [our fork of CVSanalY2](http://github.com/SoftwareIntrospectionLab/cvsanaly) constructed with the following parameters:
 
-    ./cvsanaly2 -g -f config.sqlite --extensions=FileTypes,BugFixMessage,Content,FileCount,Patches,Hunks,HunkBlame --hard-order [repository path]
+    ./cvsanaly2 --db-user=[user] --db-password=[password] --extensions=FileTypes,BugFixMessage,Content,FileCount,Patches,Hunks,HunkBlame --hard-order [repository path]
 
 To allow FixCache to run unit tests without instansiating a database, the unit tests on an in-memory SQLite database. As Java has no standard SQLite library (for shame!), a dependency is downloaded automatically by Maven.
 
