@@ -178,7 +178,6 @@ public class Simulator {
                 isBugFix = allCommits.getBoolean(3);
 
                 findFileQuery.setInt(1, cid);
-                findFileQuery.setInt(2, cid);
 
                 final ResultSet files = findFileQuery.executeQuery();
                 // loop through those file ids

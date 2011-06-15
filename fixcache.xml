@@ -42,8 +42,8 @@
   <file_paths id="5" commit_id="3" file_id="5" file_path="/foo/bar/e.java"/>
   <file_paths id="6" commit_id="6" file_id="6" file_path="/foo/bar/f.java"/>  
   <file_paths id="7" commit_id="6" file_id="7" file_path="/foo/bar/g.java"/>
-  <file_paths id="8" commit_id="8" file_id="8" file_path="/bar/foo/h.java"/>
-  <file_paths id="9" commit_id="10" file_id="8" file_path="/blah/h.java"/>
+  <file_paths id="8" commit_id="8" file_id="8" file_path="/foo/bar/h.java"/>
+  <file_paths id="9" commit_id="10" file_id="8" file_path="/bar/foo/h.java"/>
   <file_types id="1" file_id="1" type="code"/>
   <file_types id="2" file_id="2" type="unknown"/>
   <file_types id="3" file_id="3" type="code"/>
