@@ -18,14 +18,30 @@ public class Simulator {
 
     static final String findCommit = "select id, date, is_bug_fix from scmlog "
             + "where repository_id =? and date between ? and ? order by date ASC";
-    static final String findFile = "select file_name, actions.type "
-            + "from actions, content, files, file_types "
-            + "where actions.file_id=content.file_id and actions.file_id=files.id "
-            + "and actions.commit_id=? and content.commit_id=? " // XXX why two
-                                                                 // '?'
-            + "and actions.file_id=file_types.file_id and file_types.type='code' order by loc DESC";
-    static final String findHunkId = "select hunks.id from hunks, files "
-            + "where hunks.file_id=files.id and file_name =? and commit_id =?";
+    static final String findFile = "select fp.file_path, a.type " + 
+        "from actions a, " + 
+        "     file_paths fp, " + 
+        "     file_types ft, " + 
+        "     content c" + 
+        "where fp.id = (select max(id) " + 
+        "               from file_paths " + 
+        "               where file_id = a.file_id " + 
+        "               and commit_id <= a.commit_id) " + 
+        "and a.commit_id = ? " + 
+        "and a.file_id = c.file_id " + 
+        "and a.commit_id = c.commit_id " + 
+        "and a.file_id = ft.file_id " + 
+        "and ft.type = 'code' " + 
+        "order by c.loc desc";
+    static final String findHunkId = "select h.id, fp.file_path " + 
+        "from hunks h, file_paths fp " + 
+        "where fp.id = (select max(id) " + 
+        "               from file_paths " + 
+        "               where file_id = h.file_id " +
+        "               and file_path = ? " +
+        "               and commit_id <= h.commit_id) " + 
+        "and fp.file_id = h.file_id " + 
+        "and h.commit_id = ?";
     static final String findBugIntroCdate = "select date from hunk_blames, scmlog "
             + "where hunk_id =? and hunk_blames.bug_commit_id=scmlog.id";
     private PreparedStatement findCommitQuery;
@@ -254,13 +270,22 @@ public class Simulator {
         // select files that are present at the start time
         // in descending order of LOC 
         
-        final String findInitialPreload = "select files.file_name, content.commit_id "
-                + "from content, scmlog, actions, file_types, files "
-                + "where files.repository_id=? and content.commit_id = scmlog.id and date <=? "
-                + "and content.file_id=actions.file_id and files.id=actions.file_id "
-                + "and content.commit_id=actions.commit_id and actions.type!='D' "
-                + "and file_types.file_id=content.file_id and file_types.type='code' "
-                + "order by loc DESC";
+        final String findInitialPreload = "select fp.file_path, c.commit_id " + 
+            "from content c, scmlog s, actions a, file_types ft, file_paths fp " + 
+            "where fp.id = (select max(id)  " + 
+            "                       from file_paths " + 
+            "                       where file_id = a.file_id " + 
+            "                       and commit_id <= a.commit_id) " + 
+            "and s.repository_id = ? " + 
+            "and c.commit_id = s.id " + 
+            "and c.commit_id = a.commit_id " + 
+            "and s.date <= ? " + 
+            "and c.file_id = a.file_id " + 
+            "and fp.file_id = a.file_id " + 
+            "and a.type != 'D' " + 
+            "and ft.file_id = c.file_id " + 
+            "and ft.type = 'code' " + 
+            "order by c.loc DESC";
         PreparedStatement findInitialPreloadQuery = null;
         ResultSet preloadFiles = null;
         String fileName = null;
