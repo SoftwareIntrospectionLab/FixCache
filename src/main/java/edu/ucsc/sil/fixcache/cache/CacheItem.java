@@ -18,14 +18,15 @@ public class CacheItem {
 
     static Connection conn = DatabaseManager.getConnection();
     static final String findNumberOfAuthors = "select count(distinct(s.author_id)) " + 
-        "from scmlog s, actions a, file_paths fp " + 
+        "from scmlog s, actions a " + 
         "where s.id = a.commit_id " + 
         "and s.date between ? and ? " +
-        "and a.file_id = fp.file_id " +
-        "and fp.id = (select max(id) " + 
-        "               from file_paths " + 
-        "               where fp.file_path = ? " + 
-        "               and commit_id <= a.commit_id) " + 
+        "and a.file_id = (select file_id " + 
+        "                 from file_paths " + 
+        "                 where file_path = ? " + 
+        "                 and commit_id <= a.commit_id " +
+        "                 order by id desc " +
+        "                 limit 1) " +
         "and s.repository_id = ?";
     static final String findNumberOfChanges = "select count(a.file_id) " + 
         "from scmlog s, actions a, file_paths fp " + 

@@ -22,7 +22,7 @@ public class Simulator {
         "from actions a, " + 
         "     file_paths fp, " + 
         "     file_types ft, " + 
-        "     content c" + 
+        "     content c " + 
         "where fp.id = (select max(id) " + 
         "               from file_paths " + 
         "               where file_id = a.file_id " + 
