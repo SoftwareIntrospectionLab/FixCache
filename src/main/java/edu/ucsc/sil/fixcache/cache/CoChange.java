@@ -21,10 +21,10 @@ public class CoChange {
      */
     final static Connection conn = DatabaseManager.getConnection();
     static final String findCommitId = "select commit_id from actions, scmlog, files "
-        + "where file_name=? and actions.file_id=files.id and actions.commit_id=scmlog.id and "
+        + "where actions.file_id=? and actions.commit_id=scmlog.id and "
         + "date between ? and ? and scmlog.repository_id=?";
     // XXX: don't add deleted files to map
-    static final String findCochangeFileName = "select file_name from files, actions, file_types "
+    static final String findCochangeFileId = "select file_id from files, actions, file_types "
         + "where files.id=actions.file_id and commit_id =? and "
         + "files.id=file_types.file_id and file_types.type='code'"; // XXX
     // and
@@ -34,18 +34,18 @@ public class CoChange {
     private static PreparedStatement findCommitIdQuery;
     private static PreparedStatement findCochangeFileNameQuery;
 
-    String fileName; // which file is cochange list for
+    int fileId; // which file is cochange list for
     Cache cache; // cache contains LOC and such
 
-    private CoChange(String fName, Cache cache) {
-        this.fileName = fName;
+    private CoChange(int fId, Cache cache) {
+        this.fileId = fId;
         this.cache = cache;
     }
 
-    public static ArrayList<Entry<String, Integer>> getCoChangeFileList(
-            String fileName, String startDate, String commitDate, int pid,
+    public static ArrayList<Entry<Integer, Integer>> getCoChangeFileList(
+            int fileId, String startDate, String commitDate, int pid,
             Cache cache) {
-        CoChange co = new CoChange(fileName, cache);
+        CoChange co = new CoChange(fileId, cache);
         return co.buildCoChangeMap(startDate, commitDate, pid).getSortedFiles();
     }
 
@@ -69,12 +69,12 @@ public class CoChange {
                 final int cid = allCommits.getInt(1);
                 final ResultSet files = getFiles(cid);
                 while (files.next()) {
-                    final String coChangeFile = files.getString(1);
-                    if (!coChangeFile.equals(fileName)) {
-                        int loc = cache.getLoc(coChangeFile);
+                    final int coChangeFileId = files.getInt(1);
+                    if (coChangeFileId != fileId) {
+                        int loc = cache.getLoc(coChangeFileId);
                         if (loc < 0) // only query database if necessary
-                            loc = CacheItem.findLoc(coChangeFile, cid);
-                        coChangeCounts.add(coChangeFile, loc);
+                            loc = CacheItem.findLoc(coChangeFileId, cid);
+                        coChangeCounts.add(coChangeFileId, loc);
                     }
                 }
             }
@@ -96,7 +96,7 @@ public class CoChange {
      * @throws SQLException
      */
     private ResultSet getFiles(int currCommit) throws SQLException {
-        findCochangeFileNameQuery = conn.prepareStatement(findCochangeFileName);
+        findCochangeFileNameQuery = conn.prepareStatement(findCochangeFileId);
         findCochangeFileNameQuery.setInt(1, currCommit);
         return findCochangeFileNameQuery.executeQuery();
     }
@@ -117,7 +117,7 @@ public class CoChange {
     throws SQLException {
         findCommitIdQuery = conn.prepareStatement(findCommitId);
         final PreparedStatement commitIdQuery = findCommitIdQuery;
-        commitIdQuery.setString(1, fileName);
+        commitIdQuery.setInt(1, fileId);
         commitIdQuery.setString(2, startDate);
         commitIdQuery.setString(3, commitDate);
         commitIdQuery.setInt(4, pid);
@@ -139,12 +139,12 @@ public class CoChange {
         // int []fileIds;
         // int []counts;
         // int index;
-        private HashMap<String, Integer> map;
-        private HashMap<String, Integer> locmap;
+        private HashMap<Integer, Integer> map;
+        private HashMap<Integer, Integer> locmap;
 
         CoChangeFileMap() {
-            map = new HashMap<String, Integer>();
-            locmap = new HashMap<String, Integer>();
+            map = new HashMap<Integer, Integer>();
+            locmap = new HashMap<Integer, Integer>();
         }
 
         /**
@@ -153,29 +153,30 @@ public class CoChange {
          * @param f
          *            -- file name
          */
-        void add(String fName, int loc) {
-            if (map.containsKey(fName)) {
-                assert (locmap.containsKey(fName));
-                int count = map.get(fName);
-                map.put(fName, count + 1);
+        void add(int fId, int loc) {
+            if (map.containsKey(fId)) {
+                assert (locmap.containsKey(fId));
+                int count = map.get(fId);
+                map.put(fId, count + 1);
                 // if (locmap.get(fName) < loc) // XXX using the maximum LOC is
                 // really slow
                 // locmap.put(fName, loc);
             } else {
-                assert (!locmap.containsKey(fName));
-                map.put(fName, 1);
-                locmap.put(fName, loc);
+                assert (!locmap.containsKey(fId));
+                map.put(fId, 1);
+                locmap.put(fId, loc);
             }
         }
 
-        ArrayList<Map.Entry<String, Integer>> getSortedFiles() {
+        ArrayList<Map.Entry<Integer, Integer>> getSortedFiles() {
 
-            ArrayList<Map.Entry<String, Integer>> list = new ArrayList<Map.Entry<String, Integer>>(
+            ArrayList<Map.Entry<Integer, Integer>> list = new ArrayList<Map.Entry<Integer, Integer>>(
                     map.entrySet());
             Collections.sort(list,
-                    new Comparator<Map.Entry<String, Integer>>() {
-                public int compare(Map.Entry<String, Integer> f1,
-                        Map.Entry<String, Integer> f2) {
+                    new Comparator<Map.Entry<Integer, Integer>>() {
+                @Override
+                public int compare(Map.Entry<Integer, Integer> f1,
+                        Map.Entry<Integer, Integer> f2) {
                     // DESCENDING order; return <0 if o2 is smaller
                     int comparison = (f2.getValue().compareTo(f1
                             .getValue()));
@@ -197,16 +198,16 @@ public class CoChange {
      * For Debugging
      * 
      */
-    public static ArrayList<String> getCoChangeFileList(String fname,
+    public static ArrayList<Integer> getCoChangeFileList(int fileId,
             String start, String cdate, int blksz, int pid, Cache cache) {
 
-        ArrayList<String> topFiles = new ArrayList<String>();
-        ArrayList<Map.Entry<String, Integer>> entries = getCoChangeFileList(
-                fname, start, cdate, pid, cache);
+        ArrayList<Integer> topFiles = new ArrayList<Integer>();
+        ArrayList<Map.Entry<Integer, Integer>> entries = getCoChangeFileList(
+                fileId, start, cdate, pid, cache);
 
         for (int i = 0; i < blksz - 1; i++) {
             if (entries.size() > i) {
-                Map.Entry<String, Integer> curr = entries.get(i);
+                Map.Entry<Integer, Integer> curr = entries.get(i);
                 topFiles.add(curr.getKey());
             }
         }

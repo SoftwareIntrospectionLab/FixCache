@@ -18,14 +18,23 @@ public class Simulator {
 
     static final String findCommit = "select id, date, is_bug_fix from scmlog "
             + "where repository_id =? and date between ? and ? order by date ASC";
-    static final String findFile = "select file_name, actions.type "
-            + "from actions, content, files, file_types "
-            + "where actions.file_id=content.file_id and actions.file_id=files.id "
-            + "and actions.commit_id=? and content.commit_id=? " // XXX why two
-                                                                 // '?'
-            + "and actions.file_id=file_types.file_id and file_types.type='code' order by loc DESC";
+    static final String findFile = "select fp.file_id, a.type " + 
+    "from actions a, " + 
+    "     file_paths fp, " + 
+    "     file_types ft, " + 
+    "     content c " + 
+    "where fp.id = (select max(id) " + 
+    "               from file_paths " + 
+    "               where file_id = a.file_id " + 
+    "               and commit_id <= a.commit_id) " + 
+    "and a.commit_id = ? " + 
+    "and a.file_id = c.file_id " + 
+    "and a.commit_id = c.commit_id " + 
+    "and a.file_id = ft.file_id " + 
+    "and ft.type = 'code' " + 
+    "order by c.loc desc";
     static final String findHunkId = "select hunks.id from hunks, files "
-            + "where hunks.file_id=files.id and file_name =? and commit_id =?";
+            + "where hunks.file_id=? and files.file_id = hunks.file_id and commit_id =?";
     static final String findBugIntroCdate = "select date from hunk_blames, scmlog "
             + "where hunk_id =? and hunk_blames.bug_commit_id=scmlog.id";
     private PreparedStatement findCommitQuery;
@@ -101,7 +110,7 @@ public class Simulator {
      */
     // XXX move hit and miss to the cache?
     // could add if (reas == BugEntity) logic to add() code
-    public void loadBuggyEntity(String fileId, int cid, String commitDate,
+    public void loadBuggyEntity(int fileId, int cid, String commitDate,
             String intro_cdate) {
 
         bugcount++;
@@ -115,7 +124,7 @@ public class Simulator {
         cache.add(fileId, cid, commitDate, CacheItem.CacheReason.BugEntity);
 
         // add the co-changed files as well
-        ArrayList<Entry<String, Integer>> cochanges = CoChange
+        ArrayList<Entry<Integer, Integer>> cochanges = CoChange
                 .getCoChangeFileList(fileId, cache.startDate, intro_cdate, pid,
                         cache);
 
@@ -140,7 +149,7 @@ public class Simulator {
         String cdate = null;
 
         boolean isBugFix;
-        String fileName;
+        int fileId;
         ActionType type;
         int numprefetch = 0;
 
@@ -162,16 +171,15 @@ public class Simulator {
                 isBugFix = allCommits.getBoolean(3);
 
                 findFileQuery.setInt(1, cid);
-                findFileQuery.setInt(2, cid);
 
                 final ResultSet files = findFileQuery.executeQuery();
                 // loop through those file ids
                 while (files.next()) {
                     //System.out.println(cache.toString());
-                    fileName = files.getString(1); 
+                    fileId = files.getInt(1); 
                     type = ActionType.valueOf(files.getString(2));
                     numprefetch = processOneFile(cid, cdate, isBugFix,
-                            fileName, type, numprefetch);
+                            fileId, type, numprefetch);
                 }
                 numprefetch = 0;
                 output.manage(cdate, this);
@@ -201,7 +209,7 @@ public class Simulator {
      * @return the number of files prefetched, inc. this one if needed
      */
     private int processOneFile(int cid, String cdate, boolean isBugFix,
-            String file_id, ActionType type, int numprefetch) {
+            int fileId, ActionType type, int numprefetch) {
         filesProcessed++;
 
         switch (type) {
@@ -212,21 +220,21 @@ public class Simulator {
         case A:
             if (numprefetch < prefetchsize) {
                 numprefetch++;
-                cache.add(file_id, cid, cdate, CacheItem.CacheReason.NewEntity);
+                cache.add(fileId, cid, cdate, CacheItem.CacheReason.NewEntity);
             }
             break;
         case D:
-            if (cache.contains(file_id)) {
-                this.cache.remove(file_id, cdate);
+            if (cache.contains(fileId)) {
+                this.cache.remove(fileId, cdate);
             }
             break;
         case M: // modified
             if (isBugFix) {
-                String intro_cdate = this.getBugIntroCdate(file_id, cid);
-                this.loadBuggyEntity(file_id, cid, cdate, intro_cdate);
+                String intro_cdate = this.getBugIntroCdate(fileId, cid);
+                this.loadBuggyEntity(fileId, cid, cdate, intro_cdate);
             } else if (numprefetch < prefetchsize) {
                 numprefetch++;
-                cache.add(file_id, cid, cdate,
+                cache.add(fileId, cid, cdate,
                         CacheItem.CacheReason.ModifiedEntity);
             }
         }
@@ -254,7 +262,7 @@ public class Simulator {
         // select files that are present at the start time
         // in descending order of LOC 
         
-        final String findInitialPreload = "select files.file_name, content.commit_id "
+        final String findInitialPreload = "select files.file_id, content.commit_id "
                 + "from content, scmlog, actions, file_types, files "
                 + "where files.repository_id=? and content.commit_id = scmlog.id and date <=? "
                 + "and content.file_id=actions.file_id and files.id=actions.file_id "
@@ -263,7 +271,7 @@ public class Simulator {
                 + "order by loc DESC";
         PreparedStatement findInitialPreloadQuery = null;
         ResultSet preloadFiles = null;
-        String fileName = null;
+        int fileId = -1;
         int commitId = 0;
 
         try {
@@ -275,9 +283,9 @@ public class Simulator {
             // Note: preload may not fill the cache completely if there are
             // not enough code files before the starting date
             while (preloadFiles.next()) {
-                fileName = preloadFiles.getString(1);
+                fileId = preloadFiles.getInt(1);
                 commitId = preloadFiles.getInt(2);
-                cache.add(fileName, commitId, cache.startDate,
+                cache.add(fileId, commitId, cache.startDate,
                         CacheItem.CacheReason.Preload);
                 if (cache.isFull())
                     break;
@@ -295,7 +303,7 @@ public class Simulator {
      * maximum (in terms of date?) commit id and return it
      * */
 
-    public String getBugIntroCdate(String fileName, int commitId) {
+    public String getBugIntroCdate(int fileId, int commitId) {
         // XXX right now we just pick one
 
         String bugIntroCdate = "";
@@ -303,7 +311,7 @@ public class Simulator {
         ResultSet r = null;
         ResultSet r1 = null;
         try {
-            findHunkIdQuery.setString(1, fileName);
+            findHunkIdQuery.setInt(1, fileId);
             findHunkIdQuery.setInt(2, commitId);
             r = findHunkIdQuery.executeQuery();
             if (r.next()) {
@@ -513,7 +521,7 @@ public class Simulator {
         return cache;
     }
 
-    public void add(String eid, int cid, String cdate, CacheReason reas) {
+    public void add(int eid, int cid, String cdate, CacheReason reas) {
         cache.add(eid, cid, cdate, reas);
     }
 

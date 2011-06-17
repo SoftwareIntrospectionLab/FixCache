@@ -20,7 +20,7 @@ public class Cache implements Iterable<CacheItem>{
     private int size = 0; // current size of cache
 
     // keeps every cacheitem that was ever in the cache
-    private Hashtable<String, CacheItem> cacheTable = new Hashtable<String, CacheItem>();
+    private Hashtable<Integer, CacheItem> cacheTable = new Hashtable<Integer, CacheItem>();
 
     final private CacheReplacement policy;
     final String startDate; 
@@ -78,11 +78,11 @@ public class Cache implements Iterable<CacheItem>{
      */
     // XXX: load a chunk at a time??
     public void load(CacheItem cacheItem, String cdate) {
-        String fileName = cacheItem.getFileName();
+        int fileId = cacheItem.getFileId();
         if (isFull())
             bumpOutItem(cdate);
         if (!cacheTable.contains(cacheItem))
-            cacheTable.put(fileName, cacheItem);
+            cacheTable.put(fileId, cacheItem);
         size++;
     }
 
@@ -91,7 +91,7 @@ public class Cache implements Iterable<CacheItem>{
      * The only method that decreases size.
      * @param fileid 
      */
-    public void remove(String fileid, String cdate) {
+    public void remove(int fileid, String cdate) {
         cacheTable.get(fileid).removeFromCache(cdate);
         size--;
     }
@@ -105,16 +105,16 @@ public class Cache implements Iterable<CacheItem>{
      * @param cdate -- commit date
      * @param reason -- reason for adding to the cache
      */
-    public void add(String fileName, int cid, String cdate, CacheReason reason) {
-        if (cacheTable.containsKey(fileName)){ // either in cache or was bumped out
-            CacheItem ci = cacheTable.get(fileName);
+    public void add(int fileId, int cid, String cdate, CacheReason reason) {
+        if (cacheTable.containsKey(fileId)){ // either in cache or was bumped out
+            CacheItem ci = cacheTable.get(fileId);
             if (!ci.isInCache()){
                 load(ci, cdate);
                 addCount++;
             }
             ci.update(cid, cdate, startDate, reason); // updates inCache status
         } else { // need to create a new CacheItem
-            load(new CacheItem(fileName, cid, cdate, reason, this), cdate);
+            load(new CacheItem(fileId, cid, cdate, reason, this), cdate);
             addCount++;
             numNewItems++;
         }
@@ -128,11 +128,11 @@ public class Cache implements Iterable<CacheItem>{
      */
     // TODO: keep cache always sorted using cache replacement policy
     public void bumpOutItem(String cdate) {
-        String entityId = getMinimum();
+        int entityId = getMinimum();
         remove(entityId, cdate);
     }
 
-    public String getMinimum() {
+    public int getMinimum() {
         CacheItem min = null;
 
         for (CacheItem c : cacheTable.values()) {
@@ -143,7 +143,7 @@ public class Cache implements Iterable<CacheItem>{
             else
                 min = policy.minimum(min, c);
         }
-        return min.getFileName();
+        return min.getFileId();
     }
 
     /**
@@ -193,7 +193,7 @@ public class Cache implements Iterable<CacheItem>{
      * @param eid -- entity id
      * @return whether that entity is in the cache
      */
-    public boolean contains(String eid){
+    public boolean contains(int eid){
         final CacheItem ci = cacheTable.get(eid);
         if (ci == null)
             return false;
@@ -217,8 +217,8 @@ public class Cache implements Iterable<CacheItem>{
     }
     
 
-    int getLoc(String fileid){
-        CacheItem ci = cacheTable.get(fileid);
+    int getLoc(int fileId){
+        CacheItem ci = cacheTable.get(fileId);
         if (ci == null)
             return -1;
         return ci.getLOC();
@@ -243,7 +243,7 @@ public class Cache implements Iterable<CacheItem>{
     }
     
     
-    public boolean neverInCache(String entityId){
+    public boolean neverInCache(int entityId){
         return (cacheTable.get(entityId) == null);
     }
 
