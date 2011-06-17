@@ -11,10 +11,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+import edu.ucsc.sil.fixcache.util.TestHelper;
+
 import edu.ucsc.sil.fixcache.cache.Cache;
 import edu.ucsc.sil.fixcache.cache.CacheReplacement;
 import edu.ucsc.sil.fixcache.cache.CacheItem.CacheReason;
-import edu.ucsc.sil.fixcache.util.TestHelper;
 
 @RunWith(JUnit4.class)
 public class CacheTest {
