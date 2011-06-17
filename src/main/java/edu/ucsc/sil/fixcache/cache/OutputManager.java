@@ -33,12 +33,14 @@ public class OutputManager {
         filedistPrintMultiple = outputMulti;
         headerPrinted = false;
         
-        try {
-            boolean success = new File("results").mkdir();
-        } catch (SecurityException e) {
-            String msg = "Can't create results directory due to security.";
-            System.err.println(msg);
-            e.printStackTrace();
+        if (save) {
+            try {
+                boolean success = new File("results").mkdir();
+            } catch (SecurityException e) {
+                String msg = "Can't create results directory due to security.";
+                System.err.println(msg);
+                e.printStackTrace();
+            }
         }
     }
     
@@ -101,6 +103,7 @@ public class OutputManager {
     public void finish(Simulator sim) {
         if (!save) return;
         outputFileDist(sim, true);
+        outputFinalCacheContents(sim);
         
         try {
             hitrateOutput.close();
@@ -205,7 +208,7 @@ public class OutputManager {
             e.printStackTrace();
         }
     }
-    
+
     /**
      * Prints all the simulator settings to System.out
      * @param sim
