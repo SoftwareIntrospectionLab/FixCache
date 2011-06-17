@@ -103,7 +103,6 @@ public class OutputManager {
     public void finish(Simulator sim) {
         if (!save) return;
         outputFileDist(sim, true);
-        outputFinalCacheContents(sim);
         
         try {
             hitrateOutput.close();
