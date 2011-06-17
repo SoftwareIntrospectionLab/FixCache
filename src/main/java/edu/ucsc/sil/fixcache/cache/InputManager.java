@@ -12,10 +12,11 @@ public class InputManager {
 	
 	static Connection conn = DatabaseManager.getConnection();
 
-    static final String findFileCount = "select count(distinct(file_name)) " +
-    "from files, file_types "
-    + "where files.id = file_types.file_id " +
-    "and type = 'code' and repository_id=?";
+    static final String findFileCount = "select count(distinct(file_path)) " +
+    "from file_paths fp, file_types ft, scmlog s " +
+    "where fp.file_id = ft.file_id " +
+    "and fp.commit_id = s.id " +
+    "and ft.type = 'code' and s.repository_id=?";
     static final String findPid = "select id from repositories where id=?";      
 
     boolean tune;

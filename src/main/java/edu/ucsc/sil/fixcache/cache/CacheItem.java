@@ -17,21 +17,48 @@ public class CacheItem {
      */
 
     static Connection conn = DatabaseManager.getConnection();
-    static final String findNumberOfAuthors = "select count(distinct(scmlog.author_id)) "
-            + "from scmlog, actions, files "
-            + "where scmlog.id=actions.commit_id and actions.file_id=files.id "
-            + "and date between ? and ? and file_name = ? and scmlog.repository_id=?";
-    static final String findNumberOfChanges = "select count(actions.file_id) "
-            + "from scmlog, actions, files where scmlog.id=actions.commit_id "
-            + "and actions.file_id=files.id and date between ? and ? and file_name = ? "
-            + "and scmlog.repository_id=?";
-    static final String findNumberOfBugs = "select count(actions.file_id) "
-            + "from scmlog, actions, files where scmlog.id = actions.commit_id "
-            + "and actions.file_id=files.id and file_name=? and date between ? and ? "
-            + "and scmlog.repository_id=? and is_bug_fix=1";
-    static final String findLoc = "select loc from content, files "
-            + "where content.file_id=files.id and"
-            + " file_name=? and commit_id =?";
+    static final String findNumberOfAuthors = "select count(distinct(s.author_id)) " + 
+        "from scmlog s, actions a " + 
+        "where s.id = a.commit_id " + 
+        "and s.date between ? and ? " +
+        "and a.file_id = (select file_id " + 
+        "                 from file_paths " + 
+        "                 where file_path = ? " + 
+        "                 and commit_id <= a.commit_id " +
+        "                 order by id desc " +
+        "                 limit 1) " +
+        "and s.repository_id = ?";
+    static final String findNumberOfChanges = "select count(a.file_id) " + 
+        "from scmlog s, actions a, file_paths fp " + 
+        "where s.id = a.commit_id " + 
+        "and a.file_id = fp.file_id " + 
+        "and s.date between ? and ? " + 
+        "and fp.id = (select max(id) " + 
+        "             from file_paths " + 
+        "             where file_path = ? " + 
+        "             and commit_id <= a.commit_id) " + 
+        "and s.repository_id = ?";
+    static final String findNumberOfBugs = "select count(a.file_id) " + 
+        "from scmlog s, actions a " + 
+        "where s.id = a.commit_id " + 
+        "and a.file_id = (select file_id " + 
+        "                 from file_paths " + 
+        "                 where file_path = ? " + 
+        "                 and commit_id <= a.commit_id " +
+        "                 order by id desc " +
+        "                 limit 1) " +
+        "and s.date between ? and ? " + 
+        "and s.repository_id = ? " + 
+        "and s.is_bug_fix = 1";
+    static final String findLoc = "select c.loc " + 
+        "from content c " +
+        "where c.commit_id = ? " +
+        "and c.file_id = (select file_id " + 
+        "                   from file_paths " + 
+        "                   where file_path = ? " +
+        "                   and commit_id <= c.commit_id " +
+        "                   order by id desc " +
+        "                   limit 1) ";
     private static PreparedStatement findNumberOfAuthorsQuery;
     private static PreparedStatement findNumberOfChangesQuery;
     private static PreparedStatement findNumberOfBugsQuery;
@@ -45,9 +72,11 @@ public class CacheItem {
             + "repository_id = ? and id = ?";
     private static PreparedStatement checkRepoQuery;
 
-    private static final String checkFileType = "select file_id from "
-            + "file_types, files where file_name = ? and "
-            + "file_id = files.id and type='code'";
+    private static final String checkFileType = "select fp.file_id " + 
+        "from file_types ft, file_paths fp " + 
+        "where fp.file_path = ? " + 
+        "and fp.file_id = ft.file_id " + 
+        "and ft.type='code'";
     private static PreparedStatement checkFileTypeQuery;
 
     /**
@@ -280,9 +309,8 @@ public class CacheItem {
         try {
             // if (findLocQuery == null)
             findLocQuery = conn.prepareStatement(findLoc);
-            findLocQuery.setString(1, fileName); // XXX fix query to use
-                                                 // file_name
-            findLocQuery.setInt(2, cid);
+            findLocQuery.setInt(1, cid);
+            findLocQuery.setString(2, fileName);
             ret = Database.getIntResult(findLocQuery);
             findLocQuery.close();
         } catch (SQLException e1) {
