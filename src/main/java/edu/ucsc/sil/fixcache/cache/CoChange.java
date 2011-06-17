@@ -24,7 +24,7 @@ public class CoChange {
         + "where actions.file_id=? and actions.commit_id=scmlog.id and "
         + "date between ? and ? and scmlog.repository_id=?";
     // XXX: don't add deleted files to map
-    static final String findCochangeFileId = "select file_id from files, actions, file_types "
+    static final String findCochangeFileId = "select files.id from files, actions, file_types "
         + "where files.id=actions.file_id and commit_id =? and "
         + "files.id=file_types.file_id and file_types.type='code'"; // XXX
     // and

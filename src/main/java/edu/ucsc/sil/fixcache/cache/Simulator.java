@@ -34,7 +34,7 @@ public class Simulator {
     "and ft.type = 'code' " + 
     "order by c.loc desc";
     static final String findHunkId = "select hunks.id from hunks, files "
-            + "where hunks.file_id=? and files.file_id = hunks.file_id and commit_id =?";
+            + "where hunks.file_id=? and files.id = hunks.file_id and commit_id =?";
     static final String findBugIntroCdate = "select date from hunk_blames, scmlog "
             + "where hunk_id =? and hunk_blames.bug_commit_id=scmlog.id";
     private PreparedStatement findCommitQuery;
@@ -262,7 +262,7 @@ public class Simulator {
         // select files that are present at the start time
         // in descending order of LOC 
         
-        final String findInitialPreload = "select files.file_id, content.commit_id "
+        final String findInitialPreload = "select files.id, content.commit_id "
                 + "from content, scmlog, actions, file_types, files "
                 + "where files.repository_id=? and content.commit_id = scmlog.id and date <=? "
                 + "and content.file_id=actions.file_id and files.id=actions.file_id "

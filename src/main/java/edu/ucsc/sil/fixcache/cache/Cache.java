@@ -233,7 +233,7 @@ public class Cache implements Iterable<CacheItem>{
      * Returns either the CacheItem associated with entityId, if in the cache
      * or null if it is not in the cache.
      */
-    public CacheItem getCacheItem(String entityId) {
+    public CacheItem getCacheItem(int entityId) {
         CacheItem ci = cacheTable.get(entityId);
         if (ci == null)
             return null;
@@ -252,8 +252,8 @@ public class Cache implements Iterable<CacheItem>{
         return ci.getNumber();
     }
 
-    public int getLoadCount(String fileName){
-        CacheItem ci = cacheTable.get(fileName);
+    public int getLoadCount(int fileId){
+        CacheItem ci = cacheTable.get(fileId);
         return ci.getLoadCount();
     }
     
