@@ -173,13 +173,13 @@ public class OutputManager {
                     + sim.prefetchsize + ", cache replacement policy: " + sim.cacheRep);
             
             // column titles. "reason" used to be here, but was commented out.
-            String columns[] = {"file_id", "loc", "num_load", "num_hits",
+            String columns[] = {"file_id", "file_name", "loc", "num_load", "num_hits",
                 "num_misses", "duration"};
             
             csv.writeNext(columns);
             
             // initial row special to store total duration
-            String initialRecord[] = {"0", "0", "0", "0", "0", 
+            String initialRecord[] = {"0", "0", "0", "0", "0", "0", 
                 Integer.toString(sim.cache.getTotalDuration())};
             
             csv.writeNext(initialRecord);
@@ -187,7 +187,8 @@ public class OutputManager {
             // the file already has the correct header line
             // write out each record
             for (CacheItem ci : sim.cache){
-                String[] record = {ci.getFileName(),
+                String[] record = {Integer.toString(ci.getFileId()),
+                    ci.getFileName(),
                     Integer.toString(ci.getLOC()), // max LOC
                     Integer.toString(ci.getLoadCount()),
                     Integer.toString(ci.getHitCount()),

@@ -293,7 +293,24 @@ public class CacheItem {
      * @return Returns the entityId.
      */
     public String getFileName() {
-        return Integer.toString(fileId);
+        String filePath = Integer.toString(getFileId());
+        
+        final String findFilePath = "select fp.file_path " + 
+            "from file_paths fp " + 
+            "where file_id = ? " + 
+            "order by id desc " + 
+            "limit 1";
+        
+        try {
+            final PreparedStatement findFilePathQuery = 
+                conn.prepareStatement(findFilePath);
+            findFilePathQuery.setInt(1, getFileId());
+            filePath = Database.getStringResult(findFilePathQuery);
+        } catch (SQLException e1) {
+            e1.printStackTrace();
+        }
+        
+        return filePath;
     }
     
     public int getFileId() {
