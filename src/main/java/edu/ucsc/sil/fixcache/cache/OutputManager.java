@@ -101,6 +101,7 @@ public class OutputManager {
     public void finish(Simulator sim) {
         if (!save) return;
         outputFileDist(sim, true);
+        outputFinalFileDist(sim);
         
         try {
             hitrateOutput.close();
@@ -201,6 +202,35 @@ public class OutputManager {
             }
 
             // cleanup
+            csv.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    /**
+     * Output the information that is in the cache at the end
+     * @param sim -- the simulator ran
+     */
+    private void outputFinalFileDist(Simulator sim) {
+        try {
+            CSVWriter csv = new CSVWriter(
+              new FileWriter("results/" + filename + "_final.csv"));
+            
+            String columns[] = {"file_id", "file_name"};
+                            
+            csv.writeNext(columns);
+            
+            for (CacheItem ci : sim.cache) {
+                if (ci.isInCache()) {
+                    String[] record = {Integer.toString(ci.getFileId()),
+                                       ci.getFileName()             
+                    };
+                    
+                    csv.writeNext(record);
+                }
+            }
+            
             csv.close();
         } catch (IOException e) {
             e.printStackTrace();
