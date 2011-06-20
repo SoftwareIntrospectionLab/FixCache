@@ -175,7 +175,7 @@ public class Simulator {
                 final ResultSet files = findFileQuery.executeQuery();
                 // loop through those file ids
                 while (files.next()) {
-                    //System.out.println(cache.toString());
+                    // System.out.println(cache.toString());
                     fileId = files.getInt(1); 
                     type = ActionType.valueOf(files.getString(2));
                     numprefetch = processOneFile(cid, cdate, isBugFix,

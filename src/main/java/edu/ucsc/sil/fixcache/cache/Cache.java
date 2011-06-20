@@ -262,9 +262,10 @@ public class Cache implements Iterable<CacheItem>{
         StringBuilder s = new StringBuilder();
         s.append("[");
         for (CacheItem ci: this){
-            if (ci.isInCache())
-                s.append(ci.getFileName());
+            if (ci.isInCache()) {
+                s.append(ci.getFileId());
             	s.append(",");
+            }
         }
         s.append("]");
         return s.toString();

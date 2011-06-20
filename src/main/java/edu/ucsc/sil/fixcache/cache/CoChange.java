@@ -20,12 +20,12 @@ public class CoChange {
      * database setup
      */
     final static Connection conn = DatabaseManager.getConnection();
-    static final String findCommitId = "select commit_id from actions, scmlog, files "
-        + "where actions.file_id=? and actions.commit_id=scmlog.id and "
-        + "date between ? and ? and scmlog.repository_id=?";
+    static final String findCommitId = "select s.id from actions a, scmlog s "
+        + "where a.file_id=? and a.commit_id=s.id and "
+        + "s.date between ? and ? and s.repository_id=?";
     // XXX: don't add deleted files to map
     static final String findCochangeFileId = "select files.id from files, actions, file_types "
-        + "where files.id=actions.file_id and commit_id =? and "
+        + "where commit_id =? and actions.file_id = files.id and "
         + "files.id=file_types.file_id and file_types.type='code'"; // XXX
     // and
     // actions.type

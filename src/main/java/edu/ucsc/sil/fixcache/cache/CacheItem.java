@@ -85,6 +85,7 @@ public class CacheItem {
         parent = p;
         update(cid, cdate, p.getStartDate(), r);
         assert (r != CacheReason.BugEntity || missCount != 0);
+        assert (fileId > 0);
         assert (parent.neverInCache(fileId));
         assert (checkFileType(fileId));
         assert (checkRepo(p.repID, cid));
