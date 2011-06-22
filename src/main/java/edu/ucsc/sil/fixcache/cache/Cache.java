@@ -1,7 +1,10 @@
 package edu.ucsc.sil.fixcache.cache;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
 
 import edu.ucsc.sil.fixcache.cache.CacheItem.CacheReason;
 
@@ -59,7 +62,17 @@ public class Cache implements Iterable<CacheItem>{
     // used in file distribution output
     @Override
     public Iterator<CacheItem> iterator() {
-        return cacheTable.values().iterator();
+        List<CacheItem> inCacheList = new ArrayList<CacheItem>();
+        
+        for (CacheItem ci : cacheTable.values()) {
+            inCacheList.add(ci);
+        }
+        
+        return inCacheList.iterator();
+    }
+    
+    public Collection<CacheItem> allCacheValues() {
+        return cacheTable.values();
     }
 
     /**

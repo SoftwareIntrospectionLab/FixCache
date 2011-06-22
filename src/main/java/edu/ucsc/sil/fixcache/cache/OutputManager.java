@@ -187,9 +187,9 @@ public class OutputManager {
             
             // the file already has the correct header line
             // write out each record
-            for (CacheItem ci : sim.cache){
+            for (CacheItem ci : sim.cache.allCacheValues()){
                 String[] record = {Integer.toString(ci.getFileId()),
-                    ci.getFileName(),
+                    ci.getFilePath(),
                     Integer.toString(ci.getLOC()), // max LOC
                     Integer.toString(ci.getLoadCount()),
                     Integer.toString(ci.getHitCount()),
@@ -222,13 +222,11 @@ public class OutputManager {
             csv.writeNext(columns);
             
             for (CacheItem ci : sim.cache) {
-                if (ci.isInCache()) {
-                    String[] record = {Integer.toString(ci.getFileId()),
-                                       ci.getFileName()             
-                    };
-                    
-                    csv.writeNext(record);
-                }
+                String[] record = {Integer.toString(ci.getFileId()),
+                                   ci.getFilePath()             
+                };
+                
+                csv.writeNext(record);
             }
             
             csv.close();

@@ -58,6 +58,7 @@ public class CacheItem {
     }
 
     private final int fileId; // id of file
+    private String filePath = null;
     private int loadDate; // changed on cache hit
     private int LOC; // changed on cache hit; max LOC
     private int number; // represents either the number of bugs, changes, or
@@ -290,10 +291,16 @@ public class CacheItem {
     }
 
     /**
-     * @return Returns the entityId.
+     * @return Returns the file path. The first time this runs, its expensive.
      */
-    public String getFileName() {
-        String filePath = Integer.toString(getFileId());
+    public String getFilePath() {
+        if (filePath != null) {
+          return filePath;
+        }
+        
+        // Just in case we don't have a file path, return something reasonably
+        // useful
+        filePath = Integer.toString(getFileId());
         
         final String findFilePath = "select fp.file_path " + 
             "from file_paths fp " + 

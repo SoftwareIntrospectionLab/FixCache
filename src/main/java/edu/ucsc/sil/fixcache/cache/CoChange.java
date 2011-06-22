@@ -24,13 +24,7 @@ public class CoChange {
         + "where a.file_id=? and a.commit_id=s.id and "
         + "s.date between ? and ? and s.repository_id=?";
     // XXX: don't add deleted files to map
-    static final String findCochangeFileId = "select files.id from files, actions, file_types "
-        + "where commit_id =? and actions.file_id = files.id and "
-        + "files.id=file_types.file_id and file_types.type='code'"; // XXX
-    // and
-    // actions.type
-    // =
-    // 'M'?
+    static final String findCochangeFileId = Simulator.findCommitCodeFiles;
     private static PreparedStatement findCommitIdQuery;
     private static PreparedStatement findCochangeFileNameQuery;
 

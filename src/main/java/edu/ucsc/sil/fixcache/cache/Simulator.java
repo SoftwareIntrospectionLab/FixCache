@@ -18,16 +18,11 @@ public class Simulator {
 
     static final String findCommit = "select id, date, is_bug_fix from scmlog "
             + "where repository_id =? and date between ? and ? order by date ASC";
-    static final String findFile = "select fp.file_id, a.type " + 
+    static final String findCommitCodeFiles = "select a.file_id, a.type " + 
     "from actions a, " + 
-    "     file_paths fp, " + 
     "     file_types ft, " + 
     "     content c " + 
-    "where fp.id = (select max(id) " + 
-    "               from file_paths " + 
-    "               where file_id = a.file_id " + 
-    "               and commit_id <= a.commit_id) " + 
-    "and a.commit_id = ? " + 
+    "where a.commit_id = ? " + 
     "and a.file_id = c.file_id " + 
     "and a.commit_id = c.commit_id " + 
     "and a.file_id = ft.file_id " + 
@@ -88,7 +83,7 @@ public class Simulator {
         output = new OutputManager(cache.startDate, in.saveToFile, in.monthly);
 
         try {
-            findFileQuery = conn.prepareStatement(findFile);
+            findFileQuery = conn.prepareStatement(findCommitCodeFiles);
             findCommitQuery = conn.prepareStatement(findCommit);
             findHunkIdQuery = conn.prepareStatement(findHunkId);
             findBugIntroCdateQuery = conn.prepareStatement(findBugIntroCdate);
