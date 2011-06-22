@@ -294,27 +294,25 @@ public class CacheItem {
      * @return Returns the file path. The first time this runs, its expensive.
      */
     public String getFilePath() {
-        if (filePath != null) {
-          return filePath;
-        }
-        
-        // Just in case we don't have a file path, return something reasonably
-        // useful
-        filePath = Integer.toString(getFileId());
-        
-        final String findFilePath = "select fp.file_path " + 
-            "from file_paths fp " + 
-            "where file_id = ? " + 
-            "order by id desc " + 
-            "limit 1";
-        
-        try {
-            final PreparedStatement findFilePathQuery = 
-                conn.prepareStatement(findFilePath);
-            findFilePathQuery.setInt(1, getFileId());
-            filePath = Database.getStringResult(findFilePathQuery);
-        } catch (SQLException e1) {
-            e1.printStackTrace();
+        if (filePath == null) {   
+            // Just in case we don't have a file path, return something reasonably
+            // useful
+            filePath = Integer.toString(getFileId());
+            
+            final String findFilePath = "select fp.file_path " + 
+                "from file_paths fp " + 
+                "where file_id = ? " + 
+                "order by id desc " + 
+                "limit 1";
+            
+            try {
+                final PreparedStatement findFilePathQuery = 
+                    conn.prepareStatement(findFilePath);
+                findFilePathQuery.setInt(1, getFileId());
+                filePath = Database.getStringResult(findFilePathQuery);
+            } catch (SQLException e1) {
+                e1.printStackTrace();
+            }
         }
         
         return filePath;
