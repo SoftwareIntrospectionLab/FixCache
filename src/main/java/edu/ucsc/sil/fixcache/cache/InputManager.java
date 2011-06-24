@@ -1,5 +1,6 @@
 package edu.ucsc.sil.fixcache.cache;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -27,6 +28,7 @@ public class InputManager {
     String start;
     String end;
     boolean saveToFile;
+    String outputDirectory;
     boolean monthly;
 
     /**
@@ -47,6 +49,7 @@ public class InputManager {
         this.start = null;
         this.end = null;
         this.saveToFile = false;
+        this.outputDirectory = null;
         this.monthly = false;
         this.checkParameter();
     }        
@@ -78,6 +81,7 @@ public class InputManager {
         CmdLineParser.Option sd_opt = parser.addStringOption('s', "start");
         CmdLineParser.Option ed_opt = parser.addStringOption('e', "end");
         CmdLineParser.Option save_opt = parser.addBooleanOption('o',"save");
+        CmdLineParser.Option directory_opt = parser.addStringOption('d', "directory");
         CmdLineParser.Option month_opt = parser.addBooleanOption('m',"multiple");
         CmdLineParser.Option tune_opt = parser.addBooleanOption('u', "tune");
         CmdLineParser.Option help_opt = parser.addBooleanOption('h', "help");
@@ -132,6 +136,9 @@ public class InputManager {
         // get the start and end dates
         this.start = (String) parser.getOptionValue(sd_opt, null);
         this.end = (String) parser.getOptionValue(ed_opt, null);
+        
+        // get the output directory
+        this.outputDirectory = (String) parser.getOptionValue(directory_opt, "results");
 
         // check invariants, and replace default parameters
         this.checkParameter();      
@@ -180,6 +187,25 @@ public class InputManager {
         // set defaults for start and end dates
         start = findFirstDate(start, pid);
         end = findLastDate(end, pid);
+        
+        // If we're saving out files, make sure the directory is available
+        File output = new File(outputDirectory);
+        boolean success = false;
+        
+        // Make the directory if it doesn't exist
+        if (saveToFile && (!output.exists())) {
+            try {
+                success = output.mkdir();
+            } catch (SecurityException e) {
+                success = false;
+                e.printStackTrace();
+            }
+            
+            if (!success) {
+                System.err.println("Can't create output directory");
+                System.exit(1);
+            }
+        }
     }
 
     /**
