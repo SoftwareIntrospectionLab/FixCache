@@ -3,6 +3,8 @@ package edu.ucsc.sil.fixcache.cache;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Iterator;
+
 import au.com.bytecode.opencsv.CSVWriter;
 
 import edu.ucsc.sil.fixcache.util.Dates;
@@ -179,7 +181,9 @@ public class OutputManager {
             
             // the file already has the correct header line
             // write out each record
-            for (CacheItem ci : sim.cache.allCacheValues()){
+            Iterator<CacheItem> cacheValues = sim.cache.allCacheValues();
+            while (cacheValues.hasNext()){
+                CacheItem ci = cacheValues.next(); 
                 String[] record = {Integer.toString(ci.getFileId()),
                     ci.getFilePath(),
                     Integer.toString(ci.getLOC()), // max LOC

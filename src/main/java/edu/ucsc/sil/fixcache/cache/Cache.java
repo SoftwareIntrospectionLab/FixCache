@@ -71,8 +71,8 @@ public class Cache implements Iterable<CacheItem>{
         return inCacheList.iterator();
     }
     
-    public Collection<CacheItem> allCacheValues() {
-        return cacheTable.values();
+    public Iterator<CacheItem> allCacheValues() {
+        return cacheTable.values().iterator();
     }
 
     /**
