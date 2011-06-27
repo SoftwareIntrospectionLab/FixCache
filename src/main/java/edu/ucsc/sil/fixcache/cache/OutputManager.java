@@ -32,14 +32,6 @@ public class OutputManager {
         outputDate = start;
         filedistPrintMultiple = outputMulti;
         headerPrinted = false;
-        
-        try {
-            boolean success = new File("results").mkdir();
-        } catch (SecurityException e) {
-            String msg = "Can't create results directory due to security.";
-            System.err.println(msg);
-            e.printStackTrace();
-        }
     }
     
     private void writeComment(CSVWriter writer, String comment) {
