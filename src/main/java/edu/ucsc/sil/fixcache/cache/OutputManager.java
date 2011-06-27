@@ -3,6 +3,8 @@ package edu.ucsc.sil.fixcache.cache;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Iterator;
+
 import au.com.bytecode.opencsv.CSVWriter;
 
 import edu.ucsc.sil.fixcache.util.Dates;
@@ -32,14 +34,6 @@ public class OutputManager {
         outputDate = start;
         filedistPrintMultiple = outputMulti;
         headerPrinted = false;
-        
-        try {
-            boolean success = new File("results").mkdir();
-        } catch (SecurityException e) {
-            String msg = "Can't create results directory due to security.";
-            System.err.println(msg);
-            e.printStackTrace();
-        }
     }
     
     private void writeComment(CSVWriter writer, String comment) {
@@ -101,6 +95,7 @@ public class OutputManager {
     public void finish(Simulator sim) {
         if (!save) return;
         outputFileDist(sim, true);
+        outputFinalFileDist(sim);
         
         try {
             hitrateOutput.close();
@@ -173,21 +168,24 @@ public class OutputManager {
                     + sim.prefetchsize + ", cache replacement policy: " + sim.cacheRep);
             
             // column titles. "reason" used to be here, but was commented out.
-            String columns[] = {"file_id", "loc", "num_load", "num_hits",
+            String columns[] = {"file_id", "file_name", "loc", "num_load", "num_hits",
                 "num_misses", "duration"};
             
             csv.writeNext(columns);
             
             // initial row special to store total duration
-            String initialRecord[] = {"0", "0", "0", "0", "0", 
+            String initialRecord[] = {"0", "0", "0", "0", "0", "0", 
                 Integer.toString(sim.cache.getTotalDuration())};
             
             csv.writeNext(initialRecord);
             
             // the file already has the correct header line
             // write out each record
-            for (CacheItem ci : sim.cache){
-                String[] record = {ci.getFileName(),
+            Iterator<CacheItem> cacheValues = sim.cache.allCacheValues();
+            while (cacheValues.hasNext()){
+                CacheItem ci = cacheValues.next(); 
+                String[] record = {Integer.toString(ci.getFileId()),
+                    ci.getFilePath(),
                     Integer.toString(ci.getLOC()), // max LOC
                     Integer.toString(ci.getLoadCount()),
                     Integer.toString(ci.getHitCount()),
@@ -200,6 +198,37 @@ public class OutputManager {
             }
 
             // cleanup
+            csv.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    /**
+     * Output the information that is in the cache at the end
+     * @param sim -- the simulator ran
+     */
+    private void outputFinalFileDist(Simulator sim) {
+        try {
+            CSVWriter csv = new CSVWriter(
+              new FileWriter("results/" + filename + "_final.csv"));
+            
+            String columns[] = {"file_id", "file_name"};
+                            
+            csv.writeNext(columns);
+            
+            Iterator<CacheItem> allCacheValues = sim.cache.allCacheValues();
+            while (allCacheValues.hasNext()) {
+                CacheItem ci = allCacheValues.next();
+                if (ci.isInCache()) {
+                    String[] record = {Integer.toString(ci.getFileId()),
+                                       ci.getFilePath()             
+                    };
+                    
+                    csv.writeNext(record);
+                }
+            }
+            
             csv.close();
         } catch (IOException e) {
             e.printStackTrace();
