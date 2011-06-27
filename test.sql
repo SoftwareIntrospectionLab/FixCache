@@ -65,6 +65,14 @@ CREATE TABLE `file_links` (
   `commit_id` int(11) DEFAULT NULL
 );
 
+DROP TABLE IF EXISTS `file_paths`;
+CREATE TABLE  `file_paths` (
+  `id` int(11) NOT NULL,
+  `commit_id` int(11) DEFAULT NULL,
+  `file_id` int(11) DEFAULT NULL,
+  `file_path` varchar(255) DEFAULT NULL
+);
+
 DROP TABLE IF EXISTS `file_types`;
 CREATE TABLE `file_types` (
   `id` int(11) NOT NULL,

@@ -18,20 +18,19 @@ public class CacheItem {
 
     static Connection conn = DatabaseManager.getConnection();
     static final String findNumberOfAuthors = "select count(distinct(scmlog.author_id)) "
-            + "from scmlog, actions, files "
-            + "where scmlog.id=actions.commit_id and actions.file_id=files.id "
-            + "and date between ? and ? and file_name = ? and scmlog.repository_id=?";
+            + "from scmlog, actions "
+            + "where scmlog.id=actions.commit_id and actions.file_id=? "
+            + "and date between ? and ? and scmlog.repository_id=?";
     static final String findNumberOfChanges = "select count(actions.file_id) "
-            + "from scmlog, actions, files where scmlog.id=actions.commit_id "
-            + "and actions.file_id=files.id and date between ? and ? and file_name = ? "
+            + "from scmlog, actions where scmlog.id=actions.commit_id "
+            + "and actions.file_id=? and date between ? and ?"
             + "and scmlog.repository_id=?";
     static final String findNumberOfBugs = "select count(actions.file_id) "
-            + "from scmlog, actions, files where scmlog.id = actions.commit_id "
-            + "and actions.file_id=files.id and file_name=? and date between ? and ? "
+            + "from scmlog, actions where scmlog.id = actions.commit_id "
+            + "and actions.file_id=? and date between ? and ? "
             + "and scmlog.repository_id=? and is_bug_fix=1";
-    static final String findLoc = "select loc from content, files "
-            + "where content.file_id=files.id and"
-            + " file_name=? and commit_id =?";
+    static final String findLoc = "select loc from content "
+            + "where file_id = ? and commit_id = ?";
     private static PreparedStatement findNumberOfAuthorsQuery;
     private static PreparedStatement findNumberOfChangesQuery;
     private static PreparedStatement findNumberOfBugsQuery;
@@ -45,9 +44,8 @@ public class CacheItem {
             + "repository_id = ? and id = ?";
     private static PreparedStatement checkRepoQuery;
 
-    private static final String checkFileType = "select file_id from "
-            + "file_types, files where file_name = ? and "
-            + "file_id = files.id and type='code'";
+    private static final String checkFileType = "select ft.file_id from "
+            + "file_types ft where ft.file_id = ? and ft.type='code' ";
     private static PreparedStatement checkFileTypeQuery;
 
     /**
@@ -59,7 +57,8 @@ public class CacheItem {
         Preload, CoChange, NewEntity, ModifiedEntity, BugEntity
     }
 
-    private final String fileName; // id of file
+    private final int fileId; // id of file
+    private String filePath = null;
     private int loadDate; // changed on cache hit
     private int LOC; // changed on cache hit; max LOC
     private int number; // represents either the number of bugs, changes, or
@@ -81,14 +80,15 @@ public class CacheItem {
      * Methods
      */
 
-    public CacheItem(String fName, int cid, String cdate, CacheReason r, Cache p) {
-        fileName = fName;
+    public CacheItem(int fId, int cid, String cdate, CacheReason r, Cache p) {
+        fileId = fId;
         reason = r;
         parent = p;
         update(cid, cdate, p.getStartDate(), r);
         assert (r != CacheReason.BugEntity || missCount != 0);
-        assert (parent.neverInCache(fileName));
-        assert (checkFileType(fileName));
+        assert (fileId > 0);
+        assert (parent.neverInCache(fileId));
+        assert (checkFileType(fileId));
         assert (checkRepo(p.repID, cid));
     }
 
@@ -116,8 +116,8 @@ public class CacheItem {
                 hitCount++;
         }
         loadDate = parent.getTime(cid); 
-        LOC = Math.max(LOC, findLoc(fileName, cid)); // max LOC
-        int newnumber = findNumber(fileName, parent.repID, cdate, sdate,
+        LOC = Math.max(LOC, findLoc(fileId, cid)); // max LOC
+        int newnumber = findNumber(fileId, parent.repID, cdate, sdate,
                 parent.getPolicy());
         number = newnumber < 0? number: newnumber;
     }
@@ -150,18 +150,18 @@ public class CacheItem {
      * @return the number of bug fixes for file eid in repository pid between
      *         cdate and start
      */
-    private static int findNumber(String fileName, int pid, String cdate,
+    private static int findNumber(int fileId, int pid, String cdate,
             String sdate, Policy pol) {
         int ret = 0;
         switch (pol) {
         case BUGS:
-            ret = findNumberOfBugs(fileName, pid, cdate, sdate);
+            ret = findNumberOfBugs(fileId, pid, cdate, sdate);
             break;
         case CHANGES:
-            ret = findNumberOfChanges(fileName, pid, cdate, sdate);
+            ret = findNumberOfChanges(fileId, pid, cdate, sdate);
             break;
         case AUTHORS:
-            ret = findNumberOfAuthors(fileName, pid, cdate, sdate);
+            ret = findNumberOfAuthors(fileId, pid, cdate, sdate);
             break;
         case LRU: // do nothing
         }
@@ -183,16 +183,16 @@ public class CacheItem {
      *         DatabaseTest dbTest = new DatabaseTest(); dbTest. between cdate
      *         and start
      */
-    private static int findNumberOfAuthors(String fileName, int pid,
+    private static int findNumberOfAuthors(int fileId, int pid,
             String cdate, String start) {
         int ret = 0;
         try {
             // if (findNumberOfAuthorsQuery == null)
             findNumberOfAuthorsQuery = conn
                     .prepareStatement(findNumberOfAuthors);
-            findNumberOfAuthorsQuery.setString(1, start);
-            findNumberOfAuthorsQuery.setString(2, cdate);
-            findNumberOfAuthorsQuery.setString(3, fileName); 
+            findNumberOfAuthorsQuery.setInt(1, fileId); 
+            findNumberOfAuthorsQuery.setString(2, start);
+            findNumberOfAuthorsQuery.setString(3, cdate);
             findNumberOfAuthorsQuery.setInt(4, pid);
             ret = Database.getIntResult(findNumberOfAuthorsQuery);
             findNumberOfAuthorsQuery.close();
@@ -215,16 +215,16 @@ public class CacheItem {
      * @return the number of commits for file eid in repository pid between
      *         cdate and start
      */
-    private static int findNumberOfChanges(String fileName, int pid,
+    private static int findNumberOfChanges(int fileId, int pid,
             String cdate, String start) {
         int ret = 0;
         try {
             // if (findNumberOfChangesQuery == null)
             findNumberOfChangesQuery = conn
                     .prepareStatement(findNumberOfChanges);
-            findNumberOfChangesQuery.setString(1, start);
-            findNumberOfChangesQuery.setString(2, cdate);
-            findNumberOfChangesQuery.setString(3, fileName); 
+            findNumberOfChangesQuery.setInt(1, fileId);
+            findNumberOfChangesQuery.setString(2, start);
+            findNumberOfChangesQuery.setString(3, cdate);
             findNumberOfChangesQuery.setInt(4, pid);
             ret = Database.getIntResult(findNumberOfChangesQuery);
             findNumberOfChangesQuery.close();
@@ -247,14 +247,14 @@ public class CacheItem {
      * @return the number of bug fixes for file eid in repository pid between
      *         cdate and start
      */
-    private static int findNumberOfBugs(String fileName, int pid, String cdate,
+    private static int findNumberOfBugs(int fileId, int pid, String cdate,
             String start) {
         int ret = 0;
         try {
             // if (findNumberOfBugsQuery == null)
             findNumberOfBugsQuery = conn.prepareStatement(findNumberOfBugs);
 
-            findNumberOfBugsQuery.setString(1, fileName);
+            findNumberOfBugsQuery.setInt(1, fileId);
             findNumberOfBugsQuery.setString(2, start);
             findNumberOfBugsQuery.setString(3, cdate);
             findNumberOfBugsQuery.setInt(4, pid);
@@ -275,13 +275,12 @@ public class CacheItem {
      *            -- commit id
      * @return the lines of code for eid at cid
      */
-    protected static int findLoc(String fileName, int cid) {
+    protected static int findLoc(int fileId, int cid) {
         int ret = 0;
         try {
             // if (findLocQuery == null)
             findLocQuery = conn.prepareStatement(findLoc);
-            findLocQuery.setString(1, fileName); // XXX fix query to use
-                                                 // file_name
+            findLocQuery.setInt(1, fileId);
             findLocQuery.setInt(2, cid);
             ret = Database.getIntResult(findLocQuery);
             findLocQuery.close();
@@ -292,10 +291,35 @@ public class CacheItem {
     }
 
     /**
-     * @return Returns the entityId.
+     * @return Returns the file path. The first time this runs, its expensive.
      */
-    public String getFileName() {
-        return fileName;
+    public String getFilePath() {
+        if (filePath == null) {   
+            // Just in case we don't have a file path, return something reasonably
+            // useful
+            filePath = Integer.toString(getFileId());
+            
+            final String findFilePath = "select fp.file_path " + 
+                "from file_paths fp " + 
+                "where file_id = ? " + 
+                "order by id desc " + 
+                "limit 1";
+            
+            try {
+                final PreparedStatement findFilePathQuery = 
+                    conn.prepareStatement(findFilePath);
+                findFilePathQuery.setInt(1, getFileId());
+                filePath = Database.getStringResult(findFilePathQuery);
+            } catch (SQLException e1) {
+                e1.printStackTrace();
+            }
+        }
+        
+        return filePath;
+    }
+    
+    public int getFileId() {
+      return fileId;
     }
 
     /**
@@ -421,11 +445,11 @@ public class CacheItem {
      *            -- filename
      * @return true if it is a code file, false otherwise
      */
-    private boolean checkFileType(String fname) {
+    private boolean checkFileType(int fileId) {
         boolean isCode = false;
         try {
             checkFileTypeQuery = conn.prepareStatement(checkFileType);
-            checkFileTypeQuery.setString(1, fname);
+            checkFileTypeQuery.setInt(1, fileId);
             isCode = checkFileTypeQuery.executeQuery().next();
             checkFileTypeQuery.close();
         } catch (SQLException e1) {
