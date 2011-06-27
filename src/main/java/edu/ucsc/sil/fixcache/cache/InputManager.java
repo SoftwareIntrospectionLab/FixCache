@@ -49,7 +49,7 @@ public class InputManager {
         this.start = null;
         this.end = null;
         this.saveToFile = false;
-        this.outputDirectory = null;
+        this.outputDirectory = "";
         this.monthly = false;
         this.checkParameter();
     }        
