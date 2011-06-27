@@ -10,7 +10,7 @@ import edu.ucsc.sil.fixcache.cache.CacheItem.CacheReason;
 
 import edu.ucsc.sil.fixcache.util.Dates;
 
-public class Cache implements Iterable<CacheItem>{
+public class Cache{
 
     /**
      *  Invariant: cacheTable.size() <= size;
@@ -58,19 +58,6 @@ public class Cache implements Iterable<CacheItem>{
     /**
      * Methods
      */
-    
-    // used in file distribution output
-    @Override
-    public Iterator<CacheItem> iterator() {
-        List<CacheItem> inCacheList = new ArrayList<CacheItem>();
-        
-        for (CacheItem ci : cacheTable.values()) {
-            inCacheList.add(ci);
-        }
-        
-        return inCacheList.iterator();
-    }
-    
     public Iterator<CacheItem> allCacheValues() {
         return cacheTable.values().iterator();
     }
@@ -274,7 +261,9 @@ public class Cache implements Iterable<CacheItem>{
     public String toString(){
         StringBuilder s = new StringBuilder();
         s.append("[");
-        for (CacheItem ci: this){
+        Iterator<CacheItem> allCacheValues = allCacheValues();
+        while (allCacheValues.hasNext()) {
+            CacheItem ci = allCacheValues.next();
             if (ci.isInCache()) {
                 s.append(ci.getFileId());
             	s.append(",");

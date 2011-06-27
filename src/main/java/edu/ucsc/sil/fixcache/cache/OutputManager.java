@@ -217,12 +217,16 @@ public class OutputManager {
                             
             csv.writeNext(columns);
             
-            for (CacheItem ci : sim.cache) {
-                String[] record = {Integer.toString(ci.getFileId()),
-                                   ci.getFilePath()             
-                };
-                
-                csv.writeNext(record);
+            Iterator<CacheItem> allCacheValues = sim.cache.allCacheValues();
+            while (allCacheValues.hasNext()) {
+                CacheItem ci = allCacheValues.next();
+                if (ci.isInCache()) {
+                    String[] record = {Integer.toString(ci.getFileId()),
+                                       ci.getFilePath()             
+                    };
+                    
+                    csv.writeNext(record);
+                }
             }
             
             csv.close();
