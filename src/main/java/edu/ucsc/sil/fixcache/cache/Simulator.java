@@ -80,7 +80,8 @@ public class Simulator {
         cache = new Cache(in.cachesize, new CacheReplacement(in.crp), in.start,
                 in.end, in.pid);
 
-        output = new OutputManager(cache.startDate, in.saveToFile, in.monthly);
+        output = new OutputManager(cache.startDate, in.saveToFile, in.monthly,
+            in.outputDirectory, in.filePrefix);
 
         try {
             findFileQuery = conn.prepareStatement(findCommitCodeFiles);

@@ -28,6 +28,7 @@ public class InputManager {
     String start;
     String end;
     boolean saveToFile;
+    String filePrefix;
     String outputDirectory;
     boolean monthly;
 
@@ -50,6 +51,7 @@ public class InputManager {
         this.end = null;
         this.saveToFile = false;
         this.outputDirectory = "";
+        this.filePrefix = "";
         this.monthly = false;
         this.checkParameter();
     }        
@@ -82,6 +84,7 @@ public class InputManager {
         CmdLineParser.Option ed_opt = parser.addStringOption('e', "end");
         CmdLineParser.Option save_opt = parser.addBooleanOption('o',"save");
         CmdLineParser.Option directory_opt = parser.addStringOption('d', "directory");
+        CmdLineParser.Option fileprefix_opt  = parser.addStringOption('x', "prefix");
         CmdLineParser.Option month_opt = parser.addBooleanOption('m',"multiple");
         CmdLineParser.Option tune_opt = parser.addBooleanOption('u', "tune");
         CmdLineParser.Option help_opt = parser.addBooleanOption('h', "help");
@@ -139,6 +142,8 @@ public class InputManager {
         
         // get the output directory
         this.outputDirectory = (String) parser.getOptionValue(directory_opt, "results");
+        
+        this.filePrefix = (String) parser.getOptionValue(fileprefix_opt, "");
 
         // check invariants, and replace default parameters
         this.checkParameter();      
@@ -187,6 +192,14 @@ public class InputManager {
         // set defaults for start and end dates
         start = findFirstDate(start, pid);
         end = findLastDate(end, pid);
+        
+        // Now we know block sizes and things, set the file name default if
+        // unspecified
+        if (filePrefix == null || filePrefix == "") {
+            // get the file prefix
+            filePrefix = this.pid + "_" + this.cachesize + "_" + this.blksize + "_"
+            + this.prefetchsize + "_" + this.crp.toString();
+        }
         
         // If we're saving out files, make sure the directory is available
         File output = new File(outputDirectory);

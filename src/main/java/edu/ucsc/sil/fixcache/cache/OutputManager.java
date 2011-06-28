@@ -17,6 +17,8 @@ public class OutputManager {
     boolean save;
     boolean filedistPrintMultiple; // whether the filedist output should happen once or more
     boolean headerPrinted;
+    String filePrefix;
+    String outputDirectory;
 
     CSVWriter hitrateOutput; 
     String filename;
@@ -29,11 +31,14 @@ public class OutputManager {
      * @param save -- whether to save to a file
      * @param outputMulti -- whether to output multiple file distribution files
      */
-    OutputManager(String start, boolean save, boolean outputMulti){
+    OutputManager(String start, boolean save, boolean outputMulti,
+        String outputDirectory, String filePrefix) {
         this.save = save;
         outputDate = start;
         filedistPrintMultiple = outputMulti;
         headerPrinted = false;
+        this.outputDirectory = outputDirectory;
+        this.filePrefix = filePrefix;
     }
     
     private void writeComment(CSVWriter writer, String comment) {
@@ -45,13 +50,10 @@ public class OutputManager {
      * Sets the filename and prints out header information
      * @param sim -- Simulator ran
      */
-    private void printHeader(Simulator sim) {
-        filename = sim.pid + "_" + sim.getCacheSize() + "_" + sim.blocksize + "_"
-        + sim.prefetchsize + "_" + sim.cacheRep;
-        
+    private void printHeader(Simulator sim) {        
         try {
             hitrateOutput = new CSVWriter(
-                new FileWriter("results/" + filename + "_hitrate.csv"), '\t');
+                new FileWriter(outputDirectory + "/" + filePrefix + "_hitrate.csv"), '\t');
 
             writeComment(hitrateOutput, "hitrate for every " +outputSpacing+ " months, "
                     + "used to describe the variation of hit rate with time");
@@ -154,9 +156,9 @@ public class OutputManager {
         // set up a new csvWriter
         String pathname;
         if (filedistPrintMultiple && !last)
-            pathname = "results/" + month + "-" + filename + "_filedist.csv";
+            pathname = outputDirectory + "/" + filePrefix + "-" + month + "_filedist.csv";
         else
-            pathname = "results/" + filename + "_filedist.csv";        
+            pathname = outputDirectory + "/" + filePrefix + "_filedist.csv";        
         
         try {
             CSVWriter csv = new CSVWriter(new FileWriter(pathname), '\t');
@@ -211,7 +213,7 @@ public class OutputManager {
     private void outputFinalFileDist(Simulator sim) {
         try {
             CSVWriter csv = new CSVWriter(
-              new FileWriter("results/" + filename + "_final.csv"));
+              new FileWriter(outputDirectory + "/" + filePrefix + "_final.csv"));
             
             String columns[] = {"file_id", "file_name"};
                             
