@@ -31,7 +31,7 @@ The standard Maven `mvn clean/build/test/run` goals work, and these are wrapped 
 
 Configuring FixCache
 --------------------
-First off, you need a MySQL database populated with CVSanalY2 data, as previously described. Next, you'll need to create a file called `database.properties` in the root directory so FixCache knows how to connect to it.
+First off, you need a MySQL database populated with MininGit data, as previously described. Next, you'll need to create a file called `database.properties` in the root directory so FixCache knows how to connect to it.
 
 Here's an example `database.properties` file, which follows standard [Java Properties file](http://en.wikipedia.org/wiki/.properties) formatting. You'll need to provide at least your username and password:
 
