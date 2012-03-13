@@ -16,7 +16,7 @@ Versions tested are in parentheses
 
 Database
 --------
-This distribution of FixCache operates on a MySQL database constructed by [our fork of CVSanalY2](http://github.com/SoftwareIntrospectionLab/cvsanaly) constructed with the following parameters:
+This distribution of FixCache operates on a MySQL database constructed by [MininGit](http://github.com/SoftwareIntrospectionLab/miningit) constructed with the following parameters:
 
     ./cvsanaly2 --db-user=[user] --db-password=[password] --extensions=FileTypes,BugFixMessage,Content,FileCount,Patches,Hunks,HunkBlame --hard-order [repository path]
 
